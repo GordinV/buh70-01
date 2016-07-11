@@ -1,0 +1,19 @@
+ul {
+    display: inline-block;
+    list-style-type: none;
+    width:100%;
+    list-style:none;
+}
+
+/*changeDepartments
+
+li.listDepartments {
+    display:block;
+    border-bottom:1px solid black;
+    padding:10px 10px 10px 10px;
+}
+
+ul li a.linkDepartments {
+    text-decoration: none;
+}
+*/

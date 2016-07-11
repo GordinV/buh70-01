@@ -1,0 +1,51 @@
+{
+  "name": "buh70",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "ajax": "0.0.4",
+    "async": "^1.5.0",
+    "babel-loader": "^6.2.2",
+    "babel-preset-es2015": "^6.5.0",
+    "babel-preset-react": "^6.3.13",
+    "babelify": "^7.2.0",
+    "body-parser": "~1.13.2",
+    "co": "^4.6.0",
+    "compression": "^1.6.1",
+    "connect-pg-simple": "^3.1.0",
+    "cookie-parser": "~1.3.5",
+    "debug": "~2.2.0",
+    "errorhandler": "^1.4.2",
+    "express": "~4.13.1",
+    "express-session": "^1.12.1",
+    "fluxify": "^0.2.3",
+    "jade": "~1.11.0",
+    "jquery": "^2.2.0",
+    "morgan": "~1.6.1",
+    "nconf": "^0.8.2",
+    "node-jsx": "^0.13.3",
+    "pg": "^4.4.3",
+    "react": "^0.14.7",
+    "react-addons-create-fragment": "^0.14.7",
+    "react-addons-pure-render-mixin": "^0.14.7",
+    "react-datagrid": "^2.0.2",
+    "react-dom": "^0.14.7",
+    "react-select": "^0.9.1",
+    "request": "^2.69.0",
+    "serve-favicon": "~2.3.0",
+    "superagent": "^1.7.2",
+    "webpack": "^1.12.13",
+    "winston": "^2.1.1"
+  },
+  "devDependencies": {
+    "file-loader": "^0.8.5",
+    "jade": "^1.11.0",
+    "jade-html-loader": "0.0.3",
+    "jsx-loader": "^0.13.2",
+    "react": "^0.14.7",
+    "react-hot-loader": "^1.3.0"
+  }
+}

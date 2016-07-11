@@ -1,0 +1,13 @@
+<ul class="undefined"><li class="home">Home<a href="/home"></a></li></ul><!--doctype html--><!--htmlblock link
+    var selected = 'home'; //default
+    var menu = { 'home': '/home', 'blog': '/blog', 'contact': '/contact' };
+
+    body
+        nav
+            ul
+                each val, key in menu
+                    li
+                        if selected === key
+                            a.selected(href=val, title=key)= key
+                        else
+                            a(href=val, title=key)= key-->
