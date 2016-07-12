@@ -3,10 +3,9 @@ var React = require('react'),
     flux = require('fluxify');
 
 const Form = require('../components/form.js'),
-    PageLabel = require('../components/page_label'),
     InputText = require('../components/doc-input-text.jsx'),
     InputDate = require('../components/doc-input-date.jsx'),
-    InputNumber = require('../components/doc-input-number.jsx'),
+//    InputNumber = require('../components/doc-input-number.jsx'),
     Toolbar = require('../components/doc-toolbar.jsx'),
     DocCommon = require('../components/doc-common.jsx'),
     Select = require('../components/doc-input-select.jsx'),
@@ -53,7 +52,6 @@ const Arve = React.createClass({
         var self = this,
             data = self.props.data.row,
             details = self.props.data.details,
-            bpm = self.props.bpm,
             gridConfig = self.props.data.gridConfig;
         
         // формируем зависимости
@@ -61,7 +59,7 @@ const Arve = React.createClass({
 
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
-        flux.doAction('bpmChange', bpm);
+ //       flux.doAction('bpmChange', bpm);
 //        flux.doAction('docIdChange', data.id);
         flux.doAction('detailsChange', details); // данные грида
         flux.doAction('gridConfigChange', gridConfig); // данные грида
@@ -121,8 +119,8 @@ const Arve = React.createClass({
 
     render: function () {
         var data = this.state.docData,
-            isEditeMode = this.state.edited,
-            showMessageBox = this.state.showMessageBox; // будет управлять окном сообщений
+            isEditeMode = this.state.edited;
+//            showMessageBox = this.state.showMessageBox; // будет управлять окном сообщений
 
         //  pattern='[A-Za-z]{3}'
 //console.log('arve rendering:', data);
@@ -131,7 +129,9 @@ const Arve = React.createClass({
 
         return (
             <Form pages={this.pages} ref="form" onSubmit={this.onSubmit} style={{display: 'table'}}>
-                <Toolbar validator={this.validateForm}/>
+                <Toolbar validator={this.validateForm}
+                         taskList = {data.bpm}
+                />
                 <div className='div-doc'>
                     <DocCommon data={data}/>
                     <div className="fieldset">
@@ -201,7 +201,7 @@ const Arve = React.createClass({
             if (gridRowId < 0) {
                 // новая запись
                 // формируем пустую строку
-                gridRow = new Object();
+                gridRow = {};
                 gridRow['id'] = 'NEW' + Math.random();  // генерируем новое ИД
                 gridColumns.forEach((field) => gridRow[field] = null); // создаем поля в объекте
             }

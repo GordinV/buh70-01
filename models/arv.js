@@ -82,14 +82,13 @@ var Arv =  {
     },
     saveDoc: "select docs.sp_salvesta_arv($1, $2, $3) as id",
     bpm:[
-        {step:0, name: 'Регистация документа',action:'register', nextStep:1, task: 'human', data:[], status:null, actualStep:false},
-        {step:1, name: 'Расчет сальдо',action:'calcDocumentSaldo', nextStep:2, task: 'human', data:[], status:null, actualStep:false},
+        {step:0, name: 'Регистация документа',action:'start', nextStep:1, task: 'human', data:[], status:null, actualStep:false},
+        {step:1, name:'Валидация документа', action: 'validateDocument', nextStep:2, task:'human', data:[], status:null, actualStep:false},
         {step:2, name:'Контировка', action: 'generateJournal', nextStep:3, task:'human', data:[], status:null, actualStep:false},
         {step:3, name:'Оплата', action: 'tasumine', nextStep:4, task:'human', data:[], status:null, actualStep:false},
         {step:4, name:'Конец', action: 'lopp', nextStep:null, task:'automat', data:[], status:null, actualStep:false}
     ],
     register: {command: "update docs.doc set status = 1 where id = $1", type:"sql"},
-    calcDocumentSaldo: {command:"select docs.sp_updatearvjaak($1)", type:"sql"},
     generateJournal: {command: "select docs.gen_lausend_arv($1)", type:"sql"},
     executeTask: function(tasks, docId, userId, callback) {
         // выполнит набор задач, переданных в параметре
@@ -103,37 +102,33 @@ var Arv =  {
                 callback(error, null);
             });
     }
-}
+};
 
 module.exports = Arv;
 
 function start(docId, userId) {
+    // реализует старт БП документа
     return new Promise((resolved, reject) => {
-        console.log('start', docId, userId);
+
+        const DOC_STATUS = 1; // устанавливаем активный статус для документа
+
         var sql = 'update docs.doc set status = $1, bpm = $2 where id = $3',
-            bpm = setBpmStatuses(0),
-            bpmStepData = bpm[0].data;
-        
-        bpmStepData = [{execution: Date.now(), executor: userId, vars: null}];
-//        bpmNextStep.
-        bpm[0].data = bpmStepData;
-        bpm[0].status = 'finished';
+            bpm = setBpmStatuses(0, userId);
 
         // выставим актуальный статус для следующего процесса
 
-        var  params = [1,JSON.stringify(bpm), docId];
+        var  params = [DOC_STATUS, JSON.stringify(bpm), docId];
 
         // 1. меняем статус на 1
         // 2. копируем БП
         // 3. апдейтим данные
 
         co(function*() {
-            let result = yield executeSql(sql, params);
-            console.log('results:' ,result); // 1
+            var result = yield executeSql(sql, params);
             // 3. запускаем БП и идем до первой "человечьей" задачи
 
         }).catch(function(err) {
-            console.log('co catched error', err)
+            console.log('co catched error', err);
             reject(error)
         });
 
@@ -142,25 +137,30 @@ function start(docId, userId) {
     })
 }
 
-function setBpmStatuses(actualStepIndex) {
-    let bpm = Arv.bpm,
-        bpmStepData = bpm[actualStepIndex].data,
-        nextStep = bpm[actualStepIndex].nextStep,
-        nextStepIndex;
+function setBpmStatuses(actualStepIndex, userId) {
+// собираем данные на на статус документа, правим данные БП документа
+    try {
+    var bpm = Arv.bpm,
+        nextStep = bpm[actualStepIndex].nextStep;
+        bpm[actualStepIndex].data = [{execution: Date.now(), executor: userId, vars: null}];
+        bpm[actualStepIndex].status = 'finished';
+        console.log('step 0',bpm);
 
-    bpmStepData = [{execution: Date.now(), executor: userId, vars: null}];
-    bpm[actualStepIndex].data = bpmStepData;
-    bpm[actualStepIndex].status = 'finished';
+        // выставим флаг на следующий щаг
+        bpm = bpm.map(stepData => {
+            console.log('step data',nextStep, stepData);
+            if (stepData.step == nextStep) {
+                console.log('found step',nextStep, stepData);
 
-    // выставим флаг на следующий щаг
-    bpm = bpm.map(data, index => {
+                stepData.actualStep = true;
+                stepData.status = 'opened';
+            }
+            return stepData;
+        });
 
-        if (data.step == nextStep) {
-            data.actualStep = true;
-            data.status = 'opened';
-        }
-        return data;
-    });
+    } catch (e) {
+        console.log('try error', e);
+    }
     return bpm;
 
 }
@@ -168,7 +168,7 @@ function setBpmStatuses(actualStepIndex) {
 function executeSql(sql, params) {
     console.log('executeSql', sql, params);
     return new Promise((resolve, reject) => {
-        let DocDataObject = require('./documents');
+        var DocDataObject = require('./documents');
 
         DocDataObject.executeSqlQuery(sql, params, (err , data) => {
             if (err) {

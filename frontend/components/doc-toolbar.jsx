@@ -3,7 +3,7 @@
 var React = require('react'),
     DocButtonAdd = require('../components/doc-button-add.jsx'),
     DocButtonEdit = require('../components/doc-button-edit.jsx'),
-    DocButtonDelete = require('../components/doc-button-delete.jsx'),
+//    DocButtonDelete = require('../components/doc-button-delete.jsx'),
     DocButtonSave = require('../components/doc-button-save.jsx'),
     flux = require('fluxify');
 
@@ -12,9 +12,15 @@ var React = require('react'),
 
 var Toolbar = React.createClass({
     getInitialState: function() {
-      return {warning: false, warningMessage: '', editMode: false, taskList:[{step:0, name:'Start', action: 'start'}]}
+      return {warning: false, warningMessage: '', editMode: false,
+          taskList: this.props.taskList}
     },
 
+    getDefaultProps: function () {
+      return  {
+          taskList: [{step:0, name:'Start', action: 'start', status: 'opened'}]
+      }
+    },
 
     componentWillMount: function() {
 // создаем обработчик события на изменение docId. Если значение = 0 (добавляем новую запись, то просто очитка полей, иначе подгрузка данных
@@ -27,14 +33,16 @@ var Toolbar = React.createClass({
             }
         });
 
+/*
         flux.stores.docStore.on('change:bpm', function(newValue, previousValue) {
+            console.log('change:bpm', newValue);
             if (newValue !== previousValue) {
                 // режим изменился, меняем состояние
                 let data = flux.stores.docStore.data;
                 if (data.bpm) {
-                    var nextStep = data.bpm.step,
-                        tasks = newValue.filter((task) => {
-                        if (task.status == nextStep )  {
+                    var tasks = newValue.filter(task => {
+                        console.log('change:bpm filter', task)
+                        if (task.status == 'opened' )  {
                             return task
                         }});
 
@@ -42,6 +50,7 @@ var Toolbar = React.createClass({
                 }
             }
         });
+*/
 
     },
 
@@ -62,6 +71,7 @@ var Toolbar = React.createClass({
         var editeMode = this.state.editMode,
             taskWidget = this.generateTaskWidget();
 
+
         return (
             <div>
                 <div className='doc-toolbar-warning'>
@@ -80,23 +90,27 @@ var Toolbar = React.createClass({
 
     generateTaskWidget: function() {
         // вернет виджет задач
-        var tasks = this.state.taskList,
+        var tasks = this.state.taskList.filter(task => {
+                if (task.status === 'opened') {
+                    return task;
+                }
+            }),
             options,
             taskWidget = null;
+
+        console.log('generateTaskWidget task', this.state, tasks);
 
         if (tasks.length > 1) {
             // формируем список задач
             options = tasks.map((task) => {
-                console.log('task', task);
-                if (task.step == nextStep )  {
                     return <option value={0} key= {Math.random()}> {task.name} </option>
-                }
             });
 
             taskWidget = <select className='ui-c2' onChange={this.handleSelectTask}>{options} </select>
         }
 
-        else {
+        if (tasks.length == 1)
+        {
             // кнопка с задачей
             console.log('tasks', tasks);
             taskWidget = <input type ="button" className='ui-c2' onClick={this.handleButtonTask} value= {tasks[0].name}/>
