@@ -62,7 +62,8 @@ var docStore = flux.createStore({
             }
 
         ],
-        bpm: [] // данные БП документа
+        bpm: [], // данные БП документа
+        task:{} // текущая задача
     },
     actionCallbacks: {
         setLibsFilter: function(updater, libName, filter) {
@@ -195,17 +196,25 @@ function deleteDoc() {
     document.location = '/documents'
 };
 
-function executeTask(tasks) {
-    console.log('executeTask called, task', tasks);
-    var tasksParameters = {docId:docStore.data.id, tasks:tasks, doc_type_id:docStore.data.doc_type_id }
+function executeTask(task) {
+    /*
+        Выполнит запрос на исполнение задачи
+     */
+    var tasksParameters = {docId:docStore.data.id, tasks:task, doc_type_id:docStore.data.doc_type_id };
+
+    console.log('executeTask:', task, tasksParameters);
+
     requery('execute',JSON.stringify(tasksParameters), function(err, data) {
-        if (err) {
-            console.log('executeTask, error', err);
+        if (err || data.result == 'Error') {
             return err;
         }
 
         try {
             console.log('executeTask data', data);
+
+            // при успешном выполнении задачи, выполнить перегрузку документа (временно)
+            //@todo подтянуть изменения без перегрузки страницы
+            reloadDocument(docStore.data.id);
         } catch (e) {
             console.error;
         }
@@ -238,11 +247,9 @@ function saveDoc() {
             console.error;
         }
         // reload document
-        if (data.id) {
-                var url = "/document/" + docStore.data.doc_type_id + data.id;
-                document.location.href = url;
-        }
+        reloadDocument( data.id)
     });
+
 
 /*
 
@@ -266,6 +273,17 @@ function saveDoc() {
 */
 
 };
+
+function reloadDocument(docId) {
+    // reload document
+
+    console.log('reload document', docId);
+
+    if (docId) {
+        var url = "/document/" + docStore.data.doc_type_id + data.id;
+        document.location.href = url;
+    }
+}
 
 function loadLibs(libraryName, libParams) {
 //    console.log('loadLibs:', libraryName, libParams);

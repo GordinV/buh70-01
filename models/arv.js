@@ -1,6 +1,6 @@
 'use strict';
 var co = require('co');
-var Arv =  {
+var Arv = {
     select: [
         {
             sql: "select d.id, to_char(created, 'DD.MM.YYYY HH:MM:SS')::text as created, to_char(lastupdate,'DD.MM.YYYY HH:MM:SS')::text as lastupdate, d.bpm, " +
@@ -45,10 +45,10 @@ var Arv =  {
         },
         {
             sql: "select rd.id,trim(l.kood) as doc_type, trim(l.nimetus) as name " +
-                    " from docs.doc d " +
-                    " left outer join docs.doc rd on rd.id in (select unnest(d.docs_ids)) " +
-                    " left outer join libs.library l on rd.doc_type_id = l.id " +
-                    " where d.id = $1",
+            " from docs.doc d " +
+            " left outer join docs.doc rd on rd.id in (select unnest(d.docs_ids)) " +
+            " left outer join libs.library l on rd.doc_type_id = l.id " +
+            " where d.id = $1",
             query: null,
             multiple: true,
             alias: 'relations',
@@ -81,19 +81,48 @@ var Arv =  {
         ]
     },
     saveDoc: "select docs.sp_salvesta_arv($1, $2, $3) as id",
-    bpm:[
-        {step:0, name: 'Регистация документа',action:'start', nextStep:1, task: 'human', data:[], status:null, actualStep:false},
-        {step:1, name:'Валидация документа', action: 'validateDocument', nextStep:2, task:'human', data:[], status:null, actualStep:false},
-        {step:2, name:'Контировка', action: 'generateJournal', nextStep:3, task:'human', data:[], status:null, actualStep:false},
-        {step:3, name:'Оплата', action: 'tasumine', nextStep:4, task:'human', data:[], status:null, actualStep:false},
-        {step:4, name:'Конец', action: 'lopp', nextStep:null, task:'automat', data:[], status:null, actualStep:false}
+    bpm: [
+        {
+            step: 0,
+            name: 'Регистация документа',
+            action: 'start',
+            nextStep: 1,
+            task: 'human',
+            data: [],
+            status: null,
+            actualStep: false
+        },
+        {
+            step: 1,
+            name: 'Контировка',
+            action: 'generateJournal',
+            nextStep: 2,
+            task: 'human',
+            data: [],
+            status: null,
+            actualStep: false
+        },
+//        {step:2, name:'Оплата', action: 'tasumine', nextStep:3, task:'human', data:[], status:null, actualStep:false},
+        {
+            step: 2,
+            name: 'Конец',
+            action: 'endProcess',
+            nextStep: null,
+            task: 'automat',
+            data: [],
+            status: null,
+            actualStep: false
+        }
     ],
-    register: {command: "update docs.doc set status = 1 where id = $1", type:"sql"},
-    generateJournal: {command: "select docs.gen_lausend_arv($1)", type:"sql"},
-    executeTask: function(tasks, docId, userId, callback) {
+    register: {command: "update docs.doc set status = 1 where id = $1", type: "sql"},
+    generateJournal: {command: "select docs.gen_lausend_arv($1, $2)", type: "sql"},
+    endProcess: {command: "update docs.doc set status = 2 where id = $1", type: "sql"},
+    executeTask: function (tasks, docId, userId, callback) {
         // выполнит набор задач, переданных в параметре
         console.log('arv executeTask', tasks, docId);
-        var taskFunctions = tasks.map((task)=> {return eval(task + '(docId, userId)')});
+        var taskFunctions = tasks.map((task)=> {
+            return eval(task + '(docId, userId)')
+        });
 
         Promise.all(taskFunctions).then((result)=> {
                 callback(null, result[0]);
@@ -102,9 +131,34 @@ var Arv =  {
                 callback(error, null);
             });
     }
-};
+
+ };
 
 module.exports = Arv;
+//module.exports = start;
+
+function register(docId, userId) {
+    // заглушка
+    return new Promise((resilved, rejected) => {
+        resolved('ok');
+    })
+}
+
+function calcDocumentSaldo(docId, userid) {
+    // заглушка
+    return new Promise((resilved, rejected) => {
+        resolved('ok');
+    })
+
+}
+
+function tasumine(docId, userid) {
+    // заглушка
+    return new Promise((resilved, rejected) => {
+        resolved('ok');
+    })
+
+}
 
 function start(docId, userId) {
     // реализует старт БП документа
@@ -112,22 +166,23 @@ function start(docId, userId) {
 
         const DOC_STATUS = 1; // устанавливаем активный статус для документа
 
-        var sql = 'update docs.doc set status = $1, bpm = $2 where id = $3',
-            bpm = setBpmStatuses(0, userId);
+        var sqlUpdateDoc = 'update docs.doc set status = $1, bpm = $2, history = $4 where id = $3',
+            bpm = setBpmStatuses(0, userId, 'finished'),
+            history = {user: 'vlad', updated: Date.now()};
 
         // выставим актуальный статус для следующего процесса
 
-        var  params = [DOC_STATUS, JSON.stringify(bpm), docId];
+        var params = [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)];
 
         // 1. меняем статус на 1
         // 2. копируем БП
         // 3. апдейтим данные
 
         co(function*() {
-            var result = yield executeSql(sql, params);
+            var result = yield executeSql(sqlUpdateDoc, params);
             // 3. запускаем БП и идем до первой "человечьей" задачи
 
-        }).catch(function(err) {
+        }).catch(function (err) {
             console.log('co catched error', err);
             reject(error)
         });
@@ -137,20 +192,79 @@ function start(docId, userId) {
     })
 }
 
-function setBpmStatuses(actualStepIndex, userId) {
+// generateJournal
+function generateJournal(docId, userId) {
+    // реализует контировка
+    return new Promise((resolved, reject) => {
+
+        const DOC_STATUS = 2; // устанавливаем активный статус для документа
+
+        var sql = 'select docs.gen_lausend_arv((select id from docs.arv where parentid = $1), $2) as journal_id',
+            bpm = setBpmStatuses(0, userId),
+            sqlDoc = 'update docs.doc set bpm = $2 where id = $1';
+
+        // выставим актуальный статус для следующего процесса
+
+        // 1. меняем статус на 1
+        // 2. копируем БП
+        // 3. апдейтим данные
+
+        co(function*() {
+            var result = yield executeSql(sql, [docId, userId]),
+                docResult = yield executeSql(sqlDoc, [docId, JSON.stringify(bpm)]);
+        }).catch(function (err) {
+            console.log('co catched error', err);
+            reject(error)
+        });
+
+        resolved('Ok');
+
+    })
+}
+
+// generateJournal
+
+function endProcess(docId, userId) {
+    // реализует завершение БП документа
+    return new Promise((resolved, reject) => {
+
+        const DOC_STATUS = 2; // устанавливаем активный статус для документа
+
+        var sql = 'update docs.doc set status = 2 where id = $1',
+            bpm = setBpmStatuses(2, userId);
+
+        // выставим актуальный статус для следующего процесса
+
+        var params = [docId];
+
+        co(function*() {
+            var result = yield executeSql(sql, params);
+            // 3. запускаем БП и идем до первой "человечьей" задачи
+
+        }).catch(function (err) {
+            console.log('co catched error', err);
+            reject(error)
+        });
+
+        resolved('Ok');
+
+    })
+}
+
+function setBpmStatuses(actualStepIndex, userId, actualStatus) {
 // собираем данные на на статус документа, правим данные БП документа
     try {
-    var bpm = Arv.bpm,
-        nextStep = bpm[actualStepIndex].nextStep;
-        bpm[actualStepIndex].data = [{execution: Date.now(), executor: userId, vars: null}];
-        bpm[actualStepIndex].status = 'finished';
-        console.log('step 0',bpm);
+        var bpm = Arv.bpm,
+            nextStep = bpm[actualStepIndex].nextStep,
+            statusBP = actualStatus ? actualStatus : 'finished'; // статус БП задачи
 
+        bpm[actualStepIndex].data = [{execution: Date.now(), executor: userId, vars: null}];
+        bpm[actualStepIndex].status = statusBP;
         // выставим флаг на следующий щаг
         bpm = bpm.map(stepData => {
-            console.log('step data',nextStep, stepData);
+            console.log('step data', nextStep, stepData);
             if (stepData.step == nextStep) {
-                console.log('found step',nextStep, stepData);
+                console.log('found step', nextStep, stepData);
 
                 stepData.actualStep = true;
                 stepData.status = 'opened';
@@ -169,9 +283,10 @@ function executeSql(sql, params) {
     console.log('executeSql', sql, params);
     return new Promise((resolve, reject) => {
         var DocDataObject = require('./documents');
-
-        DocDataObject.executeSqlQuery(sql, params, (err , data) => {
+        console.log('inside promise, params:', sql, params);
+        DocDataObject.executeSqlQuery(sql, params, (err, data) => {
             if (err) {
+                console.error();
                 reject(err);
             } else {
                 resolve(data);

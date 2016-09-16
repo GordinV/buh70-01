@@ -13,13 +13,7 @@ var React = require('react'),
 var Toolbar = React.createClass({
     getInitialState: function() {
       return {warning: false, warningMessage: '', editMode: false,
-          taskList: this.props.taskList}
-    },
-
-    getDefaultProps: function () {
-      return  {
-          taskList: [{step:0, name:'Start', action: 'start', status: 'opened'}]
-      }
+          taskList: this.props.taskList? this.props.taskList: this.getDefaultTask() }
     },
 
     componentWillMount: function() {
@@ -62,14 +56,16 @@ var Toolbar = React.createClass({
 
     handleButtonTask: function() {
         // метод вызывается при выборе задачи
-        console.log('toolbar onClick', this.state.taskList);
+        console.log('toolbar button onClick', this.state.taskList);
         var tasks = this.state.taskList.map((task) => {return task.action});
+        console.log('task:',tasks, this.state );
         flux.doAction('executeTask', tasks);
     },
 
     render: function () {
         var editeMode = this.state.editMode,
-            taskWidget = this.generateTaskWidget();
+            taskWidget = this.generateTaskWidget(),
+            tasks = this.state.taskList.map((task) => {return task.action});
 
 
         return (
@@ -88,17 +84,27 @@ var Toolbar = React.createClass({
         );
     },
 
+    getDefaultTask: function () {
+        return   [{step:0, name:'Start', action: 'start', status: 'opened'}]
+
+    },
+
     generateTaskWidget: function() {
         // вернет виджет задач
+
+        if (!this.state.taskList) {
+            this.setState({taskList:this.getDefaultTask()});
+        }
+
         var tasks = this.state.taskList.filter(task => {
+
                 if (task.status === 'opened') {
                     return task;
                 }
             }),
-            options,
-            taskWidget = null;
 
-        console.log('generateTaskWidget task', this.state, tasks);
+        options,
+        taskWidget = null;
 
         if (tasks.length > 1) {
             // формируем список задач
@@ -111,12 +117,13 @@ var Toolbar = React.createClass({
 
         if (tasks.length == 1)
         {
+            var taskName = tasks[0].name;
             // кнопка с задачей
-            console.log('tasks', tasks);
-            taskWidget = <input type ="button" className='ui-c2' onClick={this.handleButtonTask} value= {tasks[0].name}/>
+            taskWidget = <input type ="button" className='ui-c2' onClick={this.handleButtonTask} value= {taskName}/>
         }
         return taskWidget;
     },
+
 
     validator: function () {
         if (this.props.validator) {

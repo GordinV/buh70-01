@@ -1,11 +1,11 @@
 'use strict';
 module.exports = {
-    validateForm: function () {
+    validateForm: () => {
         console.log('validateForm this is mixin');
         // валидация формы
         let warning = '',
             now = new Date(),
-            requiredFields = this.requiredFields,
+            requiredFields = this.requiredFields || [],
             notRequiredFields = [],
             notMinMaxRule = [];
 

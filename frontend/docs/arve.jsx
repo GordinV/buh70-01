@@ -57,6 +57,8 @@ const Arve = React.createClass({
         // формируем зависимости
         this.relatedDocuments();
 
+
+        console.log('сохраняем данные в хранилище', data);
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
  //       flux.doAction('bpmChange', bpm);

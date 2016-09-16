@@ -1,4 +1,6 @@
 // обработка пост запросов для документа
+var co = require('co');
+
 exports.post = function(req, res) {
     console.log('doc post:' + JSON.stringify(req.body));
     var user = require('../middleware/userData')(req),
@@ -20,36 +22,73 @@ exports.post = function(req, res) {
         case 'save':
  //           console.log('saving data:' + JSON.stringify(data));
             var params = [data, user.userId, 1];
-            DocDataObject.saveDoc(docTypeId, params, function(err, result) {
-                if (err) {
+            try {
+                // тут вызов метода сохранение
+                // выборка сохраненных данных
+                DocDataObject.saveDoc(docTypeId, params, function(err, result) {
                     if (err) {
-                        console.error ('SQL error');
-                        throw err;
+                        if (err) {
+                            console.error ('SQL error');
+                            new Error(500,'Päringu viga');
+                            res.send({result:'Error'});
+                        }
                     }
-                }
 //                console.log('save result:' + JSON.stringify(result));
-                if (results) {
-                    res.send(result.rows[0] || {});
-                }
+                    if (results) {
+                        res.send(result.rows[0] || {});
+                    }
 
-            });
-            // тут вызов метода сохранение
-            // выборка сохраненных данных
+                });
+            } catch (err) {
+                console.log('error:', err); // @todo Обработка ошибок
+                new Error(500,'Päringu viga');
+
+                res.send({result:'Error'});
+
+            }
             break;
         case 'execute':
+            /*
+            обработка запросов на исполнение задач.
+             */
             console.log('execute:', data);
-            var params = {params:data, userId: user.userId, rekvId:1};
+            var params = {params:data, userId: user.userId, rekvId:1},
+                result,
+                docData;
 
-            DocDataObject.executeTask(docTypeId, params, function(err, result) {
-                if (results) {
-                    res.send({result:result});
-                } else {
-                    res.send({result:'Error'});
+            co(function*() {
+                // выполнить задачу
+                result = yield executeDocumentTask(docTypeId, params);
+                // обновить данные документа
+                docData = yield getDocumentData(docTypeId,params );
+                // вернуть результат
+                console.log('ready return results:', docData);
+                res.send({result:'Ok', data:docData});
+            }).catch(function (err) {
+                console.log('co catched error', err);
+                res.send({result: 'Error'});
+            });
+/*
+            try {
+                DocDataObject.executeTask(docTypeId, params, function(err, result) {
+                    if (err) {
+                        console.log('Tekkimis viga:', err);
+                        res.send({result:'Error'});
+                    } else {
+                        res.send({result:result});
+                    }
+                });
+
+            } catch (err) {
+                console.log('error:', err);
+                new Error(500,'Päringu viga');
+
+                res.send({result:'Error'});
+
                 }
 
 
-            });
-
+*/
             /*
                         DocDataObject.saveDoc(docTypeId, params, function(err, result) {
                             if (err) {
@@ -150,7 +189,35 @@ exports.post = function(req, res) {
             break;
     } // case
 
-    }; //function post
+    function getDocumentData(docTypeId,params ) {
+        // Promise around callback
+        return new Promise((resolved, reject) => {
+            DocDataObject.selectDoc(docTypeId, params, function(err, data) {
+                if (err) {
+                    console.log('selectDoc error:' + JSON.stringify(err));
+                    reject(err);
+                } else {
+                    resolved(data);
+                }
+            });
+        });
+    }
+
+    function executeDocumentTask(docTypeId, params) {
+        // Promise around callback
+        return new Promise((resolved, reject) => {
+            DocDataObject.executeTask(docTypeId, params, function(err, result) {
+                if (err) {
+                    reject(err);
+                }  else {
+                    resolved(result);
+                }
+            });
+        })
+    }
+
+
+}; //function post
 
 function returnData(data) {
     data.id = data.id + 1;
@@ -158,6 +225,7 @@ function returnData(data) {
     return data;
 
 }
+
 
 if (!Date.prototype.toLocalISOString) {
     (function() {
@@ -181,6 +249,8 @@ if (!Date.prototype.toLocalISOString) {
 
     }());
 }
+
+
 
 function getDateTime(dt) {
     if (!dt) {

@@ -32,9 +32,11 @@ declare
 	doc_objekt text = doc_data->>'objekt';
 	tcValuuta text = coalesce(doc_data->>'valuuta','EUR'); 
 	tnKuurs numeric(14,8) = coalesce(doc_data->>'kuurs','1'); 
+	tnDokLausId integer = coalesce((doc_data->>'doklausid')::integer,1); --@todo реализовать выбор профиля при сохранении документа 
 	json_object json;
 	json_record record;
 	new_history jsonb;
+	ids integer[];
 begin
 
 raise notice 'data.doc_details: %, jsonb_array_length %, data: %', doc_details, json_array_length(doc_details), data;
@@ -55,9 +57,9 @@ if doc_id is null or doc_id = 0 then
 		values (doc_type_id, '[]'::jsonb || new_history) 
 		returning id into doc_id;
 
-	insert into docs.arv (parentid, rekvid, userid, liik ,operid, number, kpv, asutusid, lisa, tahtaeg, kbmta, kbm, summa, muud, objektid, objekt)
+	insert into docs.arv (parentid, rekvid, userid, liik ,operid, number, kpv, asutusid, lisa, tahtaeg, kbmta, kbm, summa, muud, objektid, objekt, doklausid)
 		values (doc_id, user_rekvid, userId, doc_liik ,doc_operid, doc_number, doc_kpv, doc_asutusid, doc_lisa, doc_tahtaeg, doc_kbmta, doc_kbm, doc_summa, 
-		doc_muud, doc_objektid, doc_objekt) 
+		doc_muud, doc_objektid, doc_objekt, tnDokLausId) 
 		returning id into arv_id;
 
 	insert into docs.dokvaluuta1 (dokid, dokliik, valuuta, kuurs) 
@@ -85,7 +87,8 @@ else
 		summa = doc_summa, 
 		muud = doc_muud, 
 		objektid = doc_objektid, 
-		objekt = doc_objekt
+		objekt = doc_objekt,
+		doklausid = tnDokLausId
 		where parentid = doc_id returning id into arv_id;
 
 	-- arv jaak 	
@@ -108,6 +111,9 @@ loop
 		-- valuuta
 		insert into docs.dokvaluuta1 (dokid, dokliik, valuuta, kuurs) 
 			values (arv1_id,2,tcValuuta, tnKuurs);
+
+		-- add new id into array of ids
+		ids = array_append(ids,arv1_id);	
 			
 	else
 		update docs.arv1 set 
@@ -119,6 +125,9 @@ loop
 			summa = json_record.summa
 			where id = json_record.id::integer returning id into arv1_id;
 
+		-- add new id into array of ids
+		ids = array_append(ids,arv1_id);		
+
 		if not exists (select id from docs.dokvaluuta1 where dokid = arv1_id and dokliik = 2) then
 		-- if record does 
 			insert into docs.dokvaluuta1 (dokid, dokliik, valuuta, kuurs) 
@@ -129,6 +138,24 @@ loop
 
 end loop;	
 
+
+-- delete record which not in json
+
+delete from docs.arv1 where parentid = arv_id and id not in (select unnest(ids));
+
+
+-- update arv summad
+select sum(summa) as summa, sum(kbm) as kbm into doc_summa, doc_kbm
+	from docs.arv1 
+	where parentid = arv_id;
+
+update docs.arv set 
+	kbmta = doc_summa - doc_kbm, 
+	kbm = doc_kbm, 
+	summa = doc_summa
+	where parentid = doc_id;
+
+	
 
 /*
 perform docs.sp_updatearvjaak(arv_id, date());

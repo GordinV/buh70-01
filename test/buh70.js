@@ -99,6 +99,18 @@
             }, results);
         });
 
+        it('ARVED bpm status', function (done) {
+            var DocDataObject = require('../models/arv'),
+                results = {};
+            DocDataObject['docsGrid'].requery('ARV', function(err, data) {
+                if (err) throw new Error('Ошибка метода  selectDoc');
+                if (data.length < 1) throw new Error('Result < 1')
+                done();
+
+            }, results);
+        });
+
+
         it('JOURNAL save new', function (done) {
             var data = JSON.stringify(
                 {   "id":0,
