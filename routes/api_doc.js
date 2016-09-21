@@ -2,7 +2,6 @@
 var co = require('co');
 
 exports.post = function(req, res) {
-    console.log('doc post:' + JSON.stringify(req.body));
     var user = require('../middleware/userData')(req),
         React = require('react'),
         ReactServer = require('react-dom/server');
@@ -10,39 +9,28 @@ exports.post = function(req, res) {
      var data = JSON.parse(req.body.data),
          action = req.body.action,
          DocDataObject = require('../models/documents'), // подключим модель
-         docId = data.id,
+         docId = data.docId,
          docTypeId = data.doc_type_id,
          results = {},
          localStorage = require('../middleware/local_storage');
 
-    console.log('api-doc action:', action, docId, docTypeId, data);
-
 
     switch(action) {
         case 'save':
- //           console.log('saving data:' + JSON.stringify(data));
             var params = [data, user.userId, 1];
             try {
                 // тут вызов метода сохранение
                 // выборка сохраненных данных
-                DocDataObject.saveDoc(docTypeId, params, function(err, result) {
-                    if (err) {
-                        if (err) {
-                            console.error ('SQL error');
-                            new Error(500,'Päringu viga');
-                            res.send({result:'Error'});
-                        }
-                    }
-//                console.log('save result:' + JSON.stringify(result));
-                    if (results) {
-                        res.send(result.rows[0] || {});
-                    }
-
-                });
+                DocDataObject.saveDocPromise(docTypeId, params)
+                    .then((data) => {
+                        res.send(data)
+                    }),
+                    ((err) => {
+                        console.error('viga:', err);
+                        res.send({result: 'Error'});
+                    });
             } catch (err) {
-                console.log('error:', err); // @todo Обработка ошибок
-                new Error(500,'Päringu viga');
-
+                console.error('error:', err); // @todo Обработка ошибок
                 res.send({result:'Error'});
 
             }
@@ -52,66 +40,26 @@ exports.post = function(req, res) {
             обработка запросов на исполнение задач.
              */
             console.log('execute:', data);
-            var params = {params:data, userId: user.userId, rekvId:1},
+            var params = {params:data, userId: user.userId, rekvId:1}, //@todo из сессии вытащить rekvId
                 result,
                 docData;
 
-            co(function*() {
-                // выполнить задачу
-                result = yield executeDocumentTask(docTypeId, params);
-                // обновить данные документа
-                docData = yield getDocumentData(docTypeId,params );
-                // вернуть результат
-                console.log('ready return results:', docData);
-                res.send({result:'Ok', data:docData});
-            }).catch(function (err) {
-                console.log('co catched error', err);
-                res.send({result: 'Error'});
-            });
-/*
-            try {
-                DocDataObject.executeTask(docTypeId, params, function(err, result) {
-                    if (err) {
-                        console.log('Tekkimis viga:', err);
-                        res.send({result:'Error'});
-                    } else {
-                        res.send({result:result});
-                    }
+            DocDataObject.executeTaskPromise(docTypeId, params)
+                .then(docData => {
+                    res.send({result:'Ok', data:docData});
+                }),
+                (err => {
+                    console.error('co catched error', err);
+                    res.send({result: 'Error'});
                 });
 
-            } catch (err) {
-                console.log('error:', err);
-                new Error(500,'Päringu viga');
-
-                res.send({result:'Error'});
-
-                }
-
-
-*/
-            /*
-                        DocDataObject.saveDoc(docTypeId, params, function(err, result) {
-                            if (err) {
-                                if (err) {
-                                    console.error ('SQL error');
-                                    throw err;
-                                }
-                            }
-            //                console.log('save result:' + JSON.stringify(result));
-                            if (results) {
-                                res.send(result.rows[0] || {});
-                            }
-
-                        });
-            */
-            // тут вызов метода сохранение
-            // выборка сохраненных данных
             break;
         case 'select':
             params = [];
             if (data.params.length > 0) {
                 params = data.params;
             }
+
             // ищем данные в кеше
             /*
              localStorage.libs = req.session.libs || []; // отдадим сессию
@@ -121,36 +69,28 @@ exports.post = function(req, res) {
              res.send(data[0]);
              }
              */
-            //   if (!results) {
- //           console.log('calling select for api: docTypeId' + docTypeId + 'params:' + params);
-            DocDataObject.selectDoc(docTypeId, params, function(err, data) {
-                if (err) {
-                    console.log('selectDoc error:' + JSON.stringify(err));
-                    throw err;
-                }
-//                console.log('results ', data);
-                // сохраним данные в кеше
-//            localStorage.setLib(docTypeId, data, req);
-//                console.log('api_doc data:' + JSON.stringify(data) + ' results:' + JSON.stringify(results));
-                res.send(data);
-            }, results);
-//    }
+
+            DocDataObject.selectDocPromise(docTypeId, params)
+                .then((data) => {
+                    res.send(data)
+                }),
+                ((err) => {
+                    console.error('viga:', err);
+                    res.send({result: 'Error'});
+                });
             break;
         case 'saveAndSelect':
             params = [];
             var results = {};
             async.waterfall([
                 function(callback) {
-                    console.log('savig');
                     DocDataObject.saveDoc(docTypeId, params, callback); // сохраняем документ
                 },
                 function(savedResult, callback) {
-                    console.log('selecting', savedResult);
                     results = result.rows[0]; // результат сохранения
                     DocDataObject.selectDoc(docTypeId, params, callback); // выборка документов
                 },
                 function(selectResult, callback) {
-                    console.log('Получен ответ', selectResult, results);
                     results.data = selectResult; // результат выборки
                     callback(null, selectResult);
                 }
@@ -160,7 +100,6 @@ exports.post = function(req, res) {
                         console.error ('SQL error');
                         throw err;
                     }
-                    console.log('вернули результаты',result);
                     res.send(result.rows[0] || {});
                 });
 
@@ -174,15 +113,13 @@ exports.post = function(req, res) {
             }
 */
  //   if (!results) {
-        console.log('calling select for api: docTypeId' + docTypeId + 'params:' + params);
         DocDataObject.selectDoc(docTypeId, params, function(err, data) {
             if (err) {
-                console.log('selectDoc error:' + JSON.stringify(err));
+                console.error('selectDoc error:' + JSON.stringify(err));
                 throw err;
             }
             // сохраним данные в кеше
 //            localStorage.setLib(docTypeId, data, req);
-            console.log('api_doc data:' + JSON.stringify(data) + ' results:' + JSON.stringify(results));
             res.send(data);
         }, results);
 //    }
@@ -194,7 +131,7 @@ exports.post = function(req, res) {
         return new Promise((resolved, reject) => {
             DocDataObject.selectDoc(docTypeId, params, function(err, data) {
                 if (err) {
-                    console.log('selectDoc error:' + JSON.stringify(err));
+                    console.error('selectDoc error:' + JSON.stringify(err));
                     reject(err);
                 } else {
                     resolved(data);

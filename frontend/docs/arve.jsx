@@ -56,11 +56,8 @@ const Arve = React.createClass({
         
         // формируем зависимости
         this.relatedDocuments();
-
-
-        console.log('сохраняем данные в хранилище', data);
         // сохраняем данные в хранилище
-        flux.doAction('dataChange', data);
+        flux.doAction('dataChange', data );
  //       flux.doAction('bpmChange', bpm);
 //        flux.doAction('docIdChange', data.id);
         flux.doAction('detailsChange', details); // данные грида
@@ -89,7 +86,6 @@ const Arve = React.createClass({
 
         // отслеживает изменения данных в гриде
         docStore.on('change:details', function (newValue, previousValue) {
-            console.log('event details changed');
             if (JSON.stringify(newValue) !== JSON.stringify(previousValue) && typeof newValue == 'array') {
                 // итоги
                 let summa = newValue.reduce((sum, row) => sum + Number(row.summa),0), // сумма счета
@@ -112,7 +108,6 @@ const Arve = React.createClass({
         var data = this.state.docData;
 
         if (data.id == 0) {
-            console.log('edited mode control', data);
             flux.doAction( 'editedChange', true );
             flux.doAction( 'savedChange', false );
         }
@@ -129,6 +124,7 @@ const Arve = React.createClass({
         var gridData = this.state.gridData,
             gridColumns = this.state.gridConfig;
 
+//        console.log('data',this.state.docData,  data);
         return (
             <Form pages={this.pages} ref="form" onSubmit={this.onSubmit} style={{display: 'table'}}>
                 <Toolbar validator={this.validateForm}

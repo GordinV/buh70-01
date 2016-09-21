@@ -19,9 +19,7 @@ exports.get = function(req, res, params) {
         };
 //        localStorage = require('../middleware/local_storage')(req);
 
-//   console.log('doc-api: docTypeId/docid,parameter', docTypeId , docId , parameter );
-
-    // пишем в сессию выбранный документ    
+    // пишем в сессию выбранный документ
     if (req.session.docs) {
 //        console.log('routes documents session docs found', req.session.docs);
         // ищем в сессии наш компонент
@@ -39,13 +37,12 @@ exports.get = function(req, res, params) {
     //var Doc = React.createFactory(require('../frontend/docs/arve'));
     var Doc = React.createFactory(docComponent),
         now = new Date();
-
-//    console.log('calling for document select: docTypeId' + docTypeId + 'docId:' + docId);
-
-    DocDataObject.selectDoc(docTypeId, [docId], function(err, data, bpm) {
+    
+    DocDataObject.selectDoc(docTypeId, [docId, user.userId], function(err, data, bpm) {
         if (err) next(err);
 
         docInitData.data = data;
+
         if (bpm) {
             docInitData.bpm = bpm;
         }

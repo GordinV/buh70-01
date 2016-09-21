@@ -57,9 +57,17 @@ var Toolbar = React.createClass({
     handleButtonTask: function() {
         // метод вызывается при выборе задачи
         console.log('toolbar button onClick', this.state.taskList);
-        var tasks = this.state.taskList.map((task) => {return task.action});
-        console.log('task:',tasks, this.state );
-        flux.doAction('executeTask', tasks);
+        // найдем актуальную задачу
+
+        let actualTask = this.state.taskList.filter((task)=> {
+           if (task.actualStep) {
+               return task;
+           }
+        }),
+        task = actualTask.map((task) => {return task.action}); // оставим только название процедуры
+
+        console.log('task:',task, this.state );
+        flux.doAction('executeTask', task);
     },
 
     render: function () {

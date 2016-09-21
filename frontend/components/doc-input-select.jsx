@@ -1,3 +1,5 @@
+'use strict';
+
 var React = require('react'),
     flux = require('fluxify');
 //    InputText = require('./doc-input-text.jsx');
@@ -13,7 +15,7 @@ const Select = React.createClass({
                 }
             }, this),
             idValue = this.props.value; // для привязки данных
-//        console.log('select init:', data);
+
         if (data && data.length > 0 && data[0].data) {
             libData = data[0].data;
         }
@@ -51,7 +53,6 @@ const Select = React.createClass({
         data.forEach(function (row) {
             if (row['id'] == rowId) {
                 fieldValue = row[collId];
- //               console.log('getValueById:', fieldValue)
                 this.setState({fieldValue: fieldValue});
             }
         }, this);
@@ -71,7 +72,6 @@ const Select = React.createClass({
     componentWillMount: function () {
 // создаем обработчик события на изменение docId. Если значение = 0 (добавляем новую запись, то просто очитка полей, иначе подгрузка данных
         var self = this;
-//        console.log('componentWillMount: ' + this.props.name);
 
         flux.stores.docStore.on('change:docId', function (newValue, previousValue) {
             if (newValue !== previousValue) {
@@ -87,7 +87,6 @@ const Select = React.createClass({
         });
 
         flux.stores.docStore.on('change:edited', function (newValue, previousValue) {
-            //           console.log('on change:edited:' + newValue);
             if (newValue !== previousValue) {
                 self.setState({readOnly: !newValue, disabled: !newValue});
             }
@@ -96,13 +95,11 @@ const Select = React.createClass({
         flux.stores.docStore.on('change:libs', function (newValue, previousValue) {
             var vastus = JSON.stringify(newValue) !== JSON.stringify(previousValue);
             // will watch libs change (from server)
-//            console.log('select componentWillMount change:libs', self.props.libs);
             var data = newValue.filter(function (item) {
                 if (item.id === self.props.libs) {
                     return item;
                 }
             });
-//            console.log('select data:', data);
 
             if (data && data.length > 0) {
                 self.setState({data: data[0].data});
@@ -133,13 +130,11 @@ const Select = React.createClass({
         // сохраним ид как value
         this.setState({value:fieldValue});
 
- //       console.log('select onChange fieldValue ', fieldValue);
         if (propValue !== 'undefined') {
             // если используется привязка к данным
             // получить значение
             data[this.props.name] = fieldValue;
             // задать новое значение поля
-//            console.log('calling dataChange', data);
             flux.doAction('dataChange', data);
         }
 
@@ -159,10 +154,20 @@ const Select = React.createClass({
             inputDefaultValue = this.props.defaultValue; // Дадим дефолтное значение для виджета, чтоб покать его сразу, до подгрузки библиотеки
 
         if (!this.state.value) { // добавим пустую строку в массив
-            dataOptions.splice(0, 0, {id: 0, kood: '', name: ''});
+            // проверим наличие пустой строки в массиве
+
+            let emptyObj = dataOptions.filter((obj) => {
+                if (obj.id === 0) {
+                    return obj;
+                }
+            });
+
+            if (!emptyObj || emptyObj.length == 0) {
+                dataOptions.splice(0, 0, {id: 0, kood: '', name: ''});
+            }
+
         }
 
-//        console.log('select render dataOptions', dataOptions);
         var dataValue = dataOptions.filter(function (item) {
             if (item.id == this.state.value) {
                 return item;
@@ -182,13 +187,9 @@ const Select = React.createClass({
             Options = <option value={0} key= {Math.random()}> Empty </option>
         }
 
- //       console.log('select Options', Options);
         var widget = <select value={this.state.value} onChange={this.onChange}
                              style={{width:'100%', height:'100%'}}>{Options}</select>; // если для грида, оставим только селект
-
-
-//        console.log('select:', this.props.title, inputReadOnly);
-
+        
         if (this.props.title) {
             widget = (<div className="form-widget">
                 <label className="form-widget-label">{this.props.title}

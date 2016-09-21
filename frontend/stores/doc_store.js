@@ -200,9 +200,10 @@ function executeTask(task) {
     /*
         Выполнит запрос на исполнение задачи
      */
+    
     var tasksParameters = {docId:docStore.data.id, tasks:task, doc_type_id:docStore.data.doc_type_id };
 
-    console.log('executeTask:', task, tasksParameters);
+ //   console.log('executeTask:', task, tasksParameters);
 
     requery('execute',JSON.stringify(tasksParameters), function(err, data) {
         if (err || data.result == 'Error') {
@@ -210,7 +211,7 @@ function executeTask(task) {
         }
 
         try {
-            console.log('executeTask data', data);
+//            console.log('executeTask arrived docStore.data.id, docStore.docId, data',docStore.data.id,docStore.docId,  data);
 
             // при успешном выполнении задачи, выполнить перегрузку документа (временно)
             //@todo подтянуть изменения без перегрузки страницы
@@ -235,19 +236,23 @@ function saveDoc() {
         if (err) return err;
 
         try {
-            if (data.id !== saveData.data.id) {
-                // обновим ид
-                saveData.data.id = data.id;
-                flux.doAction( 'dataChange', saveData.data ); //новые данные
-            }
-            flux.doAction( 'docIdChange', data.id ); // новое ид
+            let newId = data[0].id;
+            console.log('newId', newId);
+            // обновим ид
+            saveData.data.id = newId;
+
+            flux.doAction( 'dataChange', saveData.data ); //новые данные
+            flux.doAction( 'docIdChange', newId ); // новое ид
             flux.doAction( 'savedChange', true ); // устанавливаем режим сохранен
             flux.doAction( 'editedChange', false ); // устанавливаем режим сохранен
+
+
+            // reload document
+            reloadDocument(newId); //@todo выполнить перегрузку данных перез перегрузки страницы
+
         } catch(e) {
             console.error;
         }
-        // reload document
-        reloadDocument( data.id)
     });
 
 
@@ -280,7 +285,9 @@ function reloadDocument(docId) {
     console.log('reload document', docId);
 
     if (docId) {
-        var url = "/document/" + docStore.data.doc_type_id + data.id;
+
+        var url = "/document/" + docStore.data.doc_type_id + docId;
+        console.log('reloading', url);
         document.location.href = url;
     }
 }

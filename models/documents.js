@@ -10,6 +10,82 @@ var Doc = {
 
     },
 
+    executeSqlQueryPromise: (sqlString, sqlParams, returnData) => {
+        // обертка над колбеком
+        return new Promise((resolved, rejected) => {
+            var pg = require('pg'),
+                config = require('../config/config'),
+                db = new pg.Client(config.pg.connection);
+            try {
+                db.connect((err) => {
+                    if (err) {
+                        console.error('could not connect to postgres', err);
+                        rejected(err);
+                    }
+
+                    db.query(sqlString, sqlParams, ((err, result) => {
+                        if (err) {
+                            console.error('sql error:',(err));
+                            rejected(err);
+                        };
+                        db.end();
+                        resolved(result.rows);
+                    }));
+                });
+            } catch (err) {
+                console.error('sql error:',(err));
+                rejected(err);
+            }
+        })
+    },
+
+    executeSqlQueriesPromise: (sqls, params, returnData) => {
+        // обертка над executeSqlQueries
+        // выполнит запрос, вернет callback и данные
+        return new Promise((resolved, rejected) => {
+            var pg = require('pg'),
+                config = require('../config/config'),
+                db = new pg.Client(config.pg.connection);
+
+            var    dataRow,
+                sqlAsNew,
+                sqlParameter,
+                sqlCount = sqls.length;
+
+            for (var i = 0; i < sqlCount; i++) {
+                dataRow = sqls[i];
+                sqlAsNew = dataRow.sqlAsNew || null;
+                sqlParameter = params[0] == 0 && sqlAsNew !== null ? sqlAsNew : dataRow.sql;
+
+                dataRow.query = db.query(sqlParameter, params); // ставим в очередь
+
+                dataRow.query.on('row', (row, result)=> {
+                    result.addRow(row);
+                });
+            }
+
+            db.on('error', (err)=> {
+                console.error('db error:' ,err);
+                rejected(new Error(err));
+            });
+
+            db.on('drain', () => {
+                db.end();
+
+                var dataObj = {};
+
+                sqls.forEach((row) => {
+                    var myRow = row.query._result.rows, // массив результатов
+                        myData = row.multiple ? myRow : myRow[0];
+                    returnData[row.alias] = myData;
+                });
+                resolved(returnData);
+            });
+
+            db.connect();
+        });
+    },
+
     executeSqlQuery: function (sqlString, sqlParams, callback) {
         // выполнит запрос, вернет callback и данные
         var db = this.connectDb();
@@ -30,8 +106,7 @@ var Doc = {
             });
         });
     },
-
-
+    
     executeSqlQueries: function (sqls, params, returnData, callback) {
         // выполнит запрос, вернет callback и данные
         var db = this.connectDb(),
@@ -44,9 +119,10 @@ var Doc = {
         for (var i = 0; i < sqlCount; i++) {
             dataRow = sqls[i];
             sqlAsNew = dataRow.sqlAsNew || null;
-            sqlParameter = params == 0 && sqlAsNew !== null ? sqlAsNew : dataRow.sql;
 
-//            console.log('executeSqlQueries:', params, sqlParameter);
+            // взависимости от параметра идет запрос на новый док или уже существующий
+            sqlParameter = params[0] == 0 && sqlAsNew !== null ? sqlAsNew : dataRow.sql;
+
             dataRow.query = db.query(sqlParameter, params); // ставим в очередь
             dataRow.query.on('row', function (row, result) {
                 result.addRow(row);
@@ -61,11 +137,11 @@ var Doc = {
             var dataObj = {};
 
             sqls.forEach(function (row) {
+
                 var myRow = row.query._result.rows, // массив результатов
                     myData = row.multiple ? myRow : myRow[0];
                 returnData[row.alias] = myData;
             });
-//            console.log('drain',returnData);
             callback(null, returnData);
         });
         db.connect();
@@ -82,12 +158,13 @@ var Doc = {
         if  (doc.bpm) {
             docBpm = doc.bpm;
         }   
-
-
-//        console.log('selectDoc params:', params);
+        
         // выполним запрос
         if (typeof sql == 'object') {
                 Doc.executeSqlQueries(sql, params, returnData, function(err, data) {
+                    if (err) {
+                        console.error(err);
+                    }
                     callback(err, data, docBpm);
                 });
         } else {
@@ -97,12 +174,68 @@ var Doc = {
         }
     },
 
+    selectDocPromise: (docTypeId, params) => {
+        // обертка в промис функции selectDoc
+        const doc = require('../models/' + docTypeId),
+            sql = doc.select;
+
+        var docBpm = [], // БП документа
+            returnData = doc.returnData;
+
+        if  (doc.bpm) {
+            docBpm = doc.bpm;
+        }
+
+        // выполним запрос
+        if (typeof sql === 'object') {
+            return Doc.executeSqlQueriesPromise(sql, params, returnData);
+        } else {
+            return Doc.executeSqlQueryPromise(sql, params, returnData);
+        }
+    },
+
+    /*
+    selectDocPromise: (docTypeId, params) => {
+        return new Promise((resolved, rejected) =>{
+            const doc = require('./' + docTypeId),
+                sql = doc.select;
+            
+            var docBpm = [], // БП документа
+                returnData = doc.returnData;
+            
+            if  (doc.bpm) {
+                docBpm = doc.bpm;
+            }
+
+            // выполним запрос
+            if (typeof sql === 'object') {
+                Doc.executeSqlQueries(sql, params, returnData, function(err, data) {
+                    callback(err, data, docBpm);
+                });
+            } else {
+                Doc.executeSqlQueryPromise(sql, params, function (err, data) {
+                    callback(err, data.rows, docBpm);
+                });
+            }
+            
+        });
+    },
+*/
+
     saveDoc: function (docTypeId, params, callback) {
+        // вызов метода сохранения документа
         var doc = require('./' + docTypeId),
             sql = doc.saveDoc;
-//        console.log('saveDoc params:' + JSON.stringify(params));
+        
         Doc.executeSqlQuery(sql, params, callback);
 
+    },
+
+    saveDocPromise: (docTypeId, params)=> {
+        // промисификация для функции saveDoc 
+        var doc = require('./' + docTypeId),
+            sql = doc.saveDoc;
+        return Doc.executeSqlQueryPromise(sql, params);
     },
 
     executeTask: function(docTypeId, params, callback) {
@@ -111,11 +244,23 @@ var Doc = {
             tasks = params.params.tasks,
             docId = params.params.docId,
             userId = params.userId;
-        console.log('model executeTask', params, tasks);
+        
         doc.executeTask(tasks, docId, userId, callback)
 //        callback(null,'Ok');
     },
+    
+    executeTaskPromise: function(docTypeId, params) {
+        // обертка над методом executeTask
+        var doc = require('./' + docTypeId),
+            tasks = params.params.tasks,
+            docId = params.params.docId,
+            userId = params.userId;
+        
+        return doc.executeTask(tasks, docId, userId);
+//        callback(null,'Ok');
+    },
 
+    
     config: function () {
         var config = require('./docs_grid_config.js');
         return config;
@@ -181,7 +326,7 @@ var Doc = {
         requery: function (parameter, callback, results) {
             Doc.executeSqlQuery(this.sqlString, this.params, function (err, data) {
                 if (err) {
-                    console.log('sql error:', err);
+                    console.error('sql error:', err);
                     results.docsList = {
                         data: []
                     }
