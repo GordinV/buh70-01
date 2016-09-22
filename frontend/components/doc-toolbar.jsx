@@ -1,5 +1,7 @@
 'use strict';
 
+const DOCUMENT_CLOSED_STATUS = 2;
+
 var React = require('react'),
     DocButtonAdd = require('../components/doc-button-add.jsx'),
     DocButtonEdit = require('../components/doc-button-edit.jsx'),
@@ -51,12 +53,10 @@ var Toolbar = React.createClass({
     handleSelectTask: function(e) {
         // метод вызывается при выборе задачи
         var taskValue = e.target.value;
-      console.log('toolbar onChange, taskValue', taskValue);
     },
 
     handleButtonTask: function() {
         // метод вызывается при выборе задачи
-        console.log('toolbar button onClick', this.state.taskList);
         // найдем актуальную задачу
 
         let actualTask = this.state.taskList.filter((task)=> {
@@ -66,15 +66,15 @@ var Toolbar = React.createClass({
         }),
         task = actualTask.map((task) => {return task.action}); // оставим только название процедуры
 
-        console.log('task:',task, this.state );
         flux.doAction('executeTask', task);
     },
 
     render: function () {
         var editeMode = this.state.editMode,
+            documentStatus = this.props.documentStatus,
+            isClosedStatus = documentStatus == DOCUMENT_CLOSED_STATUS ? true : false,
             taskWidget = this.generateTaskWidget(),
             tasks = this.state.taskList.map((task) => {return task.action});
-
 
         return (
             <div>
@@ -82,9 +82,9 @@ var Toolbar = React.createClass({
                     {this.state.warning? <span>{this.state.warningMessage}</span>: null }
                 </div>
                 <div className='doc-toolbar'>
-                    <DocButtonAdd value='Add' className='doc-toolbar'/>
-                    <DocButtonEdit value='Edit' className='doc-toolbar'> Edit </DocButtonEdit>
-                    <DocButtonSave validator={this.validator} className='doc-toolbar'> Save </DocButtonSave>
+                    {isClosedStatus ? null : <DocButtonAdd value='Add' className='doc-toolbar'/>}
+                    {isClosedStatus ? null : <DocButtonEdit value='Edit' className='doc-toolbar'> Edit </DocButtonEdit>}
+                    {isClosedStatus ? null : <DocButtonSave validator={this.validator} className='doc-toolbar'> Save </DocButtonSave>}
                     {editeMode && tasks.length > 0 ? null : taskWidget}
 
                 </div>

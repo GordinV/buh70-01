@@ -136,7 +136,7 @@ var docStore = flux.createStore({
         },
         dataChange: function( updater, value ){
             // Отслеживает загрузку данных документа
-            console.log('dataChange', value, typeof value.arvid);
+//            console.log('dataChange', value, typeof value.arvid);
             updater.set( {data: value} );
 
             if (typeof value.arvid !== 'undefinite') {
@@ -148,7 +148,7 @@ var docStore = flux.createStore({
         },
         bpmChange: function( updater, value ){
             // Загрузка БП
-            console.log('bpmChange', value);
+//            console.log('bpmChange', value);
             updater.set( {bpm: value} );
          },
         relationsChange: function( updater, value ){
@@ -201,7 +201,11 @@ function executeTask(task) {
         Выполнит запрос на исполнение задачи
      */
     
-    var tasksParameters = {docId:docStore.data.id, tasks:task, doc_type_id:docStore.data.doc_type_id };
+    var tasksParameters = {
+        docId:docStore.data.id,
+        tasks:task,
+        doc_type_id:docStore.data.doc_type_id
+    };
 
  //   console.log('executeTask:', task, tasksParameters);
 
@@ -237,7 +241,6 @@ function saveDoc() {
 
         try {
             let newId = data[0].id;
-            console.log('newId', newId);
             // обновим ид
             saveData.data.id = newId;
 
@@ -282,12 +285,8 @@ function saveDoc() {
 function reloadDocument(docId) {
     // reload document
 
-    console.log('reload document', docId);
-
     if (docId) {
-
         var url = "/document/" + docStore.data.doc_type_id + docId;
-        console.log('reloading', url);
         document.location.href = url;
     }
 }

@@ -33,7 +33,6 @@ exports.get = function(req, res, params) {
 
     }
 
-
     //var Doc = React.createFactory(require('../frontend/docs/arve'));
     var Doc = React.createFactory(docComponent),
         now = new Date();
@@ -48,7 +47,6 @@ exports.get = function(req, res, params) {
         }
 
         var html = ReactServer.renderToString(Doc(docInitData));
-        // заглушка
 
         res.render('document', {"user": user, react:html, store: JSON.stringify(docInitData)});
 

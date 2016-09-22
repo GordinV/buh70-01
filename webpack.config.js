@@ -5,7 +5,6 @@ const webpack = require('webpack');
 const NODE_ENV = 'development';
 //const NODE_ENV = 'production';
 
-
 /*
  if (!DEBUG) {
  plugins.push(
@@ -18,8 +17,8 @@ module.exports = {
     //entry: './frontend/docs.js',
 //    context: __dirname + '/frontend',
     entry: {
-        docs: "./frontend/docs.js",
-        doc: "./frontend/doc.js"
+        docs: './frontend/docs.js',
+        doc:  './frontend/doc.js'
     },
     output: {
         path: __dirname + '/public/javascripts',
@@ -38,7 +37,12 @@ module.exports = {
         "react-dom": "ReactDOM",
     },
     devtool: NODE_ENV == 'development' ? "cheap-inline-source-map": null , // для разработки, для продакшена cheap-source-map
-
+    stats: {
+        colors: true,
+        modules: true,
+        reasons: true,
+        errorDetails: true
+    },
     plugins: [
 //        new webpack.NoerrorsPlugin(),
         new webpack.DefinePlugin({NODE_ENV:JSON.stringify(NODE_ENV)}),

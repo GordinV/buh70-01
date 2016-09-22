@@ -1,4 +1,6 @@
-var React = require('react'),
+'use strict';
+
+const React = require('react'),
     flux = require('fluxify'),
     ModalPage = require('./modalPage.jsx'),
     Select = require('./doc-input-select.jsx'),
@@ -8,7 +10,6 @@ var React = require('react'),
 
 var ArvGridRow = React.createClass({
     getInitialState: function () {
-//        console.log('ArvGridRow props', this.props);
         return {
             row: this.props.gridRowData, checked: false, warning: ''
         }
@@ -31,7 +32,6 @@ var ArvGridRow = React.createClass({
 
     handleChange: function (e, name) {
         // отслеживаем изменения данных на форме
-        console.log('select changed');
         var value = e.target.value;
         if (value !== this.state.row[name] && name == 'nomid') {
             this.refs['kogus'].setState({value: 0.000});
@@ -74,11 +74,10 @@ var ArvGridRow = React.createClass({
             // есть проблемы
             warning = 'Отсутсвуют данные:' + warning;
         }
-        console.log('validated', warning, this.refs['nomid'].state.value);
         this.setState({checked: true, warning: warning});
     },
     render: function () {
-
+        // @todo вынести в css
         var style = {
             border: '1px solid black',
             backgroundColor: 'white',
@@ -92,7 +91,7 @@ var ArvGridRow = React.createClass({
         var row = this.state.row,
             validateMessage = this.state.warning,
             buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked;
-//        console.log('row render:',validateMessage, buttonOkReadOnly );
+
         /*
          <div style={style}>
          */
@@ -108,6 +107,7 @@ var ArvGridRow = React.createClass({
                                 <Select title="Teenus"
                                         name='nomid'
                                         libs="nomenclature"
+                                        dok="ARV"
                                         readOnly={false}
                                         value={row.nomid}
                                         defaultValue={row.kood}

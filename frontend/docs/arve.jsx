@@ -67,7 +67,6 @@ const Arve = React.createClass({
 /*
         // создаем обработчик события на изменение даннх
         docStore.on('change:docId', function (newValue, previousValue) {
-            console.log('change:docId', newValue, previousValue);
             if (newValue !== previousValue) {
                 // данные изменились, меняем состояние
                 var data = docStore.data,
@@ -120,15 +119,14 @@ const Arve = React.createClass({
 //            showMessageBox = this.state.showMessageBox; // будет управлять окном сообщений
 
         //  pattern='[A-Za-z]{3}'
-//console.log('arve rendering:', data);
         var gridData = this.state.gridData,
             gridColumns = this.state.gridConfig;
 
-//        console.log('data',this.state.docData,  data);
         return (
             <Form pages={this.pages} ref="form" onSubmit={this.onSubmit} style={{display: 'table'}}>
                 <Toolbar validator={this.validateForm}
                          taskList = {data.bpm}
+                         documentStatus = {data.doc_status}
                 />
                 <div className='div-doc'>
                     <DocCommon data={data}/>
@@ -214,6 +212,7 @@ const Arve = React.createClass({
                     }
                 });
 
+            // поставим значение код и наменование в грид
             var   nomRow = nomLib[0].data.filter(function(row) {
                     if (row.id == Number(gridRow.nomid)) {
                         return row;

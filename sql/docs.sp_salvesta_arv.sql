@@ -39,6 +39,11 @@ declare
 	ids integer[];
 begin
 
+if doc_number is null or doc_number = '' then
+	-- присвоим новый номер
+	doc_number = docs.sp_get_number(user_rekvid, 'ARV', YEAR(doc_kpv), tnDokLausId);
+end if;
+
 raise notice 'data.doc_details: %, jsonb_array_length %, data: %', doc_details, json_array_length(doc_details), data;
 
 select kasutaja into userName from userid u where u.rekvid = user_rekvid and u.id = userId;

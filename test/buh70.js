@@ -108,7 +108,7 @@ describe('Raamatupidamine tests units, models', function () {
                 "doc": "Arved",
                 "doc_type_id": "ARV",
                 "status": "Активный",
-                "number": "123",
+                "number": "",
                 "summa": "1.2000",
                 "rekvid": 1,
                 "liik": 0,

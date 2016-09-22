@@ -153,6 +153,15 @@ const Select = React.createClass({
             Options = null,
             inputDefaultValue = this.props.defaultValue; // Дадим дефолтное значение для виджета, чтоб покать его сразу, до подгрузки библиотеки
 
+        if (this.props.dok) {
+            // оставим только заданый "справочник"
+            dataOptions = dataOptions.filter(item => {
+                if (item.dok === this.props.dok) {
+                    return item;
+                }
+            })
+        }
+
         if (!this.state.value) { // добавим пустую строку в массив
             // проверим наличие пустой строки в массиве
 

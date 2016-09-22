@@ -5,7 +5,7 @@ const Arv = {
             {
                 sql: "select d.id, $2::integer as userid, to_char(created, 'DD.MM.YYYY HH:MM:SS')::text as created, to_char(lastupdate,'DD.MM.YYYY HH:MM:SS')::text as lastupdate, d.bpm, " +
                 " trim(l.nimetus) as doc, trim(l.kood) as doc_type_id," +
-                " trim(s.nimetus) as status, " +
+                " trim(s.nimetus) as status, d.status as doc_status," +
                 " trim(a.number) as number, a.summa, a.rekvId, a.liik, a.operid, to_char(a.kpv,'YYYY-MM-DD') as kpv, " +
                 " a.asutusid, a.arvId, trim(a.lisa) as lisa, to_char(a.tahtaeg,'YYYY-MM-DD') as tahtaeg, a.kbmta, a.kbm, a.summa, " +
                 " a.tasud, trim(a.tasudok) as tasudok, a.muud, a.jaak, a.objektId, trim(a.objekt) as objekt, " +
@@ -19,7 +19,7 @@ const Arv = {
                 " where d.id = $1",
                 sqlAsNew: "select $1::integer as id, $2::integer as userid,  to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as created, to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as lastupdate, null as bpm," +
                 " trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, " +
-                " trim(s.nimetus) as status, " +
+                " trim(s.nimetus) as status, 0 as doc_status, " +
                 " docs.sp_get_number(u.rekvId, 'ARV', year(date()), null) as number, 0.00 as summa, " +
                 " null as rekvId, 0 as liik, null as operid, to_char(now(),'YYYY-MM-DD') as kpv," +
                 " null as asutusid, null as arvId, null as lisa, to_char(now()  + interval '14 days','YYYY-MM-DD') as tahtaeg, null as kbmta, 0.00::numeric as kbm, null as summa," +
@@ -125,12 +125,11 @@ const Arv = {
         executeTask: function (task, docId, userId) {
             // выполнит задачу, переданную в параметре
 
-            console.log('arv executeTask', task, docId, userId);
             let executeTask = task;
             if (executeTask.length == 0 ) {
                 executeTask = ['start'];
             }
-            console.log('executeTask:', executeTask);
+
             let taskFunction = eval(executeTask[0]);
             return taskFunction(docId, userId);
         }
@@ -165,21 +164,25 @@ function tasumine(docId, userid) {
 
 function start(docId, userId) {
     // реализует старт БП документа
-    debugger;
     console.log('func start', docId, userId);
         const DOC_STATUS = 1, // устанавливаем активный статус для документа
             DocDataObject = require('./documents'),
             SQL_UPDATE = 'update docs.doc set status = $1, bpm = $2, history = $4 where id = $3',
             SQL_SELECT_DOC = Arv.select[0].sql;
 
-         let  bpm = setBpmStatuses(0, userId, 'finished'), // выставим актуальный статус для следующего процесса
+         let  bpm = setBpmStatuses(0, userId), // выставим актуальный статус для следующего процесса
             history = {user: userId, updated: Date.now()};
 
         // выполнить запрос и вернуть промис
+    return DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]);
+
+    /*
+    @todo
     return Promise.all([
         DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]),
         DocDataObject.executeSqlQueryPromise(SQL_SELECT_DOC, [docId, userId])
     ]);
+*/
 
 }
 
@@ -189,17 +192,16 @@ function generateJournal(docId, userId) {
     
     console.log('generateJournal:',docId, userId);
     
-        const DOC_STATUS = 2, // устанавливаем активный статус для документа
+        const ACTUAL_STEP_STATUS = 1, // актуальный шаг БП
             SQL_GENERATE_LAUSEND = 'select docs.gen_lausend_arv((select id from docs.arv where parentid = $1), $2) as journal_id',
             SQL_UPDATE_DOCUMENT_BPM = 'update docs.doc set bpm = $2, history = $3  where id = $1',
             DocDataObject = require('./documents');
         
-         let   bpm = setBpmStatuses(1, userId),
+         let   bpm = setBpmStatuses(ACTUAL_STEP_STATUS, userId),
              tasks = [],
              history = {user: userId, updated: Date.now()};
     
     // выполнить запрос и вернуть промис
-
     return Promise.all([
         DocDataObject.executeSqlQueryPromise(SQL_GENERATE_LAUSEND, [docId, userId]),
         DocDataObject.executeSqlQueryPromise(SQL_UPDATE_DOCUMENT_BPM, [docId, JSON.stringify(bpm), JSON.stringify(history)])
@@ -211,30 +213,39 @@ function generateJournal(docId, userId) {
 function endProcess(docId, userId) {
     // реализует завершение БП документа
 
-    const   DOC_STATUS = 2, // устанавливаем активный статус для документа
-            SQL = 'update docs.doc set bpm = $2, history = $3, status = 2 where id = $1',
+    const   ACTUAL_TASK_STEP = 2, // устанавливаем активный статус для документа
+            DOC_STATUS = 2, // закрыт
+            SQL = 'update docs.doc set bpm = $2, history = $3, status = $4 where id = $1',
             DocDataObject = require('./documents');
     
-    let bpm = setBpmStatuses(DOC_STATUS, userId), // выставим актуальный статус для следующего процесса
+    let bpm = setBpmStatuses(ACTUAL_TASK_STEP, userId), // выставим актуальный статус для следующего процесса
         history = {user: userId, updated: Date.now()},
-        params = [docId, JSON.stringify(bpm), JSON.stringify(history)];
+        params = [docId, JSON.stringify(bpm), JSON.stringify(history), DOC_STATUS];
 
+    console.log('endProcess bpm', bpm);
     return DocDataObject.executeSqlQueryPromise(SQL, params);
 }
 
-function setBpmStatuses(actualStepIndex, userId, actualStatus) {
+function setBpmStatuses(actualStepIndex, userId) {
 // собираем данные на на статус документа, правим данные БП документа
+    // 1. установить на actualStep = false
+    // 2. задать статус документу
+    // 3. выставить стутус задаче (пока только finished)
+    // 4. если есть следующий шаг, то выставить там actualStep = true, статус задачи opened
+
+
     try {
-        var bpm = Arv.bpm,
-            nextStep = bpm[actualStepIndex].nextStep,
-            statusBP = actualStatus ? actualStatus : 'finished'; // статус БП задачи
+        var bpm =  Arv.bpm, // нельзя использовать let из - за использования try {}
+            nextStep = bpm[actualStepIndex].nextStep;
 
         bpm[actualStepIndex].data = [{execution: Date.now(), executor: userId, vars: null}];
-        bpm[actualStepIndex].status = statusBP;
-        
+        bpm[actualStepIndex].status = 'finished';  // 3. выставить стутус задаче (пока только finished)
+        bpm[actualStepIndex].actualStatus = false;  // 1. установить на actualStep = false
+
         // выставим флаг на следующий щаг
         bpm = bpm.map(stepData => {
-            if (stepData.step == nextStep) {
+            if (stepData.step === nextStep) {
+                // 4. если есть следующий шаг, то выставить там actualStep = true, статус задачи opened
                 stepData.actualStep = true;
                 stepData.status = 'opened';
             }
