@@ -1,5 +1,5 @@
 describe('Raamatupidamine tests units, models', function () {
-    var globalDocId;
+    var globalDocId; // для сохранения ид документа
 
     it('Nomenklatuur select', function (done) {
         var DocDataObject = require('../models/documents');
