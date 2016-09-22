@@ -16,6 +16,7 @@ var ArvGridRow = React.createClass({
     },
 
     modalPageClick: function (btnEvent) {
+        // отработает событие клик
         var components = ['nomid', 'kogus', 'hind', 'kbm', 'kbmta', 'summa'],
             data = [];
 
