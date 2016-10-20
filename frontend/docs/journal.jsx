@@ -1,5 +1,5 @@
 'use strict';
-var React = require('react'),
+const React = require('react'),
     flux = require('fluxify');
 
 const Form = require('../components/form.js'),
@@ -21,14 +21,10 @@ var docStore = require('../stores/doc_store.js'),
 var now = new Date();
 
 const Journal = React.createClass({
-    pages:  [{pageName: 'Journal'}],
-    requiredFields:  [
-        {name: 'kpv', type: 'D', min: now.setFullYear(now.getFullYear() - 1), max: now.setFullYear(now.getFullYear() + 1)},
-        {name: 'selg', type: 'C'},
-        {name: 'summa', type: 'N'}
-    ],
-    mixins: [relatedDocuments, validateForm],
-    
+    pages: [{pageName: 'Journal'}],
+
+    mixins: [relatedDocuments], //, validateForm
+
     getInitialState: function () {
         // установим изначальные данные
         return {
@@ -44,13 +40,23 @@ const Journal = React.createClass({
         };
     },
 
+    validation: function () {
+        const doc = require('../../models/journal'),
+            requiredFields = doc.requiredFields,
+            now = new Date.now();
+
+        let warning = require('../mixin/validateForm')(this, requiredFields);
+        return warning;
+    },
+
+
     componentWillMount: function () {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         var self = this,
             data = self.props.data.row,
             details = self.props.data.details,
             gridConfig = self.props.data.gridConfig;
-        
+
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
         flux.doAction('docIdChange', data.id);
@@ -70,7 +76,7 @@ const Journal = React.createClass({
          }
          });
          */
-        
+
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
             if (newValue !== previousValue) {
@@ -147,7 +153,7 @@ const Journal = React.createClass({
 
                             <li><Select className='ui-c2' title="Partner" name='asutusid' libs="asutused"
                                         value={data.asutusid}
-                                        collId = 'id'
+                                        collId='id'
                                         defaultValue={data.asutus}
                                         placeholder='Partner'
                                         ref="asutusid"
@@ -200,7 +206,7 @@ const Journal = React.createClass({
         if (gridRowId >= 0) {
             gridRow = gridData[gridRowId];
         }
-        console.log('previos state gridData, docData', gridData,  docData);
+        console.log('previos state gridData, docData', gridData, docData);
 
         if (btnEvent == 'Ok') {
             console.log(' modalPageClick data, gridRowId, gridRow', data, gridRowId, gridRow);
@@ -239,7 +245,7 @@ const Journal = React.createClass({
              gridRow['nimetus'] = nomRow[0].name;
              }
              */
-            console.log('after state gridData %s, docData %s', gridData,  docData);
+            console.log('after state gridData %s, docData %s', gridData, docData);
 
             if (gridRowId >= 0) {
                 gridData[gridRowId] = gridRow;
@@ -260,7 +266,7 @@ const Journal = React.createClass({
         this.setState({gridRowEdit: false, docData: docData});
 
     },
-    
+
 });
 
 module.exports = Journal;

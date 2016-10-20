@@ -8,8 +8,11 @@ module.exports= {
             {id: "status", name: "Status", width: "100px"}
 
         ],
-        sqlString: 'select d.id, d.doc_type_id as type, d.created, d.lastupdate, d.status ' +
-        ' from docs.doc d order by d.lastupdate',
+        sqlString: "select d.id, d.doc_type_id as type, d.created, d.lastupdate, d.status " +
+        " from docs.doc d " +
+        " where d.rekvId = $1 " +  // $1 всегда ид учреждения
+        " and docs.usersRigths(d.id, 'select', $2)" +
+        " order by d.lastupdate",     // $2 - всегда ид пользователя
         params: ''
     },
 
@@ -34,7 +37,9 @@ module.exports= {
                     " from docs.doc d " +
                     " inner join docs.arv a on a.parentId = d.id " +
                     " inner join libs.library s on s.kood = d.status::text " +
-                    " left outer join libs.asutus asutus on a.asutusid = asutus.id ",
+                    " left outer join libs.asutus asutus on a.asutusid = asutus.id " +
+                    " where d.rekvId = $1 " +  // $1 всегда ид учреждения
+                    " and docs.usersRigths(d.id, 'select', $2)",     // $2 - всегда ид пользователя
         params: ''
     },
 
@@ -61,7 +66,9 @@ module.exports= {
                     " inner join docs.doc d on d.id = j.parentid " +
                     " inner join docs.journalid jid on j.id = jid.journalid " +
                     " inner join docs.journal1 j1 on j.id = j1.parentid " +
-                    " inner join libs.library s on s.kood = d.status::text ",
+                    " inner join libs.library s on s.kood = d.status::text " +
+                    " where d.rekvId = $1" + // $1 всегда ид учреждения
+                    " and docs.usersRigths(d.id, 'select', $2)",     // $2 - всегда ид пользователя
         params: ''
     },
     SORDER: {
@@ -84,7 +91,9 @@ module.exports= {
                     " from docs.doc d " +
                     " inner join docs.korder1 k on d.id = k.parentid "+
                     " inner join libs.library s on s.kood = d.status::text "+
-                    " where k.tyyp = 1",
+                    " where k.tyyp = 1" +
+                    " and d.rekvId = $1" + // $1 всегда ид учреждения
+                    " and docs.usersRigths(d.id, 'select', $2)",     // $1 - всегда ид пользователя
         params: ''
     },
     VORDER: {
@@ -107,7 +116,10 @@ module.exports= {
         " from docs.doc d " +
         " inner join docs.korder1 k on d.id = k.parentid "+
         " inner join libs.library s on s.kood = d.status::text" +
-        " where k.tyyp = 2",
+        " where k.tyyp = 2" +
+        " and d.rekvId = $1" + // $1 всегда ид учреждения
+        " and docs.usersRigths(d.id, 'select', $2)",     // $2 - всегда ид пользователя
+
         params: ''
     },
 
@@ -134,7 +146,10 @@ module.exports= {
         " inner join docs.palk_oper p on p.parentId = d.Id " +
         " inner join libs.tooleping t on p.lepingId = t.id " +
         " inner join libs.asutus a on a.id = t.parentId" +
-        " inner join libs.library s on s.kood = d.status::text ",
+        " inner join libs.library s on s.kood = d.status::text " +
+        " where d.rekvId = $1" + // $1 всегда ид учреждения
+        " and docs.usersRigths(d.id, 'select', $2)",     // $2 - всегда ид пользователя
+
         params: ''
     },
     TAABEL: {
@@ -158,7 +173,10 @@ module.exports= {
         " inner join docs.palk_taabel1 tb on tb.parentId = d.Id " +
         " inner join libs.tooleping t on tb.toolepingid = t.id " +
         " inner join libs.asutus a on a.id = t.parentId " +
-        " inner join libs.library s on s.kood = d.status::text ",
+        " inner join libs.library s on s.kood = d.status::text " +
+        " where d.rekvId = $1" + // $1 всегда ид учреждения
+        " and docs.usersRigths(d.id, 'select', $2)",     // $2 - всегда ид пользователя
+
         params: ''
     },
     PVKAART: {
@@ -184,8 +202,11 @@ module.exports= {
                 " inner join libs.library l on d.doc_type_id = l.id " +
                 " inner join docs.pv_kaart pv on pv.parentid = d.id " +
                 " left outer join libs.asutus a on a.id = pv.vastisikId " +
-                " inner join libs.library s on s.kood = d.status::text",
-            params: ''
+                " inner join libs.library s on s.kood = d.status::text" +
+                " where d.rekvId = $1" + // $1 всегда ид учреждения
+                " and docs.usersRigths(d.id, 'select', $2)",     // $2 - всегда ид пользователя
+
+        params: ''
     },
     PVOPER: {
         gridConfiguration: [
@@ -215,7 +236,9 @@ module.exports= {
             " inner join libs.nomenklatuur n on n.id = po.nomid " +
             " inner join libs.library g on g.id = pv.gruppid " +
             " left outer join libs.asutus a on a.id = po.asutusId " +
-            " inner join libs.library s on s.kood = d.status::text",
+            " inner join libs.library s on s.kood = d.status::text" +
+            " where d.rekvId = $1" + // $1 всегда ид учреждения
+            " and docs.usersRigths(d.id, 'select', $2)",     // $2 - всегда ид пользователя
         params: ''
     }
 

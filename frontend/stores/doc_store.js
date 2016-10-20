@@ -59,6 +59,17 @@ var docStore = flux.createStore({
                 data:[],
                 params:[null,null],
                 fields: ['asutusid','arvid'] // ид контр-агента и номер счета
+            },
+            {
+                id:'users',
+                data:[],
+                params:[]
+            },
+            {
+                id:'dokProps',
+                data:[],
+                params:[null,null],
+                fields: ['doc_type_id','rekvid']// тип документа и ид учреждения
             }
 
         ],
@@ -67,7 +78,6 @@ var docStore = flux.createStore({
     },
     actionCallbacks: {
         setLibsFilter: function(updater, libName, filter) {
-            console.log('setLibsFilter called', libName, filter);
 
             // ищем справочник
             var libs = this.libs;
@@ -97,9 +107,7 @@ var docStore = flux.createStore({
             });
             // вызываем обновление справочника с сервера
             libs.forEach(function(item) {
-
                 var libParams = [];
-
                 if (item.params) {
                     libParams =  item.params;
                     // установим параметры для запроса
@@ -107,9 +115,9 @@ var docStore = flux.createStore({
                         libParams[i] = this.data[item.fields[i]];
                     }
                 }
-                console.log('loadLibs params', item);
                 loadLibs(item.id, libParams);
             }, this);
+
         },
         saveData: function( updater){
             saveDoc();
@@ -310,6 +318,7 @@ function loadLibs(libraryName, libParams) {
             });
 
             if (newLibs.length > 0) {
+//                console.log('libs loaded', newLibs);
                 flux.doAction('libsChange', newLibs); // пишем изменения в хранилище
             }
         });

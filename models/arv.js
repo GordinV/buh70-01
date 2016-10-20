@@ -1,5 +1,7 @@
 'use strict';
-var co = require('co');
+//var co = require('co');
+let now = new Date();
+
 const Arv = {
         select: [
             {
@@ -9,13 +11,15 @@ const Arv = {
                 " trim(a.number) as number, a.summa, a.rekvId, a.liik, a.operid, to_char(a.kpv,'YYYY-MM-DD') as kpv, " +
                 " a.asutusid, a.arvId, trim(a.lisa) as lisa, to_char(a.tahtaeg,'YYYY-MM-DD') as tahtaeg, a.kbmta, a.kbm, a.summa, " +
                 " a.tasud, trim(a.tasudok) as tasudok, a.muud, a.jaak, a.objektId, trim(a.objekt) as objekt, " +
-                " asutus.regkood, trim(asutus.nimetus) as asutus " +
+                " asutus.regkood, trim(asutus.nimetus) as asutus, " +
+                " a.doklausid, a.doklausid,dp.selg as dokprop " +
                 " from docs.doc d " +
                 " inner join libs.library l on l.id = d.doc_type_id " +
                 " inner join docs.arv a on a.parentId = d.id " +
                 " left outer join libs.library s on s.library = 'STATUS' and s.kood = d.status::text " +
                 " inner join libs.asutus as asutus on asutus.id = a.asutusId " +
                 " inner join ou.userid u on u.id = $2::integer " +
+                " left outer join libs.dokprop dp on dp.id = a.doklausid " +
                 " where d.id = $1",
                 sqlAsNew: "select $1::integer as id, $2::integer as userid,  to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as created, to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as lastupdate, null as bpm," +
                 " trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, " +
@@ -24,7 +28,7 @@ const Arv = {
                 " null as rekvId, 0 as liik, null as operid, to_char(now(),'YYYY-MM-DD') as kpv," +
                 " null as asutusid, null as arvId, null as lisa, to_char(now()  + interval '14 days','YYYY-MM-DD') as tahtaeg, null as kbmta, 0.00::numeric as kbm, null as summa," +
                 " null as tasud, null as tasudok, null as muud, 0.00 as jaak, null as objektId, null as objekt, " +
-                " null as regkood, null as asutus " +
+                " null as regkood, null as asutus, null::integer as doklausid, null::text as  dokprop " +
                 " from libs.library l,   libs.library s, ou.userid u  " +
                 " where l.library = 'DOK' and l.kood = 'ARV' " +
                 " and u.id = $2::integer " +
@@ -86,6 +90,23 @@ const Arv = {
             ]
         },
         saveDoc: "select docs.sp_salvesta_arv($1, $2, $3) as id",
+        deleteDoc: "select error_code, result, error_message from docs.sp_delete_arv($1, $2)", // $1 - userId, $2 - docId
+        requiredFields: [
+            {
+                name: 'kpv',
+                type: 'D',
+                min: now.setFullYear(now.getFullYear() - 1),
+                max: now.setFullYear(now.getFullYear() + 1)
+            },
+            {
+                name: 'tahtaeg',
+                type: 'D',
+                min: now.setFullYear(now.getFullYear() - 1),
+                max: now.setFullYear(now.getFullYear() + 1)
+            },
+            {name: 'asutusid', type: 'N', min:null, max:null},
+            {name: 'summa', type: 'N', min:-9999999, max:999999}
+        ],
         bpm: [
             {
                 step: 0,
@@ -94,6 +115,7 @@ const Arv = {
                 nextStep: 1,
                 task: 'human',
                 data: [],
+                actors: [],
                 status: null,
                 actualStep: false
             },
@@ -115,6 +137,7 @@ const Arv = {
                 nextStep: null,
                 task: 'automat',
                 data: [],
+                actors: [],
                 status: null,
                 actualStep: false
             }
@@ -176,14 +199,6 @@ function start(docId, userId) {
         // выполнить запрос и вернуть промис
     return DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]);
 
-    /*
-    @todo
-    return Promise.all([
-        DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]),
-        DocDataObject.executeSqlQueryPromise(SQL_SELECT_DOC, [docId, userId])
-    ]);
-*/
-
 }
 
 // generateJournal
@@ -226,6 +241,7 @@ function endProcess(docId, userId) {
     return DocDataObject.executeSqlQueryPromise(SQL, params);
 }
 
+
 function setBpmStatuses(actualStepIndex, userId) {
 // собираем данные на на статус документа, правим данные БП документа
     // 1. установить на actualStep = false
@@ -236,11 +252,22 @@ function setBpmStatuses(actualStepIndex, userId) {
 
     try {
         var bpm =  Arv.bpm, // нельзя использовать let из - за использования try {}
-            nextStep = bpm[actualStepIndex].nextStep;
+            nextStep = bpm[actualStepIndex].nextStep,
+            executors = bpm[actualStepIndex].actors;
+
+        if (executors.length == 0) {
+            // если исполнители не заданы, то добавляем автора
+            executors.push({
+                id: userId,
+                name: 'AUTHOR',
+                role: 'AUTHOR'
+            })
+        }
 
         bpm[actualStepIndex].data = [{execution: Date.now(), executor: userId, vars: null}];
         bpm[actualStepIndex].status = 'finished';  // 3. выставить стутус задаче (пока только finished)
         bpm[actualStepIndex].actualStatus = false;  // 1. установить на actualStep = false
+        bpm[actualStepIndex].actors = executors;  // установить список акторов
 
         // выставим флаг на следующий щаг
         bpm = bpm.map(stepData => {

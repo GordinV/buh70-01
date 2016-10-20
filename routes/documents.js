@@ -25,9 +25,8 @@ exports.get = function(req, res) {
         // ищем параметры последнего запроса
 //        req.session.docs.push({component:component.name, parameter: parameter, sortBy:sortBy, sqlWhere:sqlWhere});
 
-       console.log('routes documents session docs', req.session);
         if (req.session.docs) {
-            console.log('routes documents session docs found', req.session.docs);
+//            console.log('routes documents session docs found', req.session.docs);
             // ищем в сессии наш компонент
             for (var i = 0; i < req.session.docs.length; i++) {
                 if (req.session.docs[i]['component'] == componentName) {
@@ -41,10 +40,10 @@ exports.get = function(req, res) {
             }
         }
 
-        DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere);
+        DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere, user);
  //       DocDataObject[componentName].requery(null, callback, results);
     }, function(err) {
-        if (err) return next(err);
+        if (err) return new Error(err);
 
         components = components.map(function(component) {
             component.data = results[component.name].data;
@@ -57,7 +56,7 @@ exports.get = function(req, res) {
                 component.value = parameter;
             }
 
-            console.log('component.data', component.data);
+  //          console.log('component.data', component.data);
             if (component.name == 'docsGrid' && component.data[0].id == 'DOK' ) {
                 component.data = []; // заглушка, проблему с рендером
             }
@@ -65,20 +64,20 @@ exports.get = function(req, res) {
             return component;
         })
 
-        console.log('routes documents  components',  components);
+//        console.log('routes documents  components',  components);
 
         var Component = React.createElement(
             Parent,
             { id: 'grid', components: components}, 'Тут будут компоненты');
 
-        console.log('start Component',Component );
+  //      console.log('start Component',Component );
 
         try {
             var html = ReactServer.renderToString(Component);
 
             // передатим в хранилище данные
             var storeInitialData = JSON.stringify(components);
-            console.log('start render',storeInitialData );
+  //          console.log('start render',storeInitialData );
 
             res.render('documents', {
                 "user": user,

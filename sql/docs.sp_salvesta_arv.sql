@@ -32,10 +32,11 @@ declare
 	doc_objekt text = doc_data->>'objekt';
 	tcValuuta text = coalesce(doc_data->>'valuuta','EUR'); 
 	tnKuurs numeric(14,8) = coalesce(doc_data->>'kuurs','1'); 
-	tnDokLausId integer = coalesce((doc_data->>'doklausid')::integer,1); --@todo реализовать выбор профиля при сохранении документа 
+	tnDokLausId integer = coalesce((doc_data->>'doklausid')::integer,1);
 	json_object json;
 	json_record record;
 	new_history jsonb;
+	new_rights jsonb;
 	ids integer[];
 begin
 
@@ -56,10 +57,11 @@ end if;
 if doc_id is null or doc_id = 0 then
 
 	select row_to_json(row) into new_history from (select now() as created, userName as user) row;
+	select row_to_json(row) into new_rights from (select array[userId] as "select", array[userId] as "update", array[userId] as "delete") row;
 		
 	
-	insert into docs.doc (doc_type_id, history ) 
-		values (doc_type_id, '[]'::jsonb || new_history) 
+	insert into docs.doc (doc_type_id, history, rigths, rekvId ) 
+		values (doc_type_id, '[]'::jsonb || new_history,new_rights, user_rekvid) 
 		returning id into doc_id;
 
 	insert into docs.arv (parentid, rekvid, userid, liik ,operid, number, kpv, asutusid, lisa, tahtaeg, kbmta, kbm, summa, muud, objektid, objekt, doklausid)
@@ -72,11 +74,13 @@ if doc_id is null or doc_id = 0 then
 
 		
 else
+	-- history
 	select row_to_json(row) into new_history from (select now() as updated, userName as user) row;
 
 	update docs.doc 
 		set lastupdate = now(),
-			history = coalesce(history,'[]')::jsonb || new_history
+			history = coalesce(history,'[]')::jsonb || new_history,
+			rekvid = user_rekvid
 		where id = doc_id;	
 
 	update docs.arv set 
@@ -87,9 +91,9 @@ else
 		asutusid = doc_asutusid, 
 		lisa = doc_lisa, 
 		tahtaeg = doc_tahtaeg, 
-		kbmta = doc_kbmta, 
-		kbm = doc_kbm, 
-		summa = doc_summa, 
+		kbmta = coalesce(doc_kbmta,0), 
+		kbm = coalesce(doc_kbm,0), 
+		summa = coalesce(doc_summa,0), 
 		muud = doc_muud, 
 		objektid = doc_objektid, 
 		objekt = doc_objekt,
@@ -111,7 +115,11 @@ loop
 --	raise notice 'json_record: %, nomid %', json_record, json_record.nomid;
 	if json_record.id is null or json_record.id = '0' or substring(json_record.id from 1 for 3) = 'NEW' then
 		insert into docs.arv1 (parentid, nomid, kogus, hind, kbm, summa)
-			values (arv_id, json_record.nomid, json_record.kogus, json_record.hind,  json_record.kbm, json_record.summa) returning id into arv1_id;
+			values (arv_id, json_record.nomid, 
+			coalesce(json_record.kogus,0), 
+			coalesce(json_record.hind,0),  
+			coalesce(json_record.kbm,0), 
+			coalesce(json_record.summa,0)) returning id into arv1_id;
 
 		-- valuuta
 		insert into docs.dokvaluuta1 (dokid, dokliik, valuuta, kuurs) 
@@ -124,10 +132,10 @@ loop
 		update docs.arv1 set 
 			parentid = arv_id, 
 			nomid = json_record.nomid, 
-			kogus = json_record.kogus, 
-			hind = json_record.hind, 
-			kbm = json_record.kbm, 
-			summa = json_record.summa
+			kogus = coalesce(json_record.kogus,0), 
+			hind = coalesce(json_record.hind,0), 
+			kbm = coalesce(json_record.kbm,0), 
+			summa = coalesce(json_record.summa, kogus * hind)
 			where id = json_record.id::integer returning id into arv1_id;
 
 		-- add new id into array of ids
@@ -155,9 +163,9 @@ select sum(summa) as summa, sum(kbm) as kbm into doc_summa, doc_kbm
 	where parentid = arv_id;
 
 update docs.arv set 
-	kbmta = doc_summa - doc_kbm, 
-	kbm = doc_kbm, 
-	summa = doc_summa
+	kbmta = coalesce(doc_summa,0) - coalesce(doc_kbm,0), 
+	kbm = coalesce(doc_kbm,0), 
+	summa = coalesce(doc_summa,0)
 	where parentid = doc_id;
 
 	
@@ -183,5 +191,6 @@ GRANT EXECUTE ON FUNCTION docs.sp_salvesta_arv(json,integer, integer) TO dbpeaka
 
 
 
-select docs.sp_salvesta_arv('{"id":0,"doc_type_id":"ARV","data":{"id":0,"created":"2016-05-05T21:39:57.050726","lastupdate":"2016-05-05T21:39:57.050726","bpm":null,"doc":"Arved","doc_type_id":"ARV","status":"Черновик","number":"321","summa":24,"rekvid":null,"liik":0,"operid":null,"kpv":"2016-05-05","asutusid":1,"arvid":null,"lisa":"lisa","tahtaeg":"2016-05-19","kbmta":null,"kbm":4,"tasud":null,"tasudok":null,"muud":"muud","jaak":"0.00","objektid":null,"objekt":null,"regkood":null,"asutus":null},"details":[{"id":"NEW0.6577064044198089","[object Object]":null,"nomid":"1","kogus":2,"hind":10,"kbm":4,"kbmta":20,"summa":24,"kood":"PAIGALDUS","nimetus":"PV paigaldamine"}]}',1, 1);
+select docs.sp_salvesta_arv('{"id":0,"doc_type_id":"ARV","data":{"id":0,"created":"2016-05-05T21:39:57.050726","lastupdate":"2016-05-05T21:39:57.050726","bpm":null,"doc":"Arved","doc_type_id":"ARV","status":"Черновик","number":"321","summa":24,"rekvid":null,"liik":0,"operid":null,"kpv":"2016-05-05","asutusid":1,"arvid":null,"lisa":"lisa","tahtaeg":"2016-05-19","kbmta":null,"kbm":4,"tasud":null,"tasudok":null,"muud":"muud","jaak":"0.00","objektid":null,"objekt":null,"regkood":null,"asutus":null},
+"details":[{"id":"NEW0.6577064044198089","[object Object]":null,"nomid":"1","kogus":2,"hind":10,"kbm":4,"kbmta":20,"summa":24,"kood":"PAIGALDUS","nimetus":"PV paigaldamine"}]}',1, 1);
 

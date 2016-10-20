@@ -1,10 +1,11 @@
 'use strict';
 exports.get = function(req, res, params) {
-    var user = require('../middleware/userData')(req),
-        React = require('react'),
+    const React = require('react'),
         ReactServer = require('react-dom/server');
+
     // check for userid in session
-    var parameter = req.params.id,
+    let user = require('../middleware/userData')(req),
+        parameter = req.params.id,
         docTypePattern = /[0-9]/gi,
         docIdPattern = /[^0-9]/gi,
         docId = parameter.replace(docIdPattern, '').trim(),
@@ -34,21 +35,32 @@ exports.get = function(req, res, params) {
     }
 
     //var Doc = React.createFactory(require('../frontend/docs/arve'));
-    var Doc = React.createFactory(docComponent),
+    let Doc = React.createFactory(docComponent),
         now = new Date();
-    
-    DocDataObject.selectDoc(docTypeId, [docId, user.userId], function(err, data, bpm) {
+
+
+    DocDataObject.selectDoc(docTypeId, [docId, user.userId], (err, data, bpm)=> {
+
         if (err) next(err);
 
+        console.log('selectdoc', data);
         docInitData.data = data;
 
-        if (bpm) {
-            docInitData.bpm = bpm;
+        if (data.row) {
+            if (bpm) {
+                docInitData.bpm = bpm;
+            }
+            try {
+                let html = ReactServer.renderToString(Doc(docInitData));
+                res.render('document', {"user": user, react:html, store: JSON.stringify(docInitData)});
+            } catch(e) {
+                res.render('error', {message: 'Error in documentr', status:500} );
+            }
+
+        } else {
+//            let error =   new Error(400,'Document not found');
+            res.render('error', {message: 'Document not found', status:400} );
         }
-
-        var html = ReactServer.renderToString(Doc(docInitData));
-
-        res.render('document', {"user": user, react:html, store: JSON.stringify(docInitData)});
 
     }, results);
 };
@@ -65,6 +77,7 @@ if (!Date.prototype.toLocalISOString) {
 
         Date.prototype.toLocalISOString = function() {
             return this.getFullYear() +
+                '' +
                 '-' + pad(this.getMonth() + 1) +
                 '-' + pad(this.getDate()) +
                 'T' + pad(this.getHours()) +

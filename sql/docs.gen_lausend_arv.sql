@@ -123,7 +123,7 @@ begin
 			',"asutusid":' || v_arv.Asutusid ||
 			',"dok": "Arve nr.' || v_arv.number || '"';
 
-		raise notice 'l_json %', l_json;
+		raise notice 'l_json 1 %', l_json;
 		
 		
 --		l_json_details = '[]';
@@ -135,7 +135,8 @@ begin
 				left outer join docs.dokvaluuta1 dokvaluuta1 on (arv1.id = dokvaluuta1.dokid and dokvaluuta1.dokliik = 2) 
 				where arv1.parentid = v_arv.Id
 		loop
-		--	lisatud 18/03/2005
+
+			raise notice 'v_arv1: %', v_arv1;	
 			if not empty(v_arv1.tp) then 
 				v_arv.asutus_tp:= v_arv1.tp;
 			end if;
@@ -252,8 +253,11 @@ begin
 			l_row_count = l_row_count + 1;
 			
 		End loop;
+		if l_json_details is null then
+			l_json_details = '';
+		end if;
 		l_json = '{' || l_json || ',"details":[' || l_json_details || ']}}';
-		raise notice 'l_json %', l_json::json;
+		raise notice 'l_json 2 %', l_json::json;
 
 		
 
@@ -310,7 +314,7 @@ $BODY$
 GRANT EXECUTE ON FUNCTION docs.gen_lausend_arv(integer, integer) TO dbkasutaja;
 GRANT EXECUTE ON FUNCTION docs.gen_lausend_arv(integer, integer) TO dbpeakasutaja;
 
-select docs.gen_lausend_arv(16, 1)
+select docs.gen_lausend_arv(121, 1)
 
 /*
 

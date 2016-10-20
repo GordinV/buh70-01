@@ -1,19 +1,16 @@
 'use strict';
-// нрузим компоненты
+// грузим компоненты
 
-var React = require('react');
-
-const MyTree = require('./mytree'),
+const React = require('react'),
+    MyTree = require('./mytree'),
     DataGrid = require('./data-grid.jsx'),
-    ButtonAdd = require('./buttonadd'),
-    ButtonEdit = require('./buttonedit'),
-    ButtonDelete = require('./buttondelete'),
-    ButtonPrint = require('./buttonprint'),
-    InputText = require('../components/doc-input-text.jsx'),
-    ModalPage = require('./modalPage.jsx');
+    ButtonRegister = require('./button-register.jsx'),
+    ModalPage = require('./modalPage.jsx'),
+    ModalPageDelete = require('./modalPageDelete.jsx'),
+    ModalPageInfo = require('./modalPageInfo.jsx'),
+    flux = require('fluxify');
 
-var flux = require('fluxify'),
-    myComponents = [];
+let  myComponents = [];
 
 if (!typeof window === 'undefined') {
     // берем данные с локального хранилища
@@ -27,15 +24,18 @@ var docsStore = require('../stores/docs_store.js');
 var Parent = React.createClass({
     displayName: 'Parent',
 
-    filterData:[], // массив объектов, куда запишем параметры для фильтрации
+    filterData:['btnOk', 'btnCancel'], // массив объектов, куда запишем параметры для фильтрации @todo вынести все в отдельный компонет для фильтрации
 
     getInitialState: function getInitialState() {
         return {
             // у каждого компонента свой объект
-            components: this.props.components,
+            components: this.props.components, // @todo вынести в отдельный файл компонента
             gridLeft: '13%',
             gridWidth: '90%',
-            getFilter: false
+            getFilter: false,
+            getDeleteModalPage: false,
+            showSystemMessage: false
+
         };
     },
 
@@ -55,13 +55,19 @@ var Parent = React.createClass({
             self.setState({gridLeft:toogleData.left,gridWidth:toogleData.width })
         })
 
+        // создаем обработчик события системный извещение
+        docsStore.on('change:systemMessage', function(newValue, previousValue) {
+            // данные изменились, меняем состояние
+            let systemMessageStatus = newValue ? true : false;
+            self.setState({showSystemMessage:systemMessageStatus });
+        })
+
     },
 
     componentDidMount: function() {
         // покажем данные
-//        console.log('parent componentDidMount state components',this.state.components);
 
-        var lastComponent = localStorage['docsList'];
+        let lastComponent = localStorage['docsList'];
         flux.doAction( 'dataChange', this.props.components );
         if (lastComponent) {
             flux.doAction('docsListChange',lastComponent);
@@ -78,7 +84,7 @@ var Parent = React.createClass({
      */
     findComponent: function(componentName) {
         // вернет данные компонента по его названию
-        var components = this.state.components,
+        let components = this.state.components,
             componentData = [];
 
         if (components.length > 0 ) {
@@ -96,14 +102,38 @@ var Parent = React.createClass({
         // откроет модальное окно с полями для фильтрации
         this.setState({getFilter: true})
     },
+
+    btnDeleteClick() {
+        this.setState({getDeleteModalPage: true})
+    },
+
+    btnAddClick() {
+        // обработчик события клик кнопки "Добавить"
+            // вызовем действия на флаксе
+            flux.doAction('Add');
+        },
+
+    btnEditClick() {
+        // обработчик события клик кнопки "Изменить"
+            // вызовем действия на флаксе
+            flux.doAction('Edit');
+        },
+
+    btnPrintClick() {
+        // обработчик события клик кнопки "Изменить"
+        // вызовем действия на флаксе
+        flux.doAction('Print');
+    },
+
     render: function render() {
-        var  myListValue = '',
+        let  myListValue = '',
             myListData = this.findComponent('docsList') || [],
             myGrid = this.findComponent('docsGrid') || [],
             myGridColums = [],
             myGridData = [],
             tooglePaneelData = flux.stores.docsStore.tooglePanelData,
-            gridLeft = '13%';
+            systemMessage = flux.stores.docsStore.systemMessage,
+            gridLeft = '13%'; // @todo вынести в отдельную переменную
 
         if (myListData.length > 0 ) {
             myListValue = myListData[0].value;
@@ -125,16 +155,16 @@ var Parent = React.createClass({
         }
 
         return (<div id="parentDiv">
-                <MyTree 
-                    componentName='docsList' 
-                    data={myListData} 
+                <MyTree
+                    componentName='docsList'
+                    data={myListData}
                     value={myListValue}
                     onChangeAction= 'docsListChange'/>
                 <div id="gridToolBar">Toolbar
-                    <ButtonAdd className="gridToolbar"/>
-                    <ButtonEdit className="gridToolbar"/>
-                    <ButtonDelete className="gridToolbar"/>
-                    <ButtonPrint className="gridToolbar"/>
+                    <ButtonRegister  onClick={this.btnAddClick} value=" Add "/>
+                    <ButtonRegister  onClick = {this.btnEditClick} value = " Edit "/>
+                    <ButtonRegister  onClick={this.btnDeleteClick} value = " Delete "/>
+                    <ButtonRegister  onClick={this.btnPrintClick} value = " Print "/>
                     <button
                         className="gridToolbar"
                         onClick={this.btnFilterClick}
@@ -151,19 +181,28 @@ var Parent = React.createClass({
                     />
                 </div>
                 {this.state.getFilter ?
-                    (<ModalPage 
+                    (<ModalPage
                         modalPageBtnClick = {this.modalPageBtnClick}
                         modalPageName = 'Filter'
-                        modalObjects = {this.filterData}
                     > {filterComponent} </ModalPage>)
                     : null}
+                {this.state.getDeleteModalPage ?
+                    (<ModalPageDelete
+                        modalPageBtnClick = {this.modalPageDelBtnClick}
+                    />) : null}
+                {this.state.showSystemMessage ?
+                    (<ModalPageInfo
+                        modalPageBtnClick = {this.modalPageInfoBtnClick}
+                        systemMessage = {systemMessage}
+                    />) : null}
 
             </div>
-            
+
         )
     },
 
     modalPageBtnClick: function(btnEvent) {
+        // обработчик для кнопки фильтрации
         var filterString = '';
         if (btnEvent = 'Ok') {
                 // собирем данные в объект и вернем на форму
@@ -200,7 +239,28 @@ var Parent = React.createClass({
         this.setState({getFilter: false})
     },
 
+    modalPageDelBtnClick(btnEvent) {
+        // обработчик вызова модального окна удаления
+        this.setState({getDeleteModalPage: false});
+
+        if (btnEvent == 'Ok') {
+            // вызовем действия на флаксе
+            flux.doAction('Delete');
+        }
+
+    },
+
+    modalPageInfoBtnClick() {
+
+        // обработчик вызова модального окна системного сообщения
+        this.setState({showSystemMessage: false});
+        // вызовем действия на флаксе
+        flux.doAction('systemMessageChange', null );
+
+    },
+
     getFilterFields: function() {
+        // @todo вынести в отдельный модуль
         // создаст из полкй грида компоненты для формирования условий фильтрации
         var gridComponents =  docsStore.data,
             gridData = [],
@@ -236,7 +296,7 @@ var Parent = React.createClass({
                         }
                     }
 
-                    console.log('componentObjekt:', componentObjektValue);
+//                    console.log('componentObjekt:', componentObjektValue);
                     if (row.type) {
                         componentType = row.type;
                     }

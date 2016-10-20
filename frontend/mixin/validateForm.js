@@ -1,18 +1,18 @@
 'use strict';
-module.exports = {
-    validateForm: () => {
-        console.log('validateForm this is mixin');
+
+let validateForm = ((self, reqFields) => {
+
         // валидация формы
         let warning = '',
-            now = new Date(),
-            requiredFields = this.requiredFields || [],
+            requiredFields = reqFields || [],
             notRequiredFields = [],
             notMinMaxRule = [];
 
+    console.log('validateForm self', self);
         requiredFields.forEach((field) => {
-            let component = this.refs[field.name];
 
-            let value = component.state.value,
+            let component = self.refs[field.name],
+                value = component.state.value,
                 props = component.props,
                 title = props.title;
 
@@ -33,7 +33,9 @@ module.exports = {
                     break;
                 case 'N':
                     let controlledValueN = Number(value);
-                    if (controlledValueN === 0 || ((field.min && controlledValueN < field.min) && (field.max && controlledValueN > field.max))) {
+
+                    if (field.min && controlledValueN === 0 ||
+                        ((field.min && controlledValueN < field.min) && (field.max && controlledValueN > field.max))) {
                         checkValue = true;
                     }
                     break;
@@ -60,6 +62,8 @@ module.exports = {
             warning = 'Ok';
         }
 
+        console.log('validation warning:', warning);
         return warning; // вернем извещение об итогах валидации
-    }
-}
+    });
+
+module.exports = validateForm;

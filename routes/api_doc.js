@@ -1,23 +1,50 @@
 // обработка пост запросов для документа
-var co = require('co');
+'use strict';
 
 exports.post = function(req, res) {
-    var user = require('../middleware/userData')(req),
-        React = require('react'),
+    const React = require('react'),
         ReactServer = require('react-dom/server');
 
-     var data = JSON.parse(req.body.data),
+     let user = require('../middleware/userData')(req),
+         data = JSON.parse(req.body.data),
          action = req.body.action,
          DocDataObject = require('../models/documents'), // подключим модель
          docId = data.docId,
          docTypeId = data.doc_type_id,
          results = {},
-         localStorage = require('../middleware/local_storage');
+         localStorage = require('../middleware/local_storage'),
+         params = [];
 
-
+console.log('api-doc');
     switch(action) {
+        case 'delete':
+            params = [user.userId, docId];
+            let Doc = require('../models/' + docTypeId),
+                sql = Doc.deleteDoc;
+
+            try {
+                // тут вызов метода сохранение
+                // выборка сохраненных данных
+                DocDataObject.executeSqlQueryPromise(sql, params)
+                    .then((data) => {
+                        if (data[0].result == 1) {
+                            res.send({result:'Ok'});
+                        } else {
+                            res.send({result:'Error', message:data[0].error_message});
+                        }
+                    }),
+                    ((err) => {
+                        console.error('viga:', err);
+                        res.send({result: 'Error', message:'fatal error'});
+                    });
+            } catch (err) {
+                console.error('error:', err); // @todo Обработка ошибок
+                res.send({result:'Error'});
+
+            }
+            break;
         case 'save':
-            var params = [data, user.userId, 1];
+            params = [data, user.userId, user.asutusId];
             try {
                 // тут вызов метода сохранение
                 // выборка сохраненных данных
@@ -39,22 +66,22 @@ exports.post = function(req, res) {
             /*
             обработка запросов на исполнение задач.
              */
-            console.log('execute:', data);
-            var params = {params:data, userId: user.userId, rekvId:1}, //@todo из сессии вытащить rekvId
-                result,
-                docData;
+            params = {params:data, userId: user.userId, rekvId:user.asutusId, userName: user.userName};
+
 
             DocDataObject.executeTaskPromise(docTypeId, params)
-                .then(docData => {
+                .then((docData) => {
                     res.send({result:'Ok', data:docData});
                 }),
                 (err => {
-                    console.error('co catched error', err);
+                    console.error('catched error', err);
                     res.send({result: 'Error'});
                 });
 
             break;
         case 'select':
+            console.log('select:', data);
+
             params = [];
             if (data.params.length > 0) {
                 params = data.params;
@@ -69,19 +96,22 @@ exports.post = function(req, res) {
              res.send(data[0]);
              }
              */
-
-            DocDataObject.selectDocPromise(docTypeId, params)
-                .then((data) => {
-                    res.send(data)
-                }),
-                ((err) => {
-                    console.error('viga:', err);
-                    res.send({result: 'Error'});
-                });
+            try {
+                DocDataObject.selectDocPromise(docTypeId, params)
+                    .then((data) => {
+                        res.send(data)
+                    }),
+                    ((err) => {
+                        console.error('viga:', err);
+                        res.send({result: 'Error'});
+                    });
+            } catch(err) {
+                console.error('error:', err); // @todo Обработка ошибок
+                res.send({result:'Error'});
+            }
             break;
         case 'saveAndSelect':
             params = [];
-            var results = {};
             async.waterfall([
                 function(callback) {
                     DocDataObject.saveDoc(docTypeId, params, callback); // сохраняем документ

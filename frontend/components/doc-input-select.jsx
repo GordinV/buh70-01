@@ -116,7 +116,7 @@ const Select = React.createClass({
     },
 
     onChange: function (e) {
-        
+
         var fieldValue = e.target.value,
             data = flux.stores.docStore.data,
             propValue = data[this.props.name];
@@ -128,6 +128,7 @@ const Select = React.createClass({
         // найдем по ид значение поля в collId
         this.getValueById(this.props.collId, fieldValue);
         // сохраним ид как value
+
         this.setState({value:fieldValue});
 
         if (propValue !== 'undefined') {
@@ -140,7 +141,7 @@ const Select = React.createClass({
 
         if (this.props.onChange) {
             // смотрим к чему привязан селект и отдаим его наверх
-            this.props.onChange(e, this.props.name); // в случае если задан обработчик на верхнем уровне, отдадим обработку туда
+            this.props.onChange(e, this.props.name, this.state.value); // в случае если задан обработчик на верхнем уровне, отдадим обработку туда
         }
 
     },

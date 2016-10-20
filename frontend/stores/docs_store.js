@@ -1,4 +1,5 @@
-var flux = require('fluxify');
+'use strict';
+const flux = require('fluxify');
 
 var docsStore = flux.createStore({
     id: 'docsStore',
@@ -10,9 +11,14 @@ var docsStore = flux.createStore({
         sortBy:[{column:'id', direction: 'desc'}],
         sqlWhere:'',
         tooglePanel: true, // opened
-        tooglePanelData: {tree: '10%', grid:'90%', left: '13%'}, // opened
+        tooglePanelData: {tree: '10%', grid:'90%', left: '13%'}, // opened,
+        systemMessage: null
     },
     actionCallbacks: {
+        systemMessageChange: function(updater, value) {
+            console.log('systemMessageChange called', value);
+            updater.set({systemMessage: value});
+        },
         sqlWhereChange: function(updater, value) {
             console.log('sqlWhereChange called', value);
             updater.set({sqlWhere: value});
@@ -38,7 +44,15 @@ var docsStore = flux.createStore({
             }
         },
         Delete: function (updater) {
-            console.log('button Delete cliked!');
+            let docTypeId = this.docsList;
+            requeryForAction('delete', (err, data)=> {
+                if (err) {
+                    flux.doAction('systemMessageChange', err); // пишем изменения в хранилище
+                } else {
+                    flux.doAction('systemMessageChange', null); // пишем изменения в хранилище
+                    requery({name: 'docsGrid', value: docTypeId});
+                }
+            });
         },
         Print: function (updater) {
             console.log('button Print cliked!');
@@ -49,7 +63,6 @@ var docsStore = flux.createStore({
         },
         docsGridChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
-            console.log('store docsGridChange called', value);
             updater.set({docsGrid: value});
             localStorage['docsGrid'] = value;
 
@@ -66,7 +79,6 @@ var docsStore = flux.createStore({
             updater.set({data: value});
         },
 
-
     }
 });
 
@@ -77,17 +89,46 @@ var edit = function (docTypeId, docId) {
 };
 
 var add = function (docTypeId) {
-    console.log('Add');
     var url = "/document/" + docTypeId + '0';
     document.location.href = url;
 };
+
+var requeryForAction = (action, callback)=> {
+
+    // метод обеспечит запрос на выполнение
+    let parameters = {
+        docId : docsStore.docsGrid,
+        doc_type_id : docsStore.docsList
+    }
+
+    $.ajax({
+        url: '/api/doc',
+        type:"POST",
+        dataType: 'json',
+        data: {
+            action: action,
+            data: JSON.stringify(parameters)
+        },
+        cache: false,
+        success: function(data) {
+            // должны получить объект - результат
+            let errorMesssage = null;
+            if (data.result == 'Error') {
+                errorMesssage = 'Error, ' + data.message;
+            }
+            callback(errorMesssage,data);
+        },
+        error: function(xhr, status, err) {
+            console.error('/error', status, err.toString());
+            callback(err, null);
+            }
+    });
+}
 
 var requery = function (component) {
     // метод обеспечит получение данных от сервера
     // component = this.state.components[name]
     // если параметры не заданы, грузим все
-
-//    console.log('requery:' + JSON.stringify(component) + 'docsStore.data:' + JSON.stringify(docsStore.data));
 
     var components = docsStore.data;
 

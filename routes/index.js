@@ -1,7 +1,6 @@
 var checkAuth = require('../middleware/checkAuth');
 
 module.exports = function(app) {
-console.log('routes, index');
 // same as main
   app.get('/', require('./frontpage').get);
 

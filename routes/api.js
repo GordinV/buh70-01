@@ -18,6 +18,7 @@ exports.post = function(req, res){
         DocDataObject = require('../models/documents'),
         async = require('async'),
         components,
+        user = require('../middleware/userData')(req), // данные пользователя
         parameter = req.body.parameter || '',// параметры если переданы
         sortBy = req.body.sortBy || '', //порядок сортировки
         sqlWhere = req.body.sqlWhere || ''; //динамический фильтр
@@ -31,7 +32,7 @@ exports.post = function(req, res){
 //        res.send();
     }
 
-    console.log('api.post docType, components, sortBy:',docTypeId, components, sortBy,sqlWhere );
+//    console.log('api.post docType, components, sortBy:',docTypeId, components, sortBy,sqlWhere );
 
     req.session.docs = []; // очистим результаты предыдущего запроса
 
@@ -43,7 +44,7 @@ exports.post = function(req, res){
 
         // выполняем запрос
         var componentName = component.name;
-        DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere);
+        DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere, user);
 //        console.log('results async:' + JSON.stringify(results));
 //        returnData.push(component);
 //        callback(null);

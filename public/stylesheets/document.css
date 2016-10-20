@@ -80,7 +80,7 @@ div.doc-header {
 }
 
 .form-widget span{
-    width:15%;
+    width:20%; /* влияет на расстояние между наименованием и инпутом*/
     display: inline-block;
     clear:both;
     float:left;
@@ -216,4 +216,17 @@ div#modalPageButtons {
     border:1px solid blue;
     */
     right: 1%;
+}
+
+div#leftPanel {
+    float:left;
+    width:45%;
+   /* border: 1px solid black; */
+    margin:1%;
+}
+div#rigthPanel {
+    float:right;
+    width:45%;
+    /*border:1px solid black; */
+    margin:1%;
 }

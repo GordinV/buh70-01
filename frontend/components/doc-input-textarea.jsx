@@ -66,8 +66,12 @@ const Input = React.createClass({
 
     },
 
+    componentWillReceiveProps: function(nextProps) {
+        this.setState({value:nextProps.value })
+    },
+
     render: function() {
-//        console.log('input-text state:' + JSON.stringify(this.state) + 'props:' + JSON.stringify(this.props));
+        console.log('input-text state:' ,this.state);
         var inputClassName =this.props.className || 'doc-input',
             inputReadOnly = this.state.readOnly || false,
             inputDisabled = this.state.disabled,
