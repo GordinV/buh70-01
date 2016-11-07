@@ -48,26 +48,11 @@ module.exports = {
         new webpack.DefinePlugin({NODE_ENV:JSON.stringify(NODE_ENV)}),
         new webpack.optimize.CommonsChunkPlugin({
             name:"common",
-            chunks: ['docs'], // список модулей для выявления общих модулей
+            chunks: ['docs', 'doc'], // список модулей для выявления общих модулей
             minChunks: 2
         })
-/*
-        ,new webpack.ProvidePlugin({
-            '$':          'jquery',
-            '_':          'lodash',
-            'ReactDOM':   'react-dom',
-        })
-*/
-        //             'cssModule':  'react-css-modules',         'Promise':    'bluebird'
-
 ],
 
-/*
-    resolve: {
-      modulesDirectories: ['node_modules'],
-      extensions: ['','js']
-    },
-*/
 
     module: {
         loaders: [

@@ -6,57 +6,58 @@ const Input = React.createClass({
         return {value: this.props.value, readOnly: true, disabled: this.props.disabled || true};
     },
 
-    componentWillMount: function() {
-// создаем обработчик события на изменение docId. Если значение = 0 (добавляем новую запись, то просто очитка полей, иначе подгрузка данных
-        var self = this;
+    getDefaultProps: function () {
+        return {
+            name: 'defaulName',
+            className: 'doc-input',
+            placeholder: 'defaulName',
+            title: ''
+        }
+    },
 
-        flux.stores.docStore.on('change:docId', function(newValue, previousValue) {
+    componentDidMount() {
+// создаем обработчик события на изменение docId. Если значение = 0 (добавляем новую запись, то просто очитка полей, иначе подгрузка данных
+        flux.stores.docStore.on('change:docId', (newValue, previousValue)=> {
             if (newValue !== previousValue) {
                 // отслеживаем создание нового документа
-                var data = flux.stores.docStore.data,
-                    value = data[self.props.name];
+                let data = flux.stores.docStore.data,
+                    value = data[this.props.name];
                 if (newValue == 0) {
                     // совый документ
-                    self.setState({value:0});
+                    this.setState({value:0});
                 } else {
-                    self.setState({value:value});
+                    this.setState({value:value});
                 }
             }
         });
-
-        flux.stores.docStore.on('change:edited', function(newValue, previousValue) {
-            //           console.log('on change:edited:' + newValue);
+        flux.stores.docStore.on('change:edited', (newValue, previousValue)=> {
             if (newValue !== previousValue ) {
-                self.setState({readOnly: !newValue});
+                this.setState({readOnly: !newValue});
             }
         });
-
-        flux.stores.docStore.on('change:data', function(newValue, previousValue) {
+        flux.stores.docStore.on('change:data', (newValue, previousValue)=> {
             // слушуем изменения данных;
-            //          console.log('input-text on change data:' + JSON.stringify(newValue));
             if (JSON.stringify(newValue) !== JSON.stringify(previousValue)) {
-                var data = newValue,
-                    fieldValue = data[self.props.name];
-                if (data[self.props.name]) {
-                    self.setState({value: fieldValue});
+                let data = newValue,
+                    fieldValue = data[this.props.name];
+                if (data[this.props.name]) {
+                    this.setState({value: fieldValue});
                 }
             }
         });
 
     },
 
-    shouldComponentUpdate: function(nextProps, nextState) {
+    shouldComponentUpdate(nextProps, nextState) {
         // изменения будут отражаться только в случае если такие есть
-        var returnvalue = (nextState.value !== this.state.value ||
+        let returnvalue = (nextState.value !== this.state.value ||
         nextState.readOnly !== this.state.readOnly ||
         nextState.disabled !== this.state.disabled);
-
-        //       console.log('vastus:' + returnvalue);
         return returnvalue;
     },
 
     onChange: function(e) {
-        var fieldValue = e.target.value,
+        let fieldValue = e.target.value,
             data = flux.stores.docStore.data;
 
         this.setState({value: fieldValue});
@@ -71,7 +72,6 @@ const Input = React.createClass({
     },
 
     render: function() {
-        console.log('input-text state:' ,this.state);
         var inputClassName =this.props.className || 'doc-input',
             inputReadOnly = this.state.readOnly || false,
             inputDisabled = this.state.disabled,
@@ -124,7 +124,12 @@ const Input = React.createClass({
                 />
                 </div>)
         }
-    }
+    },
+
+    propTypes: {
+        name: React.PropTypes.string.isRequired
+    },
+
 });
 
 module.exports = Input;

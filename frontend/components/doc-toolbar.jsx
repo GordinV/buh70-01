@@ -3,13 +3,8 @@
 const DOCUMENT_CLOSED_STATUS = 2;
 
 const React = require('react'),
-    DocButtonAdd = require('../components/doc-button-add.jsx'),
-    DocButtonEdit = require('../components/doc-button-edit.jsx'),
-    DocButtonSave = require('../components/doc-button-save.jsx'),
+    DocButton = require('./doc-button.jsx'),
     flux = require('fluxify');
-
-
-//    DocButtonPrint = require('../components/doc-button-print.jsx')
 
 var Toolbar = React.createClass({
     getInitialState: function () {
@@ -57,11 +52,30 @@ var Toolbar = React.createClass({
         // обработчик для кнопки Add
             // отправим извещение наверх
 //        this.props.onClick(this.name);
-            console.log('btnAdd clicked');
             flux.doAction( 'docIdChange', 0 );
             flux.doAction( 'editedChange', true );
             flux.doAction( 'savedChange', false );
         },
+
+    handleEventButtonEditClick() {
+        // обработчик для кнопки Edit
+        // переводим документ в режим редактирования, сохранен = false
+        flux.doAction( 'editedChange', true );
+        flux.doAction( 'savedChange', false );
+
+    },
+
+    handleEventButtonSaveClick() {
+        // обработчик для кнопки Save
+        // валидатор
+
+        let isValid = !this.validator();
+
+        if (isValid) {
+            // если прошли валидацию, то сохранеям
+            flux.doAction( 'saveData');
+        }
+    },
 
     render: function () {
         let editeMode = this.state.editMode,
@@ -77,15 +91,22 @@ var Toolbar = React.createClass({
                 <div className='doc-toolbar-warning'>
                     {this.state.warning ? <span>{this.state.warningMessage}</span> : null }
                 </div>
-                <div className='doc-toolbar'>
-                    {isClosedStatus ? null : <DocButtonAdd
+                <div className='doc-toolbar' style={{float:"right"}}>
+                    {isClosedStatus ? null : <DocButton
                         value='Add'
                         className='doc-toolbar'
                         enabled={this.state.editMode}
                         onClick={this.handleEventButtonAddClick}/>}
-                    {isClosedStatus ? null : <DocButtonEdit value='Edit' className='doc-toolbar'> Edit </DocButtonEdit>}
-                    {isClosedStatus ? null :
-                        <DocButtonSave validator={this.validator} className='doc-toolbar'> Save </DocButtonSave>}
+                    {isClosedStatus ? null : <DocButton
+                        value='Edit'
+                        enabled={this.state.editMode}
+                        onClick={this.handleEventButtonEditClick}
+                        className='doc-toolbar'/>}
+                    {isClosedStatus ? null : <DocButton
+                            className='doc-toolbar'
+                            value = "Save"
+                            enabled={!this.state.editMode}
+                            onClick={this.handleEventButtonSaveClick}/>}
                     {editeMode && tasks.length > 0 ? null : taskWidget}
                 </div>
             </div>
@@ -104,7 +125,7 @@ var Toolbar = React.createClass({
             this.setState({taskList: this.getDefaultTask()});
         }
 
-        var tasks = this.state.taskList.filter(task => {
+        let tasks = this.state.taskList.filter(task => {
 
                 if (task.status === 'opened') {
                     return task;
@@ -133,20 +154,16 @@ var Toolbar = React.createClass({
 
 
     validator: function () {
-        console.log('toolbar validator:', this.props);
         let warning = '';
 
         if (this.props.validator) {
             let warningMessage = this.props.validator();
                 warning = warningMessage !== 'Ok'
 
-            console.log('toolbar validator warning:',warningMessage, warning  );
             this.setState({warningMessage: warningMessage, warning: warning})
         }
         return warning;
     }
-
-
 });
 
 module.exports = Toolbar;

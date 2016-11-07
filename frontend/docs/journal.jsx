@@ -12,13 +12,10 @@ const Form = require('../components/form.js'),
     Select = require('../components/doc-input-select.jsx'),
     TextArea = require('../components/doc-input-textarea.jsx'),
     DataGrid = require('../components/doc-data-grid.jsx'),
-    GridRow = require('../components/journal-grid-row.jsx');
+    GridRow = require('../components/journal-grid-row.jsx'),
+    relatedDocuments = require('../mixin/relatedDocuments.jsx');
 
-var docStore = require('../stores/doc_store.js'),
-    relatedDocuments = require('../mixin/relatedDocuments.jsx'),
-    validateForm = require('../mixin/validateForm');
-
-var now = new Date();
+var docStore = require('../stores/doc_store.js');
 
 const Journal = React.createClass({
     pages: [{pageName: 'Journal'}],
@@ -40,22 +37,33 @@ const Journal = React.createClass({
         };
     },
 
-    validation: function () {
-        const doc = require('../../models/journal'),
-            requiredFields = doc.requiredFields,
-            now = new Date.now();
-
-        let warning = require('../mixin/validateForm')(this, requiredFields);
+    validation() {
+        let now = new Date,
+            requiredFields = [
+                {
+                    name: 'kpv',
+                    type: 'D',
+                    min: now.setFullYear(now.getFullYear() - 1),
+                    max: now.setFullYear(now.getFullYear() + 1)
+                },
+                {name: 'selg', type: 'C'},
+                {name: 'summa', type: 'N'}
+            ],
+            warning = require('../mixin/validateForm')(this, requiredFields);
         return warning;
     },
 
 
     componentWillMount: function () {
+        // формируем зависимости
+        this.relatedDocuments();
+    },
+
+    componentDidMount: function () {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
-        var self = this,
-            data = self.props.data.row,
-            details = self.props.data.details,
-            gridConfig = self.props.data.gridConfig;
+        let data = this.state.docData,
+            details = this.state.gridData,
+            gridConfig = this.state.gridConfig;
 
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
@@ -78,9 +86,9 @@ const Journal = React.createClass({
          */
 
         // отслеживаем режим редактирования
-        docStore.on('change:edited', function (newValue, previousValue) {
+        docStore.on('change:edited', (newValue, previousValue)=> {
             if (newValue !== previousValue) {
-                self.setState({edited: newValue});
+                this.setState({edited: newValue});
             }
         });
 
@@ -102,19 +110,10 @@ const Journal = React.createClass({
          });
          */
 
-        // формируем зависимости
-        this.relatedDocuments();
-    },
-
-    componentDidMount: function () {
         // грузим справочники
         flux.doAction('loadLibs', '');
 
-        // если новый документ (id == 0)
-        var data = this.state.docData;
-
         if (data.id == 0) {
-            console.log('edited mode control', data);
             flux.doAction('editedChange', true);
             flux.doAction('savedChange', false);
         }
@@ -133,7 +132,7 @@ const Journal = React.createClass({
 
         return (
             <Form pages={this.pages} ref="form" onSubmit={this.onSubmit} style={{display: 'table'}}>
-                <Toolbar validator={this.validateForm}/>
+                <Toolbar validator={this.validation}/>
                 <div className='div-doc'>
                     <DocCommon data={data}/>
                     <div className="fieldset">

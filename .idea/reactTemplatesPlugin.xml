@@ -2,7 +2,7 @@
 <project version="4">
   <component name="RTProjectComponent">
     <option name="rtExecutable" value="C:\avpsoft\buh70\node_modules\.bin\jsx.cmd" />
-    <option name="nodeInterpreter" value="C:\Program Files\nodejs\node.exe" />
+    <option name="nodeInterpreter" value="C:\Program Files\nodejs6\node.exe" />
     <option name="pluginEnabled" value="true" />
     <option name="modules" value="none" />
     <option name="groupController" value="false" />

@@ -1,4 +1,4 @@
-var React = require('react'),
+const React = require('react'),
     flux = require('fluxify');
 
 const Input = React.createClass({
@@ -10,7 +10,8 @@ const Input = React.createClass({
             valid: true
         };
     },
-    getDefaultProps: function () {
+
+    getDefaultProps () {
         return {
             bindData: true,
             min:-999999999,
@@ -18,47 +19,37 @@ const Input = React.createClass({
         };
     },
 
-    componentWillMount: function () {
-// создаем обработчик события на изменение docId. Если значение = 0 (добавляем новую запись, то просто очитка полей, иначе подгрузка данных
-        var self = this;
-//        console.log('componentWillMount' + this.props.name);
+    componentDidMount() {
         flux.stores.docStore.on('change:docId', function (newValue, previousValue) {
             if (newValue !== previousValue) {
-                var data = flux.stores.docStore.data,
-                    value = data[self.props.name];
+                let data = flux.stores.docStore.data,
+                    value = data[this.props.name];
                 if (newValue == 0) {
                     // совый документ
-                    self.setState({value: 0});
+                    this.setState({value: 0});
                 } else {
-                    self.setState({value: value});
+                    this.setState({value: value});
                 }
             }
         });
-
         flux.stores.docStore.on('change:edited', function (newValue, previousValue) {
-            //           console.log('on change:edited:' + newValue);
             if (newValue !== previousValue) {
-                self.setState({readOnly: !newValue, disabled: !newValue});
+                this.setState({readOnly: !newValue, disabled: !newValue});
             }
         });
-
         flux.stores.docStore.on('change:data', function (newValue, previousValue) {
-                       console.log('on change:data:' + newValue);
             if (newValue !== previousValue) {
 
-                var data = newValue,
-                    fieldValue = data[self.props.name];
+                let data = newValue,
+                    fieldValue = data[this.props.name];
 
-                self.setState({value: fieldValue});
+                this.setState({value: fieldValue});
             }
         });
-    },
-   /*
-    componentWillReceiveProps: function(nextProps) {
-        this.setState({value:nextProps.value })
-    },*/
 
-    shouldComponentUpdate: function (nextProps, nextState) {
+    },
+
+    shouldComponentUpdate (nextProps, nextState) {
         // изменения будут отражаться только в случае если такие есть
         var returnvalue = true;
         
@@ -71,7 +62,7 @@ const Input = React.createClass({
 
     },
 
-    onChange: function (e) {
+    onChange (e) {
         var fieldValue = Number(e.target.value);
 
         if (fieldValue >= Number(this.props.min) || fieldValue <= Number(this.props.max)) {
@@ -94,14 +85,14 @@ const Input = React.createClass({
         }
     },
 
-    onBlur: function() {
+    onBlur() {
         // если такой метод передан сверху, то вернет его обратно
         if (this.props.onBlur) {
             this.props.onBlur(this.state.value, this.props.name);
         }
     },
 
-    render: function () {
+    render () {
         var inputClassName = this.props.className || '' + 'doc-input',
             inputReadOnly = this.state.readOnly || false,
             inputDisabled = this.state.disabled || 'false',
@@ -145,7 +136,6 @@ const Input = React.createClass({
                            value={this.state.value}
                            readOnly={inputReadOnly}
                            title={this.props.title}
-                           pattern={this.props.pattern}
                            placeholder={inputPlaceHolder}
                            min={inputMinValue}
                            max={inputMaxValue}
@@ -157,7 +147,12 @@ const Input = React.createClass({
                 </div>)
         }
 
-    }
+    },
+
+    propTypes: {
+        name: React.PropTypes.string.isRequired
+    },
 });
+//                            pattern={this.props.pattern}
 
 module.exports = Input;

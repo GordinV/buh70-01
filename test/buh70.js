@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Raamatupidamine tests units, models', function () {
+describe.skip('Raamatupidamine tests units, models', function () {
     var globalDocId; // для сохранения ид документа
     describe('Libraries test', function () {
         it('Nomenklatuur select', function (done) {

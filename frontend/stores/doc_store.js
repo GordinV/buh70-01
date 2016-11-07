@@ -1,6 +1,6 @@
 'use strict';
 
-var flux = require('fluxify');
+const flux = require('fluxify');
 
 var docStore = flux.createStore({
     id: 'docStore',
@@ -144,7 +144,7 @@ var docStore = flux.createStore({
         },
         dataChange: function( updater, value ){
             // Отслеживает загрузку данных документа
-//            console.log('dataChange', value, typeof value.arvid);
+            console.log('dataChange', value, typeof value.arvid);
             updater.set( {data: value} );
 
             if (typeof value.arvid !== 'undefinite') {
@@ -342,7 +342,6 @@ function requery(action, parameters, callback) {
         cache: false,
         success: function(data) {
             // должны получить объект
-            //console.log('require data arrived:' + JSON.stringify(data));
             try {
                 callback(null, data);
             } catch(e) {

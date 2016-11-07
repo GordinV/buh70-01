@@ -1,6 +1,10 @@
 
 'use strict';
 debugger;
+let kpv = new Date('2016-11-06');
+console.log('type:', typeof kpv, kpv);
+
+/*
 let components = {
     refs: {
         kpv: {
@@ -62,6 +66,7 @@ fields.forEach((field) => {
     console.log('obj', obj);
 })
 
+*/
 
 /*
 

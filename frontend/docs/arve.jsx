@@ -1,5 +1,5 @@
 'use strict';
-var React = require('react'),
+const React = require('react'),
     flux = require('fluxify');
 
 const Form = require('../components/form.js'),
@@ -12,20 +12,17 @@ const Form = require('../components/form.js'),
     TextArea = require('../components/doc-input-textarea.jsx'),
     DataGrid = require('../components/doc-data-grid.jsx'),
     GridRow = require('../components/arv-grid-row.jsx'),
-    DokProp = require('../components/doc-select-text.jsx');
-
+    DokProp = require('../components/doc-select-text.jsx'),
+    relatedDocuments = require('../mixin/relatedDocuments.jsx'),
+    validateForm = require('../mixin/validateForm');
 
 // Create a store
 var docStore = require('../stores/doc_store.js');
-
-const relatedDocuments = require('../mixin/relatedDocuments.jsx'),
-    validateForm = require('../mixin/validateForm');
 
 var now = new Date();
 
 const Arve = React.createClass({
     pages: [{pageName: 'Arve'}],
-    /*
      requiredFields: [
      {
      name: 'kpv',
@@ -42,15 +39,16 @@ const Arve = React.createClass({
      {name: 'asutusid', type: 'N', min:null, max:null},
      {name: 'summa', type: 'N', min:-9999999, max:999999}
      ],
-     */
 
     mixins: [relatedDocuments], // , validateForm
 
     validation: function () {
 
+/*
         const doc = require('../../models/arv'),
             requiredFields = doc.requiredFields;
-
+*/
+        let requiredFields = this.requiredFields;
         let warning = require('../mixin/validateForm')(this, requiredFields);
         return warning;
     },
@@ -71,18 +69,19 @@ const Arve = React.createClass({
     },
 
     componentWillMount: function () {
+        // формируем зависимости
+        this.relatedDocuments();
+    },
+
+    componentDidMount: function () {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
-        var self = this,
+        let self = this,
             data = self.props.data.row,
             details = self.props.data.details,
             gridConfig = self.props.data.gridConfig;
 
-        // формируем зависимости
-        this.relatedDocuments();
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
-        //       flux.doAction('bpmChange', bpm);
-//        flux.doAction('docIdChange', data.id);
         flux.doAction('detailsChange', details); // данные грида
         flux.doAction('gridConfigChange', gridConfig); // данные грида
         flux.doAction('gridName', 'arv-grid-row'); // задаем имя компонента строки грида (для редактирования
@@ -120,14 +119,11 @@ const Arve = React.createClass({
                 self.setState({gridData: newValue, docData: docData});
             }
         });
-    },
 
-    componentDidMount: function () {
         // грузим справочники
         flux.doAction('loadLibs', '');
 
         // если новый документ (id == 0)
-        var data = this.state.docData;
 
         if (data.id == 0) {
             flux.doAction('editedChange', true);
@@ -137,14 +133,10 @@ const Arve = React.createClass({
     },
 
     render: function () {
-        var data = this.state.docData,
-            isEditeMode = this.state.edited;
-//            showMessageBox = this.state.showMessageBox; // будет управлять окном сообщений
-
-        //  pattern='[A-Za-z]{3}'
-        var gridData = this.state.gridData,
+        let data = this.state.docData,
+            isEditeMode = this.state.edited,
+            gridData = this.state.gridData,
             gridColumns = this.state.gridConfig;
-
         return (
             <Form pages={this.pages} ref="form" onSubmit={this.onSubmit} style={{display: 'table'}}>
                 <Toolbar validator={this.validation}
@@ -152,7 +144,9 @@ const Arve = React.createClass({
                          documentStatus={data.doc_status}
                 />
                 <div className='div-doc'>
+
                     <DocCommon data={data} readOnly={!isEditeMode}/>
+
                     <div className="fieldset">
                         <div id="leftPanel">
                             <ul>
@@ -160,6 +154,7 @@ const Arve = React.createClass({
                                     <InputText className='ui-c2' title='Number' name='number' value={data.number}
                                                readOnly={!isEditeMode}/>
                                 </li>
+
                                 <li>
                                     <InputDate className='ui-c2' title='Kuupäev ' name='kpv' value={data.kpv} ref='kpv'
                                                placeholder='Kuupäev' readOnly={!isEditeMode}/>
@@ -169,6 +164,7 @@ const Arve = React.createClass({
                                                ref="tahtaeg"
                                                placeholder='Tähtaeg' readOnly={!isEditeMode}/>
                                 </li>
+
 
                                 <li>
                                     <Select className='ui-c2'
@@ -217,6 +213,7 @@ const Arve = React.createClass({
                             {/* патерн для цифр с 4 знаками после точки*/}
                             <li><InputText className='ui-c2' title="Käibemaks " name='kbm' placeholder='Käibemaks'
                                            ref="kbm"
+                                           disabled='true'
                                            value={data.kbm}
                                            pattern="^[0-9]+(\.[0-9]{1,4})?$"/></li>
                             {/* патерн для цифр с 4 знаками после точки*/}
