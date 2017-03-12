@@ -28,7 +28,9 @@ const Sorder = React.createClass({
         {name: 'nimi', type: 'C'},
         {name: 'summa', type: 'N'}
     ],
+/*
     mixins: [relatedDocuments, validateForm],
+*/
 
     getInitialState: function () {
         // установим изначальные данные

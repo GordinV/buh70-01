@@ -70,7 +70,7 @@ exports.get = function(req, res) {
             Parent,
             { id: 'grid', components: components}, 'Тут будут компоненты');
 
-  //      console.log('start Component',Component );
+        console.log('start Component',Component );
 
         try {
             var html = ReactServer.renderToString(Component);

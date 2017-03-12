@@ -56,7 +56,7 @@ describe('ReactTestUtils, doc-input-date', () => {
 
         let node = ReactDOM.findDOMNode(instance);
         node.value = kpv;
-        console.log('value:', kpv, node);
+//        console.log('value:', kpv, node);
         ReactTestUtils.Simulate.change(node);
         expect(node.value).to.equal(kpv);
         let data = flux.stores.docStore.data,

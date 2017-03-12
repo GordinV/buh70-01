@@ -15,7 +15,6 @@ exports.post = function(req, res) {
          localStorage = require('../middleware/local_storage'),
          params = [];
 
-console.log('api-doc');
     switch(action) {
         case 'delete':
             params = [user.userId, docId];

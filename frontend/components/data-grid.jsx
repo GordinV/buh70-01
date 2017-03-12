@@ -129,7 +129,6 @@ var DataGrid = React.createClass({
 
     },
     render: function render() {
-        console.log('grid render called');
         var gridRows = this.props.gridData; // статичны и приходят только из верхнего компонента
         var gridColumns = this.props.gridColumns;
         var clickedItem = this.state.clicked;

@@ -60,12 +60,6 @@ div#gridTable {
     margin:0.2em;
 }
 
-.liDocLibs {
-    background:white;
-    padding:5px;
-    margin-right:20px
-}
-
 .focused {
     background-color:lightblue;
 }

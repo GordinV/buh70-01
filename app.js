@@ -1,4 +1,9 @@
-var express = require('express');
+'use strict';
+
+// Для того, чтобы предотвратить подобные глупости, прямо в начале приложения для Node.js можно поместить такую конструкцию, выводящую необработанные исключения в консоль:
+//process.on(`uncaughtException`, console.error);
+
+const express = require('express');
 
 var app = express(),
     compression = require('compression'),
@@ -23,6 +28,16 @@ app.set('port', config.get('port'));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+/*
+запускает каждую минуту сервис
+const dailyCleanup = setInterval(() => {
+    console.log('clean up called');
+//    cleanup();
+}, 1000 * 60);
+
+dailyCleanup.unref();
+*/
+
 http.createServer(app).listen(config.get('port'), function () {
     log.info('Express server listening on port ' + config.get('port'));
 });
@@ -36,8 +51,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(require('./middleware/sendHttpError'));
-// Gzip all the things
-
 
 app.use(session({
     store: new pgSession({
@@ -51,7 +64,6 @@ app.use(session({
 
 require('routes')(app);
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 app.use(function(err, req, res, next) {
     console.log('app.use');

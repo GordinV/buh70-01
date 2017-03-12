@@ -1,8 +1,22 @@
 
 'use strict';
+(function(){ var foo = 3; console.log(foo) })();
+//console.log(x);
+
+/*
+var x = "global";
+function test() {
+    let x = "local";
+    var f = eval;
+    return (0,eval)('x'); // непрямой вызов eval
+}
+console.log(test()); // "global"
+*/
+/*
 debugger;
 let kpv = new Date('2016-11-06');
 console.log('type:', typeof kpv, kpv);
+*/
 
 /*
 let components = {

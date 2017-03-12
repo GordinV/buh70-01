@@ -40,7 +40,9 @@ const Arve = React.createClass({
      {name: 'summa', type: 'N', min:-9999999, max:999999}
      ],
 
+/*
     mixins: [relatedDocuments], // , validateForm
+*/
 
     validation: function () {
 

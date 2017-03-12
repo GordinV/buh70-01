@@ -20,7 +20,9 @@ var docStore = require('../stores/doc_store.js');
 const Journal = React.createClass({
     pages: [{pageName: 'Journal'}],
 
+/*
     mixins: [relatedDocuments], //, validateForm
+*/
 
     getInitialState: function () {
         // установим изначальные данные
@@ -53,7 +55,6 @@ const Journal = React.createClass({
         return warning;
     },
 
-
     componentWillMount: function () {
         // формируем зависимости
         this.relatedDocuments();
@@ -72,18 +73,6 @@ const Journal = React.createClass({
         flux.doAction('gridConfigChange', gridConfig); // данные грида
         flux.doAction('gridName', 'journal-grid-row'); // задаем имя компонента строки грида (для редактирования
 
-        /*
-         // создаем обработчик события на изменение даннх
-         docStore.on('change:docId', function (newValue, previousValue) {
-         console.log('change:docId', newValue, previousValue);
-         if (newValue !== previousValue) {
-         // данные изменились, меняем состояние
-         var data = docStore.data,
-         isEdited = !self.state.edited;
-
-         }
-         });
-         */
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', (newValue, previousValue)=> {
