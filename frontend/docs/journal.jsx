@@ -20,9 +20,10 @@ var docStore = require('../stores/doc_store.js');
 const Journal = React.createClass({
     pages: [{pageName: 'Journal'}],
 
-/*
-    mixins: [relatedDocuments], //, validateForm
-*/
+    relatedDocuments: () => {
+        return relatedDocuments(this)
+    },
+//    mixins: [relatedDocuments], //, validateForm
 
     getInitialState: function () {
         // установим изначальные данные
@@ -36,7 +37,8 @@ const Journal = React.createClass({
             gridRowEdit: false,
             gridRowEvent: null,
             gridRowData: null
-        };
+        }
+            ;
     },
 
     validation() {
@@ -55,11 +57,6 @@ const Journal = React.createClass({
         return warning;
     },
 
-    componentWillMount: function () {
-        // формируем зависимости
-        this.relatedDocuments();
-    },
-
     componentDidMount: function () {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let data = this.state.docData,
@@ -75,7 +72,7 @@ const Journal = React.createClass({
 
 
         // отслеживаем режим редактирования
-        docStore.on('change:edited', (newValue, previousValue)=> {
+        docStore.on('change:edited', (newValue, previousValue) => {
             if (newValue !== previousValue) {
                 this.setState({edited: newValue});
             }
@@ -106,6 +103,9 @@ const Journal = React.createClass({
             flux.doAction('editedChange', true);
             flux.doAction('savedChange', false);
         }
+
+        // формируем зависимости
+        this.relatedDocuments();
 
     },
 

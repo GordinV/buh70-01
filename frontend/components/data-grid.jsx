@@ -1,7 +1,17 @@
 'use strict';
 
-var React = require('react'),
-    flux = require('fluxify');
+const React = require('react'),
+    flux = require('fluxify'),
+    keydown = require('react-keydown'),
+    KEYS = [ 38, 40]; // мониторим только стрелки вверх и внизх
+
+/*
+@keydown( 'enter' )
+toggleHello() {
+    console.log('enter');
+},
+*/
+
 
 var DataGrid = React.createClass({
     displayName: 'DataGrid',
@@ -13,8 +23,11 @@ var DataGrid = React.createClass({
             clicked: 0
         };
     },
+
+
+/*
     componentWillReceiveProps: function (nextProps) {
-        /*
+        /!*
          if (nextProps.gridData) {
          var docId =  localStorage['docsGrid'],
          index = this.getGridRowIndexById(docId);
@@ -22,8 +35,14 @@ var DataGrid = React.createClass({
          console.log('componentWillReceiveProps', index, docId);
          this.handleCellClick(index);
          }
-         */
+         *!/
+        const { keydown: { event } } = nextProps;
+        if ( event ) {
+            console.log('got event', event.which);
+//            this.setState( { key: event.which } );
+        }
     },
+*/
 
     /*
 
@@ -118,7 +137,7 @@ var DataGrid = React.createClass({
 
     handleKeyDown: function (e) {
         // реакция на клавиатуру
-        console.log('handleKeyPress ', e);
+        console.log('handleKeyPress ', e, keyCode, e);
         /*
          if (keyDirection == 'Down') {
          this.setState({
@@ -137,8 +156,10 @@ var DataGrid = React.createClass({
             self = this;
         /*       onKeyDown: this.handleKeyPress('Down'),
          onDoubleClick: this.handleCellDblClick(),
+         {onKeyDown = {this.handleKeyDown}}
          */
-        return (<table ref="myGridRef">
+        return (<table ref="myGridRef"  onKeyDown = {this.handleKeyDown}
+                      >
                     <tbody>
                     <tr>
                         {
@@ -169,6 +190,7 @@ var DataGrid = React.createClass({
                             ;
                             return (<tr
                                 onClick={this.handleCellClick.bind(this, index)}
+                                onKeyDown = {this.handleKeyDown}
                                 className={myClass}
                                 key={'doc-' + index}>
                                 {

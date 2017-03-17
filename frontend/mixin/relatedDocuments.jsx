@@ -1,14 +1,14 @@
 'use strict';
 
 var relatedDocuments = {
-    relatedDocuments: function () {
+    relatedDocuments: function (self) {
         // формируем зависимости
-        let relatedDocuments = this.state.relations;
+        let relatedDocuments = self.state.relations;
         if (relatedDocuments.length > 0 ) {
             relatedDocuments.forEach((doc)=> {
                 if (doc.id ) {
                     // проверим на уникальность списка документов
-                    let isExists = this.pages.find((page) => {
+                    let isExists =self.pages.find((page) => {
                         if (!page.docId) {
                             return false;
                         } else {
@@ -18,7 +18,7 @@ var relatedDocuments = {
 
                     if (!isExists) {
                         // в массиве нет, добавим ссылку на документ
-                        this.pages.push({docTypeId: doc.doc_type, docId:doc.id, pageName:doc.name + ' id:' + doc.id})
+                        self.pages.push({docTypeId: doc.doc_type, docId:doc.id, pageName:doc.name + ' id:' + doc.id})
                     }
                 }
             });

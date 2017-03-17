@@ -47,7 +47,7 @@ const Vorder = React.createClass({
         };
     },
 
-    componentWillMount: function () {
+    componentDidMount: function () {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         var self = this,
             data = self.props.data.row,
@@ -93,7 +93,7 @@ const Vorder = React.createClass({
 //                console.log('vorder onChange ', newValue);
 
                 var data = newValue;
-                
+
                 if (!newValue.asutusid ) {
                     // стираем ссылку на счет
                     data.arvid = null;
@@ -106,12 +106,11 @@ const Vorder = React.createClass({
 
             }
         });
-        
+
         // формируем зависимости
         this.relatedDocuments();
-    },
 
-    componentDidMount: function () {
+
         // грузим справочники
         flux.doAction('loadLibs', '');
 

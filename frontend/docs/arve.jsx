@@ -40,16 +40,12 @@ const Arve = React.createClass({
      {name: 'summa', type: 'N', min:-9999999, max:999999}
      ],
 
-/*
-    mixins: [relatedDocuments], // , validateForm
-*/
+    relatedDocuments: () => {
+        return relatedDocuments(this)
+    },
 
     validation: function () {
 
-/*
-        const doc = require('../../models/arv'),
-            requiredFields = doc.requiredFields;
-*/
         let requiredFields = this.requiredFields;
         let warning = require('../mixin/validateForm')(this, requiredFields);
         return warning;
@@ -70,11 +66,6 @@ const Arve = React.createClass({
         };
     },
 
-    componentWillMount: function () {
-        // формируем зависимости
-        this.relatedDocuments();
-    },
-
     componentDidMount: function () {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
@@ -87,18 +78,6 @@ const Arve = React.createClass({
         flux.doAction('detailsChange', details); // данные грида
         flux.doAction('gridConfigChange', gridConfig); // данные грида
         flux.doAction('gridName', 'arv-grid-row'); // задаем имя компонента строки грида (для редактирования
-
-        /*
-         // создаем обработчик события на изменение даннх
-         docStore.on('change:docId', function (newValue, previousValue) {
-         if (newValue !== previousValue) {
-         // данные изменились, меняем состояние
-         var data = docStore.data,
-         isEdited = !self.state.edited;
-
-         }
-         });
-         */
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
@@ -131,6 +110,9 @@ const Arve = React.createClass({
             flux.doAction('editedChange', true);
             flux.doAction('savedChange', false);
         }
+
+        // формируем зависимости
+        this.relatedDocuments();
 
     },
 

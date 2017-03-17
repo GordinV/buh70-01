@@ -31,6 +31,9 @@ const Sorder = React.createClass({
 /*
     mixins: [relatedDocuments, validateForm],
 */
+    relatedDocuments: () => {
+        return relatedDocuments(this)
+    },
 
     getInitialState: function () {
         // установим изначальные данные
@@ -47,6 +50,7 @@ const Sorder = React.createClass({
         };
     },
 
+/*
     componentWillMount: function () {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         var self = this,
@@ -88,8 +92,50 @@ const Sorder = React.createClass({
         // формируем зависимости
         this.relatedDocuments();
     },
+*/
 
     componentDidMount: function () {
+
+        // пишем исходные данные в хранилище, регистрируем обработчики событий
+        var self = this,
+            data = self.props.data.row,
+            details = self.props.data.details,
+            gridConfig = self.props.data.gridConfig;
+
+        // сохраняем данные в хранилище
+        flux.doAction('dataChange', data);
+        flux.doAction('docIdChange', data.id);
+        flux.doAction('detailsChange', details); // данные грида
+        flux.doAction('gridConfigChange', gridConfig); // данные грида
+        flux.doAction('gridName', 'sorder-grid-row'); // задаем имя компонента строки грида (для редактирования
+
+        // отслеживаем режим редактирования
+        docStore.on('change:edited', function (newValue, previousValue) {
+            if (newValue !== previousValue) {
+                self.setState({edited: newValue});
+            }
+        });
+
+        // отслеживает изменения данных в гриде
+        docStore.on('change:details', function (newValue, previousValue) {
+            var isChanged = JSON.stringify(newValue) !== JSON.stringify(previousValue);
+            console.log('event details changed', isChanged, typeof newValue);
+
+            if (isChanged) {
+                // итоги
+                let summa = newValue.reduce((sum, row) => sum + Number(row.summa),0), // сумма документа
+                    docData = self.state.docData;
+
+                docData.summa = summa;
+                console.log('new summa:', summa);
+                self.setState({gridData: newValue, docData: docData});
+            }
+        });
+
+
+        // формируем зависимости
+        this.relatedDocuments();
+
         // грузим справочники
         flux.doAction('loadLibs', '');
 

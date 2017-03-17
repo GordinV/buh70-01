@@ -1,4 +1,8 @@
-module.exports = {
+'use strict';
+
+let now = new Date();
+
+const Sorder = {
     select: [
         {
             sql: "select d.id,  d.docs_ids, (created::date || 'T' || created::time)::text as created, (lastupdate::date || 'T' || lastupdate::time)::text as lastupdate, d.bpm, "+
@@ -16,8 +20,9 @@ module.exports = {
                 " left outer join libs.asutus as asutus on asutus.id = k.asutusId  " +
                 " left outer join ou.aa as aa on k.kassaid = aa.Id " +
                 " left outer join docs.arv as arv on k.arvid = arv.Id " +
+                " inner join ou.userid u on u.id = $2::integer " +
                 " where d.id = $1",
-            sqlAsNew: "select $1::integer as id, (now()::date || 'T' || now()::time)::text as created, (now()::date || 'T' || now()::time)::text as lastupdate, null as bpm," +
+            sqlAsNew: "select $1::integer as id, $2::integer as userid, (now()::date || 'T' || now()::time)::text as created, (now()::date || 'T' || now()::time)::text as lastupdate, null as bpm," +
             " trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, " +
             " trim(s.nimetus) as status, " +
             " (select max(number) from docs.korder1 where tyyp = 1 )::integer + 1  as number,  0 as summa, " +
@@ -27,6 +32,7 @@ module.exports = {
             " null as arvid, null as arvnr " +
             " from libs.library l,   libs.library s, (select id, trim(nimetus) as name from ou.aa where kassa = 1 order by default_ limit 1) as aa " +
             " where l.library = 'DOK' and l.kood = 'SORDER'" +
+            " and u.id = $2::integer " +
             " and s.library = 'STATUS' and s.kood = '0'",
             query: null,
             multiple: false,
@@ -34,10 +40,11 @@ module.exports = {
             data: []
         },
         {
-            sql: "select trim(n.kood) as kood, trim(n.nimetus) as nimetus, trim(n.uhik) as uhik, k1.* " +
+            sql: "select k1.id, $2::integer as userid, trim(n.kood) as kood, trim(n.nimetus) as nimetus, trim(n.uhik) as uhik, k1.* " +
                 " from docs.korder2 as k1 " +
                 " inner join docs.korder1 k on k.id = k1.parentId " +
                 " inner join libs.nomenklatuur n on n.id = k1.nomid "+
+                " inner join ou.userid u on u.id = $2::integer " +
                 " where k.parentid = $1",
             query: null,
             multiple: true,
@@ -45,10 +52,11 @@ module.exports = {
             data: []
         },
         {
-            sql: "select rd.id, trim(l.kood) as doc_type, trim(l.nimetus) as name " +
+            sql: "select rd.id, $2::integer as userid,  trim(l.kood) as doc_type, trim(l.nimetus) as name " +
             " from docs.doc d " +
             " left outer join docs.doc rd on rd.id in (select unnest(d.docs_ids)) " +
             " left outer join libs.library l on rd.doc_type_id = l.id " +
+            " inner join ou.userid u on u.id = $2::integer " +
             " where d.id = $1",
             query: null,
             multiple: true,
@@ -69,10 +77,39 @@ module.exports = {
         ]
     },
     saveDoc: "select docs.sp_salvesta_korder($1, $2, $3) as id",
-    bpm:[
-        {step:0, name: 'Регистация документа',action:'register', nextStep:1, task: 'human'}, 
-        {step:1, name:'Контировка', action: 'human', nextStep:2, task:'human'},
-        {step:2, name:'Крнец', action: 'finish', nextStep:null, task:'automat'}
-    ]
+    requiredFields: [
+        {
+            name: 'kpv',
+            type: 'D',
+            min: now.setFullYear(now.getFullYear() - 1),
+            max: now.setFullYear(now.getFullYear() + 1)
+        },
+        {name: 'asutusid', type: 'N', min:null, max:null},
+        {name: 'summa', type: 'N', min:-9999999, max:999999}
+    ],
 
-}
+    bpm:[
+        {step:0, name: 'Регистация документа',action: 'start', nextStep:1, task: 'automat'},
+        {step:1, name:'Контировка', action: 'generateJournal', nextStep:2, task:'automat'},
+        {step:2, name:'Конец', action: 'endProcess', nextStep:null, task:'automat'}
+    ],
+    executeTask: (task, docId, userId)=> {
+        // выполнит задачу, переданную в параметре
+
+        let executeTask = task;
+        if (executeTask.length == 0 ) {
+            executeTask = ['start'];
+        }
+
+        let taskFunction = eval(executeTask[0]);
+        return taskFunction(docId, userId);
+    },
+    register: {command: `update docs.doc set status = 1 where id = $1`, type: "sql"},
+    generateJournal: {command: "select docs.gen_lausend_arv($1, $2)", type: "sql"},
+    endProcess: {command: "update docs.doc set status = 2 where id = $1", type: "sql"},
+
+
+
+};
+
+module.exports = Sorder;

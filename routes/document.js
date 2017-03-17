@@ -38,23 +38,35 @@ exports.get = function(req, res, params) {
     let Doc = React.createFactory(docComponent),
         now = new Date();
 
-
+//    console.log('DocDataObject.selectDoc',docTypeId, [docId, user.userId] );
     DocDataObject.selectDoc(docTypeId, [docId, user.userId], (err, data, bpm)=> {
 
-        if (err) next(err);
+        if (err) {
+            console.error(err);
+            next(err);
+        }
 
-        console.log('selectdoc', data);
         docInitData.data = data;
 
         if (data.row) {
             if (bpm) {
                 docInitData.bpm = bpm;
             }
+
+            let Component = React.createElement(
+                docComponent,
+                docInitData
+            );
+
             try {
-                let html = ReactServer.renderToString(Doc(docInitData));
+//                var html = ReactServer.renderToString(Component);
+
+
+                let html = ReactServer.renderToString(Component);
                 res.render('document', {"user": user, react:html, store: JSON.stringify(docInitData)});
             } catch(e) {
-                res.render('error', {message: 'Error in documentr', status:500} );
+                console.error('error:', e);
+                res.render('error', {message: 'Error in document', status:500} );
             }
 
         } else {

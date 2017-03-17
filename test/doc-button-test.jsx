@@ -9,13 +9,13 @@ var expect = chai.expect,
     btnClickResult = null;
 
 const btnClick = ()=> {
-    console.log('button-register clicked');
+    console.log('btnClick clicked');
     btnClickResult = 'Ok';
 }
 
-describe('ReactTestUtils, button-register', () => {
-    const DocButton = require('../frontend/components/button-register.jsx'),
-        className = 'gridToolbar',
+describe.skip('ReactTestUtils', () => {
+    const DocButton = require('../frontend/components/doc-button.jsx'),
+        className = 'doc-button',
         value = 'Add';
 
     var shallowRenderer = ReactTestUtils.createRenderer();
@@ -26,7 +26,7 @@ describe('ReactTestUtils, button-register', () => {
 
     var result = shallowRenderer.getRenderOutput();
 
-    it('should have shallow rendering button-register, type == "input', () => {
+    it('should have shallow rendering doc-button, type == "input', () => {
         expect(result.type).to.equal('input');
     });
 

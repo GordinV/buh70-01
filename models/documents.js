@@ -1,6 +1,6 @@
 'use strict';
 
-var Doc = {
+const Doc = {
     tasks: [], // задачи
     connectDb: function () {
         var pg = require('pg'),
@@ -10,7 +10,7 @@ var Doc = {
 
     },
 
-    executeSqlQueryPromise: (sqlString, sqlParams, returnData) => {
+    executeSqlQueryPromise: (sqlString, sqlParams) => {
         // обертка над колбеком
         return new Promise((resolved, rejected) => {
             var pg = require('pg'),
@@ -29,7 +29,6 @@ var Doc = {
                             rejected(err);
                         };
                         db.end();
-//                        console.log('resolved:',sqlString, result);
                         resolved(result.rows);
                     }));
                 });
@@ -43,6 +42,7 @@ var Doc = {
     executeSqlQueriesPromise: (sqls, params, returnData) => {
         // обертка над executeSqlQueries
         // выполнит запрос, вернет callback и данные
+        // sqls массив запрсов, структура [{sql:'', sqlAsNew:'', alias: 'row'}]
         return new Promise((resolved, rejected) => {
             var pg = require('pg'),
                 config = require('../config/config'),
@@ -99,7 +99,7 @@ var Doc = {
 
             db.query(sqlString, sqlParams, function (err, result) {
                 if (err) {
-                    console.error('sql error:' + JSON.stringify(err));
+                    console.error('sql error:',err);
                 }
                 db.end();
 //               console.log('result:' + JSON.stringify(result));
@@ -110,18 +110,22 @@ var Doc = {
     
     executeSqlQueries: function (sqls, params, returnData, callback) {
         // выполнит запрос, вернет callback и данные
+
         let db = this.connectDb(),
             dataRow,
             sqlAsNew,
-            sqlParameter,
+            sqlParameter = [],
             sqlCount = sqls.length;
 
         for (let i = 0; i < sqlCount; i++) {
             dataRow = sqls[i];
             sqlAsNew = dataRow.sqlAsNew || null;
 
-            // взависимости от параметра идет запрос на новый док или уже существующий
-            sqlParameter = params[0] == 0 && sqlAsNew !== null ? sqlAsNew : dataRow.sql;
+            sqlParameter = dataRow.sql;
+            if (params && params[0] == 0 && sqlAsNew) {
+                // взависимости от параметра идет запрос на новый док или уже существующий
+                sqlParameter = sqlAsNew;
+            }
 
             dataRow.query = db.query(sqlParameter, params); // ставим в очередь
 
@@ -131,7 +135,7 @@ var Doc = {
         }
 
         db.on('error', (err)=> {
-            console.error('db error:' + JSON.stringify(err));
+            console.error('db error:',err);
             callback(err, []);
         });
 
@@ -141,22 +145,23 @@ var Doc = {
 
             sqls.forEach((row) => {
 
-                let myRow = row.query._result.rows, // массив результатов
-                    myData = row.multiple ? myRow : myRow[0];
-
-                returnData[row.alias] = myData;
+                let resultRow = row.query._result.rows, // массив результатов
+                    data = row.multiple ? resultRow : resultRow[0];
+                returnData[row.alias] = data;
             });
             callback(null, returnData);
         });
+
         try {
             db.connect(); // выполнить запрос
         } catch(err) {
-            console.error(err);
+            console.error('SQL execution error:', err);
         }
 
     },
 
     selectDoc: function (docTypeId, params, callback) {
+        // вернет данные модели
 
         let doc = require('./' + docTypeId),
             sql = doc.select,
@@ -170,11 +175,12 @@ var Doc = {
         // выполним запрос
         if (typeof sql == 'object') {
 
-                Doc.executeSqlQueries(sql, params, returnData, (err, data)=> {
+                Doc.executeSqlQueries(sql, params, returnData, (err, data) => {
 
                     if (err) {
                         console.error(err);
                     }
+//                    console.log('Doc.executeSqlQueries', data, docBpm);
                     callback(err, data, docBpm);
                 });
         } else {
@@ -205,34 +211,6 @@ var Doc = {
         }
     },
 
-    /*
-    selectDocPromise: (docTypeId, params) => {
-        return new Promise((resolved, rejected) =>{
-            const doc = require('./' + docTypeId),
-                sql = doc.select;
-            
-            var docBpm = [], // БП документа
-                returnData = doc.returnData;
-            
-            if  (doc.bpm) {
-                docBpm = doc.bpm;
-            }
-
-            // выполним запрос
-            if (typeof sql === 'object') {
-                Doc.executeSqlQueries(sql, params, returnData, function(err, data) {
-                    callback(err, data, docBpm);
-                });
-            } else {
-                Doc.executeSqlQueryPromise(sql, params, function (err, data) {
-                    callback(err, data.rows, docBpm);
-                });
-            }
-            
-        });
-    },
-*/
-
     saveDoc: function (docTypeId, params, callback) {
         // вызов метода сохранения документа
         var doc = require('./' + docTypeId),
@@ -261,7 +239,7 @@ var Doc = {
     },
 
     executeAutomateTask: function(docTypeId, params) {
-        console.log('executeAutomateTask', docTypeId, params);
+ //       console.log('executeAutomateTask', docTypeId, params);
         let doc = require('./' + docTypeId),
             tasks = params.params.tasks,
             docId = params.params.docId,
@@ -271,7 +249,7 @@ var Doc = {
             results = [];
 
         tasks = tasks.filter((task)=> {
-            console.log('executeTaskPromise:', task);
+//            console.log('executeTaskPromise:', task);
 //                if (task == '') {
             // задача не должна быть выполненой, и до первой "ручной" задачи
             return task;
@@ -286,17 +264,17 @@ var Doc = {
             return task.action;
         });
 
-        console.log('documents executeTaskPromise', tasks);
+//        console.log('documents executeTaskPromise', tasks);
 
 // в цикле добавляем задачи в цепочку
         tasks.forEach((task)=> {
             chain = chain
                 .then(() => {
-                    console.log('then task', task);
+ //                   console.log('then task', task);
                     return executePromise(task);
                 })
                 .then((result) => {
-                    console.log('then resuts:', results);
+ //                   console.log('then resuts:', results);
                     results.push(result);
                 });
         });
@@ -304,13 +282,13 @@ var Doc = {
         // 3. п последовательно вызываем цкпочку
 
         let executePromise = ((task) => {
-            console.log('task:', task, docId, userId);
+//            console.log('task:', task, docId, userId);
             return eval('doc.executeTask([task],docId, userId)');
         })
 
         // в конце — выводим результаты
         chain.then(() => {
-            console.log('results:', results);
+//            console.log('results:', results);
             return results;
         });
 
@@ -318,20 +296,20 @@ var Doc = {
 //        callback(null,'Ok');
 
     },
+
     executeTaskPromise: function(docTypeId, params) {
         // обертка над методом executeTask
 
-        console.log('executeTaskPromise 1', docTypeId, params);
+//        console.log('executeTaskPromise 1', docTypeId, params);
         let doc = require('./' + docTypeId),
             tasks = params.params.tasks,
             docId = params.params.docId,
             userId = params.userId;
 
-            console.log('task:', tasks, docId, userId);
+//            console.log('task:', tasks, docId, userId);
 
         return doc.executeTask(tasks, docId, userId);
     },
-
 
     config: function () {
         var config = require('./docs_grid_config.js');

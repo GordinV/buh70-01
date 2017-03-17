@@ -35,14 +35,13 @@ div#treeDocs {
     width:100%;
 }
 
+/*
 div#gridToolBar {
     background:white;
     height:100%;
     width:100%;
-    /*
-    border:1px solid grey;
-    */
 }
+*/
 
 div#gridDocs {
     background:pink;

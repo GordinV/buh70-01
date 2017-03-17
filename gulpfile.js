@@ -1,22 +1,29 @@
 'use strict';
 const gulp = require('gulp');
 const mocha = require('gulp-mocha');
-require('babel-core/register');
-//const server = require('./mongoose/server');
+const babel = require('babel-core/register');
+const gulpBabel = require('gulp-babel');
 
-/*
-gulp.task('server', function(callback) {
-    server.listen(3000, '127.0.0.1', () => console.log('http://127.0.0.1:3000/'));
-    callback();
-});
-*/
 // Compiler for React tests
-require('./test/compiler.js');
+//require('./test/compiler.js');
+
+gulp.task("test-jsx", function(){
+    return gulp
+        .src('./test/*.js?', { read: false })
+        .pipe(gulpBabel({
+            presets: ['es2015', 'react']
+        }))
+        .pipe(mocha());
+});
 
 gulp.task('mocha', function() {
     return gulp
         .src('./test/*.js?', { read: false })
-        .pipe(mocha());
+        .pipe(mocha(
+            {compilers: {
+                js: babel
+            }
+            }));
 });
 
 gulp.task('default', [

@@ -19,7 +19,7 @@ const btnClick = ()=> {
 }
 
 
-describe('ReactTestUtils, doc-input-date', () => {
+describe.skip('ReactTestUtils, doc-input-date', () => {
     const InputDate = require('../frontend/components/doc-input-date.jsx'),
         className = 'ui-c2';
 

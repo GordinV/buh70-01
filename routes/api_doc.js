@@ -79,8 +79,6 @@ exports.post = function(req, res) {
 
             break;
         case 'select':
-            console.log('select:', data);
-
             params = [];
             if (data.params.length > 0) {
                 params = data.params;

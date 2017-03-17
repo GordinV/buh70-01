@@ -12,7 +12,7 @@ const btnClick = () => {
     btnClickResult = 'Ok';
 }
 
-describe('components test, datalist', () => {
+describe.skip('components test, datalist', () => {
     // проверяем на наличие компонента и его пропсы и стейты
     // проверяем изменение стейтов после клика
     const DataList = require('../frontend/components/datalist/datalist.jsx');

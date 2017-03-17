@@ -10,17 +10,13 @@ var docsStore = flux.createStore({
         data: [],
         sortBy:[{column:'id', direction: 'desc'}],
         sqlWhere:'',
-        tooglePanel: true, // opened
-        tooglePanelData: {tree: '10%', grid:'90%', left: '13%'}, // opened,
         systemMessage: null
     },
     actionCallbacks: {
         systemMessageChange: function(updater, value) {
-            console.log('systemMessageChange called', value);
             updater.set({systemMessage: value});
         },
         sqlWhereChange: function(updater, value) {
-            console.log('sqlWhereChange called', value);
             updater.set({sqlWhere: value});
             requery({name: 'docsGrid', value: this.docsList});
         },
@@ -28,19 +24,15 @@ var docsStore = flux.createStore({
             updater.set({sortBy: value});
             requery({name: 'docsGrid', value: this.docsList, sortBy:value});
         },
-        tooglePanelChange: function(updater, value, data) {
-            updater.set({tooglePanel:value,tooglePanelData: data })
-        },
         Add: function (updater) {
             console.log('button Lisa cliked new! ' + this.docsGrid);
             add(this.docsList);
         },
         Edit: function (updater) {
-            console.log('button Muuda cliked!');
             if (this.docsList && this.docsGrid) {
                 edit(this.docsList, this.docsGrid);
             } else {
-                console.log('Тип документа или документ не выбран');
+                console.error('Тип документа или документ не выбран');
             }
         },
         Delete: function (updater) {
@@ -64,14 +56,14 @@ var docsStore = flux.createStore({
         docsGridChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
             updater.set({docsGrid: value});
-            localStorage['docsGrid'] = value;
+//            localStorage['docsGrid'] = value;
 
         },
         docsListChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
             updater.set({docsList: value});
             requery({name: 'docsGrid', value: value});
-            localStorage['docsList'] = value;
+//            localStorage['docsList'] = value;
         },
         dataChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
@@ -94,7 +86,9 @@ var add = function (docTypeId) {
 };
 
 var requeryForAction = (action, callback)=> {
+    if (!window.jQuery) return // для тестов
 
+    if (!$) return
     // метод обеспечит запрос на выполнение
     let parameters = {
         docId : docsStore.docsGrid,
@@ -126,6 +120,8 @@ var requeryForAction = (action, callback)=> {
 }
 
 var requery = function (component) {
+    if (!window.jQuery) return // для тестов
+
     // метод обеспечит получение данных от сервера
     // component = this.state.components[name]
     // если параметры не заданы, грузим все

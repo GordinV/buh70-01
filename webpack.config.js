@@ -60,7 +60,12 @@ module.exports = {
             {
                 test: /\.js$/,
                 //include: __dirname + '/frontend',
-                loader: "babel?compact=false"
+                loader: 'babel',
+                    query: {
+                        compact: false,
+                        plugins: ['transform-decorators-legacy', "transform-class-properties"],
+                        presets: ['es2015', 'stage-0', 'react']
+                }
             },
 
             { test: /\.jsx$/, loader: "jsx-loader?harmony"}

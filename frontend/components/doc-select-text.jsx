@@ -72,14 +72,12 @@ const SelectTextWidget = React.createClass({
                     value = {this.props.value}
                     defaultValue = {this.props.defaultValue}
                     placeholder = {this.props.placeholder}
-                    ref = {this.props.ref}
                     readOnly={this.props.readOnly}
                     onChange={this.handleSelectOnChange}
             />
             <Text className='ui-c2'
                   name='muud'
                   placeholder='DokProp'
-                  ref="dokPropSelg"
                   value={this.state.description}
                   readOnly={true}
                   disabled={'true'}

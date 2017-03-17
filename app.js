@@ -21,6 +21,8 @@ var app = express(),
     session = require('express-session'),
     pgSession = require('connect-pg-simple')(session);
 
+require('babel-polyfill');
+
 require('node-jsx').install({extension: '.jsx'});
 app.set('port', config.get('port'));
 

@@ -1,7 +1,7 @@
 module.exports= {
     DOK: {
         gridConfiguration: [
-            {id: "id", name: "id", width: "50px"},
+            {id: "id", name: "id", width: "50px", show: false},
             {id: "type", name: "type", width: "100px"},
             {id: "created", name: "created", width: "150px"},
             {id: "lastupdate", name: "Last change", width: "150px"},
@@ -18,7 +18,7 @@ module.exports= {
 
     ARV: {
         gridConfiguration: [
-            {id: "id", name: "id", width: "25px"},
+            {id: "id", name: "id", width: "25px", show: false},
             {id: "number", name: "Number", width: "100px"},
             {id: "kpv", name: "Kuupaev", width: "100px"},
             {id: "summa", name: "Summa", width: "75px"},

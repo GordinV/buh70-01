@@ -249,9 +249,9 @@ const setBpmStatuses = (actualStepIndex, userId)=>  {
     try {
         var bpm =  Arv.bpm, // нельзя использовать let из - за использования try {}
             nextStep = bpm[actualStepIndex].nextStep,
-            executors = bpm[actualStepIndex].actors;
+            executors = bpm[actualStepIndex].actors || [];
 
-        if (executors.length == 0) {
+        if (!executors || executors.length == 0) {
             // если исполнители не заданы, то добавляем автора
             executors.push({
                 id: userId,
