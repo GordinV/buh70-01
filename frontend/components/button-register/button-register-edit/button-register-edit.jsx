@@ -10,10 +10,19 @@ class ButtonRegisterEdit extends React.PureComponent{
 // кнопка создания документа в регистрах
     constructor(props) {
         super(props);
+        this.state = {
+            disabled: this.props.disabled
+        }
+        this.handleClick = this.handleClick.bind(this);
     }
 
     handleClick(e) {
         return this.props.onClick();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({disabled: nextProps.disabled})
+
     }
 
     render() {
@@ -21,7 +30,7 @@ class ButtonRegisterEdit extends React.PureComponent{
             value = 'Edit'
             ref="btnEdit"
             show={this.props.show}
-            disabled={this.props.disabled}
+            disabled={this.state.disabled}
             onClick={(e) => this.handleClick(e)}>
             <image ref='image' src={styles.icons[ICON]}/>
         </Button>
@@ -30,6 +39,7 @@ class ButtonRegisterEdit extends React.PureComponent{
 
 ButtonRegisterEdit.propTypes = {
     onClick: React.PropTypes.func.isRequired,
+    disabled: React.PropTypes.bool
 }
 
 

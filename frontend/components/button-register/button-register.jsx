@@ -8,14 +8,14 @@ class Button extends React.PureComponent {
 // кнопка создания документа в регистрах
     constructor(props) {
         super(props);
-        this.handleClick.bind(this);
+        this.handleClick = this.handleClick.bind(this);
         this.state = {
             disabled: this.props.disabled
         }
     }
 
-    handleClick(e) {
-        return this.props.onClick();
+    handleClick() {
+        this.props.onClick();
     }
 
     render() {
@@ -27,7 +27,7 @@ class Button extends React.PureComponent {
             disabled={this.state.disabled}
             ref="button"
             style={style}
-            onClick={(e) => this.handleClick(e)}>
+            onClick={this.handleClick}>
             {this.props.children}
             {this.props.value}
         </button>

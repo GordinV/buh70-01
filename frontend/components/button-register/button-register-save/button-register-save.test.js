@@ -7,9 +7,7 @@ const React = require('react'),
 
 let  btnClickResult = null;
 
-const btnClick = ()=> {
-    btnClickResult = 'Ok';
-}
+const btnClick = jest.fn();
 
 describe.only('component test, buttonSave', () => {
 
@@ -29,8 +27,8 @@ describe.only('component test, buttonSave', () => {
     });
 
     it('should have property show, disabled (default', () => {
-        expect(buttonPrint.props.show).toBe(true);
-        expect(buttonPrint.props.disabled).toBe(false);
+        expect(buttonPrint.props.show).toBeTruthy();
+        expect(buttonPrint.props.disabled).toBeFalsy();
     });
 
     it('should exist children image', () => {
@@ -46,6 +44,11 @@ describe.only('component test, buttonSave', () => {
         let imageFile = fs.statSync(src);
         expect(imageFile.isFile()).toBe(true);
 
+    });
+
+    it('should called onClick function', ()=> {
+        ReactTestUtils.Simulate.click(button);
+        expect(btnClick).toBeCalled();
     });
 
 });

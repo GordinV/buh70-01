@@ -88,7 +88,7 @@ var DataGrid = React.createClass({
                 var docId = localStorage['docsGrid'],
                     index = self.getGridRowIndexById(docId);
 
-                self.setState({clicked: index});
+                self.setState({index: index});
             }
 
         })
@@ -150,7 +150,7 @@ var DataGrid = React.createClass({
     render: function render() {
         var gridRows = this.props.gridData; // статичны и приходят только из верхнего компонента
         var gridColumns = this.props.gridColumns;
-        var clickedItem = this.state.clicked;
+        var clickedItem = this.state.index;
 
         var className = 'th',
             self = this;

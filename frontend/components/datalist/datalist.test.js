@@ -2,8 +2,6 @@ require('./../../../test/testdom')('<html><body></body></html>'); // созда�
 
 const ReactTestUtils = require('react-addons-test-utils');
 const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactDOMServer = require('react-dom/server');
 
 describe('components test, datalist', () => {
     // проверяем на наличие компонента и его пропсы и стейты
@@ -11,16 +9,8 @@ describe('components test, datalist', () => {
     const DataList = require('./datalist.jsx');
     const style = require('./datalist-styles');
 
-    let shallowRenderer = ReactTestUtils.createRenderer();
     let data = require('./../../../test/fixture/datalist-fixture');
 
-    shallowRenderer.render(<DataList data={data}
-                                     name="docsList"
-                                     bindDataField="kood"
-                                     value='code1'
-                                     onChangeAction='docsListChange'/>);
-
-    let result = shallowRenderer.getRenderOutput();
 
     let component = ReactTestUtils.renderIntoDocument(<DataList data={data}
                                                                 name="docsList"
@@ -28,16 +18,8 @@ describe('components test, datalist', () => {
                                                                 value='code1'
                                                                 onChangeAction='docsListChange'/>);
 
-
-    let container = document.createElement('div');
-    let instance = ReactDOM.render(<DataList data={data}
-                                             name="docsList"
-                                             bindDataField="kood"
-                                             value='code1'
-                                             onChangeAction='docsListChange'/>, container);
-
-    it('should component type to be div', () => {
-        expect(result.type).toBe('div');
+    it('should be defined', () => {
+        expect(component).toBeDefined();
     });
 
     it('should have ul li', () => {
@@ -52,8 +34,13 @@ describe('components test, datalist', () => {
     });
 
     it('after click event should save li clicked index', () => {
-        component.handleLiClick(1);
-        let clickedIndex = component.state.clicked;
-        expect(clickedIndex).toBe(1);
+        let li = component.refs['li-1'];
+        expect(li).toBeDefined();
+
+        ReactTestUtils.Simulate.click(li);
+
+        expect(component.state.index).toBe(1);
+        expect(component.state.value).toBe('code2');
     });
+
 })

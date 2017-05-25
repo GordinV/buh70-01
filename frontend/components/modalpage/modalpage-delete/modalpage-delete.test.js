@@ -1,3 +1,39 @@
-/**
- * Created by HP on 20.03.2017.
- */
+require('./../../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
+
+const ReactTestUtils = require('react-addons-test-utils');
+const React = require('react');
+
+let result;
+
+const handleClick = (e) => {
+    result = e;
+}
+
+describe('component test, modalPage-delete', () => {
+
+    const ModalPageDelete = require('./modalPage-delete.jsx'),
+        style = require('../modalpage-delete/modalpage-delete-styles');
+
+    const component = ReactTestUtils.renderIntoDocument(<ModalPageDelete
+        modalObjects={['btnOk', 'btnCancel']}
+        modalPageBtnClick={handleClick}
+        show={true}>
+    </ModalPageDelete>)
+
+    it('should be define', () => {
+        expect(component).toBeDefined();
+    });
+
+    it('children components', () => {
+        let page = component.refs['modalPage'],
+            container = page.refs['container'],
+            image = page.refs['image'];
+
+        //           message = page.refs['message'];
+
+        expect(page).toBeDefined();
+        expect(image).toBeDefined();
+//        expect(message).toBeDefined();
+    });
+
+});

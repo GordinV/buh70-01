@@ -1,10 +1,10 @@
 //'use strict';
 
-exports.get = function(req, res) {
+exports.get = function (req, res) {
     // рендер грида на сервере при первой загрузке странице
     var React = require('react'),
         ReactServer = require('react-dom/server'),
-        Parent = require('../frontend/components/doc-register.jsx'),
+        Register = require('../frontend/docs/doc-register/doc-register.jsx'),
         DocDataObject = require('../models/documents'),
         async = require('async'),
         results = [], // {}
@@ -14,21 +14,24 @@ exports.get = function(req, res) {
         sqlWhere,
         docId,
         components = [
-            {name: 'docsList', data:[], value: ''},
-            {name: 'docsGrid', data:[], value: 0}
-            ];
+            {name: 'docsList', data: [], value: 'DOK'},
+            {name: 'docsGrid', data: [], value: 'DOK', lastDocId: 0}
+        ];
 
-    async.forEach(components, function(component, callback) {
+    async.forEach(components, function (component, callback) {
         // выполняем запрос
         var componentName = component.name;
+
+        if (!parameter) {
+            parameter = 'DOK';
+        }
 
         // ищем параметры последнего запроса
 //        req.session.docs.push({component:component.name, parameter: parameter, sortBy:sortBy, sqlWhere:sqlWhere});
 
         if (req.session.docs) {
-//            console.log('routes documents session docs found', req.session.docs);
             // ищем в сессии наш компонент
-            for (var i = 0; i < req.session.docs.length; i++) {
+            for (var i = req.session.docs.length; i == 0; i--) {
                 if (req.session.docs[i]['component'] == componentName) {
                     // нашли, забираем параметры
                     parameter = req.session.docs[i].parameter;
@@ -41,48 +44,38 @@ exports.get = function(req, res) {
         }
 
         DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere, user);
- //       DocDataObject[componentName].requery(null, callback, results);
-    }, function(err) {
+        //       DocDataObject[componentName].requery(null, callback, results);
+    }, function (err) {
         if (err) return new Error(err);
 
-        components = components.map(function(component) {
+        components = components.map(function (component) {
             component.data = results[component.name].data;
             if (docId && componentName == component.name) {
-                component.value = docId; // ид последнего открытого документа
+                component.lastDocId = docId; // ид последнего открытого документа
             }
-            
+
             // отметим последний выбор на списке документов
             if (component.name == 'docsList' && parameter) {
                 component.value = parameter;
             }
 
-  //          console.log('component.data', component.data);
-            if (component.name == 'docsGrid' && component.data[0].id == 'DOK' ) {
-                component.data = []; // заглушка, проблему с рендером
-            }
-
             return component;
         })
 
-//        console.log('routes documents  components',  components);
-
         var Component = React.createElement(
-            Parent,
-            { id: 'grid', components: components}, 'Тут будут компоненты');
-
-//        console.log('start Component',Component );
+            Register,
+            {id: 'grid', components: components}, 'Тут будут компоненты');
 
         try {
-            var html = ReactServer.renderToString(Component);
+            let html = ReactServer.renderToString(Component);
 
             // передатим в хранилище данные
-            var storeInitialData = JSON.stringify(components);
-  //          console.log('start render',storeInitialData );
+            let storeInitialData = JSON.stringify(components);
 
             res.render('documents', {
                 "user": user,
                 "store": storeInitialData
-                ,react: html
+                , react: html
             });
 
         } catch (e) {

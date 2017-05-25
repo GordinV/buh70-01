@@ -1,3 +1,3 @@
-/**
- * Created by HP on 20.03.2017.
- */
+module.exports = {
+    icon:'images/icons/delete.png'
+}

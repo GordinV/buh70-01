@@ -2,20 +2,93 @@ require('./../../../test/testdom')('<html><body></body></html>'); // созда�
 
 const ReactTestUtils = require('react-addons-test-utils'),
     React = require('react'),
-    Register = require('./register.jsx'),
-    style = require('./register-styles'),
-    data = require('./../../../test/fixture/grid-filter-fixture'),
+    Register = require('./doc-register.jsx'),
+    style = require('./doc-register-styles'),
+    listData = require('./../../../test/fixture/datalist-fixture'),
+    model = require('../../../models/docs_grid_config'),
+    config = model.DOK.gridConfiguration,
+    gridData = require('../../../test/fixture/dataGrid-fixture'),
     components = [
-        {name: 'docsList', data: [], value: ''},
-        {name: 'docsGrid', data: [], value: 0}
+        {name: 'docsList', data: [{data: listData}], value: 'code1'},
+        {name: 'docsGrid', data: [{data: gridData, columns: config}], value: 2}
     ];
 
 
 describe('doc test, register', () => {
 
-    const component = ReactTestUtils.renderIntoDocument(<Register id= 'grid' components= {components}/>);
+    const component = ReactTestUtils.renderIntoDocument(
+        <Register id='grid'
+                  components={components}/>
+    );
 
     it('should be define', () => {
         expect(component).toBeDefined();
     });
+
+    it('test for children components', () => {
+        let components = [
+            'parentDiv',
+            'docContainer',
+            'toolbarContainer',
+            'list-sidebar',
+            'grid-sidebar',
+            'modalpageFilter',
+            'dataList',
+            'dataGrid',
+            'modalpageDelete',
+            'modalpageInfo'
+        ];
+        components.forEach(comp => {
+            expect(comp).toBeDefined();
+        });
+    });
+
+    it('test of initial data', () => {
+        let props = component.props.components,
+            state = component.state.components;
+
+        props.forEach(data => {
+            // пропсы переданы и сохранены в состоянии
+            expect(props).toEqual(state);
+        });
+    });
+
+    it ('test of list component in Register', () => {
+        let List = component.refs['dataList'],
+            data = [{data: listData}];
+        expect(List).toBeDefined();
+        expect(List.state.value).toBe('code1'); // value: 'code1'
+        expect(List.state.data).toEqual(data); // data: [{data: listData}]
+    });
+
+    it.skip ('test of grid component in Register', () => {
+        let Grid = component.refs['dataGrid'],
+            data = [{data: gridData}],
+            rowIndex = 1; // gridData[1].id = 2
+
+        expect(Grid).toBeDefined();
+        expect(Grid.state.activeRow).toBe(rowIndex); // value: 2
+        expect(Grid.state.gridData).toEqual(data[0].data); // [{data: gridData, columns: config}]
+
+    });
+
+    it ('modalPageBtnClick && btnFilterClick test', ()=> {
+        expect(component.modalPageBtnClick).toBeDefined();
+        expect(component.btnFilterClick).toBeDefined();
+        component.btnFilterClick(); // modalPage opened
+        expect(component.state.getFilter).toBeTruthy();
+        component.modalPageBtnClick('Cancel'); // modalpage closed
+        expect(component.state.getFilter).toBeFalsy();
+    });
+
+    it ('modalPageDelBtnClick test ', () => {
+        expect(component.modalPageDelBtnClick).toBeDefined();
+        expect(component.btnDeleteClick).toBeDefined();
+        component.btnDeleteClick(); // modalPage opened
+        expect(component.state.getDeleteModalPage).toBeTruthy();
+        component.modalPageDelBtnClick('Cancel'); // modalpage closed
+        expect(component.state.getDeleteModalPage).toBeFalsy();
+
+    })
 })
+

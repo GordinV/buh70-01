@@ -20,9 +20,6 @@ var docStore = require('../stores/doc_store.js');
 const Journal = React.createClass({
     pages: [{pageName: 'Journal'}],
 
-    relatedDocuments: () => {
-        return relatedDocuments(this)
-    },
 //    mixins: [relatedDocuments], //, validateForm
 
     getInitialState: function () {
@@ -105,7 +102,7 @@ const Journal = React.createClass({
         }
 
         // формируем зависимости
-        this.relatedDocuments();
+        relatedDocuments(this);
 
     },
 

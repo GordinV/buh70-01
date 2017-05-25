@@ -7,9 +7,8 @@ const React = require('react'),
 
 let btnClickResult = null;
 
-const btnClick = () => {
-    btnClickResult = 'Ok';
-}
+
+const btnClick = jest.fn();
 
 describe.only('component test, button', () => {
 
@@ -48,5 +47,11 @@ describe.only('component test, button', () => {
         expect(imageFile.isFile()).toBe(true);
 
     });
+
+    it('should be response from click event',() => {
+        ReactTestUtils.Simulate.click(button);
+        expect(btnClick).toBeCalled();
+
+    })
 
 });

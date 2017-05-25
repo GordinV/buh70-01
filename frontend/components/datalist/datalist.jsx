@@ -10,7 +10,7 @@ class DataList extends React.PureComponent {
 
         let idx = 0;
 
-        if (props.value) {
+        if (this.props.value) {
             // we got value, we should find index and initilize idx field
             props.data.forEach((row, index) => {
                 if (row[props.bindDataField] === props.value) {
@@ -22,29 +22,23 @@ class DataList extends React.PureComponent {
 
         this.state = {
             data: props.data,
-            clicked: idx,
+            index: idx,
             value: props.value
         };
+        this.handleLiClick = this.handleLiClick.bind(this);
     }
 
     render() {
         let data = this.props.data,
-            clickedItem = this.state.clicked;
+            clickedItem = this.state.index;
 
         return (
             <div ref="datalist">
                 <ul ref="datalist-ul">
                     {
                         data.map((item, index) => {
-                            let style = {};
-
-                            if (clickedItem == index) {
-                                style = Object.assign({}, styles.docList, styles.focused)
-                            } else {
-                                style = Object.assign({}, styles.docList);
-                            }
-
-                            let componentId = 'li-' + index;
+                            let style = Object.assign({}, styles.docList, clickedItem == index ? styles.focused : {}),
+                                componentId = 'li-' + index;
 
                             return (
                                 <li key={componentId}
@@ -65,7 +59,7 @@ class DataList extends React.PureComponent {
         // сохраняем состояние
 
         this.setState({
-            clicked: idx,
+            index: idx,
             value: value
         });
 
@@ -87,7 +81,7 @@ DataList.defaultProps = {
         name: '',
         kood: ''
     }],
-    value: '',
+    value: null,
     bindDataField: 'id'
 }
 

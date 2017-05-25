@@ -2,7 +2,7 @@
 
 const React = require('react'),
     flux = require('fluxify'),
-    ModalPage = require('./modalPage.jsx'),
+    ModalPage = require('./modalpage/modalPage.jsx'),
     Select = require('./doc-input-select.jsx'),
     InputText = require('./doc-input-text.jsx'),
     InputNumber = require('./doc-input-number.jsx');

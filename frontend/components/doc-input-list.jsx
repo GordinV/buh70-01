@@ -103,7 +103,7 @@ const React = require('react'),
                         item = item[0];
                     }
 
-                    if (this.state.clicked == index && !this.state.readOnly ) {
+                    if (this.state.index == index && !this.state.readOnly ) {
                         // выделим в списке значение, при условии, что режим редактирования это позволяет
                         className = className + ' focused';
                     }

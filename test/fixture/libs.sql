@@ -26,16 +26,17 @@ delete from libs.library where library in ('DOK','STATUS', 'PVGRUPP','KONTOD','P
 
 -- insert doks
 
-insert into libs.library (id, rekvid, kood, nimetus, library) values (1, 1, 'ARV', 'Arved', 'DOK');
-insert into libs.library (id, rekvid, kood, nimetus, library) values (2, 1, 'JOURNAL', 'Lausendid', 'DOK');
---insert into libs.library (id, rekvid, kood, nimetus, library) values (3, 1, 'PALK', 'Palk', 'DOK');
---insert into libs.library (id, rekvid, kood, nimetus, library) values (4, 1, 'TAABEL', 'Tööaja taabel', 'DOK');
---insert into libs.library (id, rekvid, kood, nimetus, library) values (5, 1, 'PVGRUPP', 'Grupp nimetus', 'DOK');
---insert into libs.library (id, rekvid, kood, nimetus, library) values (6, 1, 'PVOPER', 'PV tehingud', 'DOK');
-insert into libs.library (id, rekvid, kood, nimetus, library) values (7, 1, 'SORDER', 'Sissemakse kassaorder', 'DOK');
-insert into libs.library (id, rekvid, kood, nimetus, library) values (8, 1, 'VORDER', 'Väljamakse kassaorder', 'DOK');
+insert into libs.library (id, rekvid, kood, nimetus, library) values (1, 1, 'DOK', 'Dokumendid','DOK');
+insert into libs.library (id, rekvid, kood, nimetus, library) values (2, 1, 'ARV', 'Arved', 'DOK');
+insert into libs.library (id, rekvid, kood, nimetus, library) values (3, 1, 'JOURNAL', 'Lausendid', 'DOK');
+--insert into libs.library (id, rekvid, kood, nimetus, library) values (4, 1, 'PALK', 'Palk', 'DOK');
+--insert into libs.library (id, rekvid, kood, nimetus, library) values (5, 1, 'TAABEL', 'Tööaja taabel', 'DOK');
+--insert into libs.library (id, rekvid, kood, nimetus, library) values (6, 1, 'PVGRUPP', 'Grupp nimetus', 'DOK');
+--insert into libs.library (id, rekvid, kood, nimetus, library) values (7, 1, 'PVOPER', 'PV tehingud', 'DOK');
+insert into libs.library (id, rekvid, kood, nimetus, library) values (8, 1, 'SORDER', 'Sissemakse kassaorder', 'DOK');
+insert into libs.library (id, rekvid, kood, nimetus, library) values (9, 1, 'VORDER', 'Väljamakse kassaorder', 'DOK');
 
-SELECT setval('libs.library_id_seq', 8, true);
+SELECT setval('libs.library_id_seq', 9, true);
 
 -- status
 insert into libs.library (rekvid, kood, nimetus, library) values (1, '0', 'Черновик', 'STATUS');

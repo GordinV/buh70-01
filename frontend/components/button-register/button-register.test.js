@@ -5,26 +5,14 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const ReactDOMServer = require('react-dom/server');
 
-let  btnClickResult = null;
+let btnClickResult = null;
 
-const btnClick = ()=> {
+const btnClick = () => {
     btnClickResult = 'Ok';
 }
 
-/*
-let shallowRenderer = ReactTestUtils.createRenderer();
 
-shallowRenderer.render(
-    <Button value="Test" onClick={btnClick}>
-    </Button>);
-
-let shallowComponent = shallowRenderer.getRenderOutput();
-*/
-
-
-//const button = component.refs['button'];
-
-describe.only('component test, button', () => {
+describe('component test, button', () => {
 
     const Button = require('./button-register.jsx'),
         style = require('./button-register-styles');
@@ -41,15 +29,15 @@ describe.only('component test, button', () => {
 
     let button = component.refs['button'];
 
-    it ('should be define', () => {
+    it('should be define', () => {
         expect(component).toBeDefined();
     });
 
     it('should have shallow rendering button, type == "button', () => {
-        expect( button.type).toBe('submit'); // its button, but returned as submit ?
+        expect(button.type).toBe('submit'); // its button, but returned as submit ?
     });
 
-    it('should on event click return Ok', ()=> {
+    it('should on event click return Ok', () => {
         ReactTestUtils.Simulate.click(button);
         expect(btnClickResult).toEqual('Ok');
     });
@@ -62,15 +50,9 @@ describe.only('component test, button', () => {
         expect(component.props.disabled).toBe(false);
     });
 
-    it ('should have styles', ()=> {
+    it('should have styles', () => {
         expect(button.style).toBeDefined()
         expect(button.style.display).toBe('inline');
     });
 
-    it ('test size props', ()=> {
-        let style = button.style;
-        expect(style).toBeDefined();
-        expect(style.width).toBe('30px');
-        expect(style.height).toBe('auto');
-    });
 });

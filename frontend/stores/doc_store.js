@@ -98,16 +98,16 @@ var docStore = flux.createStore({
             updater.set({gridRowId:value});
         },
         loadLibs: function(updater, libsToUpdate) {
-              //console.log('loadLibs called:' + JSON.stringify(libsToUpdate));
             // грузим справочники
-            var libs = this.libs.filter(function(item) {
+            let libs = this.libs.filter((item) => {
                 if (!libsToUpdate || item.id == libsToUpdate) {
                     return item;
                 }
             });
+
             // вызываем обновление справочника с сервера
-            libs.forEach(function(item) {
-                var libParams = [];
+            libs.forEach((item) =>  {
+                let libParams = [];
                 if (item.params) {
                     libParams =  item.params;
                     // установим параметры для запроса
@@ -116,7 +116,7 @@ var docStore = flux.createStore({
                     }
                 }
                 loadLibs(item.id, libParams);
-            }, this);
+            });
 
         },
         saveData: function( updater){
@@ -139,12 +139,11 @@ var docStore = flux.createStore({
  //               console.log('docIdChange', value);
                 updater.set( {docId: value} );
             } catch (e) {
-                console.error;
+                console.error('docIdChange viga', e);
             }
         },
         dataChange: function( updater, value ){
             // Отслеживает загрузку данных документа
-            console.log('dataChange', value, typeof value.arvid);
             updater.set( {data: value} );
 
             if (typeof value.arvid !== 'undefinite') {
@@ -229,7 +228,7 @@ function executeTask(task) {
             //@todo подтянуть изменения без перегрузки страницы
             reloadDocument(docStore.data.id);
         } catch (e) {
-            console.error;
+            console.error('requery, reloadDocument', e);
         }
     })
 };
@@ -262,7 +261,7 @@ function saveDoc() {
             reloadDocument(newId); //@todo выполнить перегрузку данных перез перегрузки страницы
 
         } catch(e) {
-            console.error;
+            console.error('tekkis viga', e);
         }
     });
 
@@ -300,7 +299,6 @@ function reloadDocument(docId) {
 }
 
 function loadLibs(libraryName, libParams) {
-//    console.log('loadLibs:', libraryName, libParams);
     try {
 
         requery('select', JSON.stringify({doc_type_id: libraryName, id: 0, params: libParams }), function (err, data) {
@@ -308,7 +306,6 @@ function loadLibs(libraryName, libParams) {
 
             var newLibs = docStore.libs.map(function (item) {
                 // ищем данные справолчника, которые обновили
-//                 console.log('loadLibs item:' + JSON.stringify(item) + ' data:' + JSON.stringify(data));
                 var returnData = item;
 
                 if (item.id == libraryName) {
@@ -318,17 +315,19 @@ function loadLibs(libraryName, libParams) {
             });
 
             if (newLibs.length > 0) {
-//                console.log('libs loaded', newLibs);
                 flux.doAction('libsChange', newLibs); // пишем изменения в хранилище
             }
         });
     } catch(e) {
-        console.error;
+        console.error('tekkis viga', e);
     }
 }
 
 function requery(action, parameters, callback) {
     // метод обеспечит получение данных от сервера
+    if (!window.jQuery) {
+        return;
+    }
 
     var URL = '/api/doc';
     $.ajax({
@@ -356,5 +355,6 @@ function requery(action, parameters, callback) {
     });
 
 };
+
 
 module.exports = docStore;

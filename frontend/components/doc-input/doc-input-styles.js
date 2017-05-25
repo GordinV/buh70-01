@@ -1,3 +1,8 @@
-/**
- * Created by HP on 20.03.2017.
- */
+module.exports = {
+    ui: {
+        borderRadius: '2px',
+        padding: '5px',
+        display: 'inline-block'
+
+    }
+}

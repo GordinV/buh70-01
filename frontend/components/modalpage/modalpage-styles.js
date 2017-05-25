@@ -5,22 +5,20 @@ module.exports = {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.25)'
+        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+        display: 'flex',
+        justifyContent:'center'
     },
     modalPage: {
         position: 'absolute',
         border: '1px solid black',
-        width: '50%',
-        height: 'auto',
-        left: '10%',
-        top: '0',
         background: 'white',
         margin: '8px',
-        overflow: 'auto',
         borderRadius: '4px',
         outline: 'none',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        alignSelf: 'center'
     },
     modalPageContent: {
         padding: '10px',
@@ -30,7 +28,7 @@ module.exports = {
         height: '30px',
         width: '100%',
         border: '1px solid darkgray',
-        background: 'blue',
+        background: 'lightgray',
         display: 'flex',
         justifyContent: 'space-between'
     },
@@ -43,12 +41,14 @@ module.exports = {
 
     modalFooter: {
         alignSelf: 'center',
-        display: 'flex'
+        display: 'flex',
+        marginBotton:'10px'
     },
 
     modalPageButtons: {
         height: '30px',
-        width:'100px'
+        width:'100px',
+        marginBottom:'10px'
     },
 
     buttonsSeparator : {
@@ -56,7 +56,21 @@ module.exports = {
     },
 
     buttonClose: {
-        borderRadius: '50%'
+        borderRadius: '50%',
+        backgroundColor: 'lightgray',
+        border:'none',
+        fontWeight: '900'
+
+    },
+
+    left: {
+        right: 'auto',
+        left: '0'
+    },
+
+    right: {
+        left: 'auto',
+        right: '0'
     }
 
 }

@@ -113,7 +113,8 @@ const InputDate = React.createClass({
         }
         return (
             <div className="form-widget">
-                <label htmlFor={this.props.name}> {this.props.title}
+                <label htmlFor={this.props.name}>
+                    {this.props.title}
                 </label>
 
                 <ComponentInputDate

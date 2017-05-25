@@ -1,6 +1,7 @@
 'use strict';
 const React = require('react'),
     Button = require('../button-register/button-register.jsx'),
+    buttonStyles = require('../button-register/button-register-styles'),
     styles = require('./modalpage-styles');
 
 class ModalPage extends React.PureComponent {
@@ -30,7 +31,8 @@ class ModalPage extends React.PureComponent {
         let hideBtnOk = this.props.modalObjects.indexOf('btnOk') == -1 ? false : true, // управление кнопкой Ок
             hideBtnCancel = this.props.modalObjects.indexOf('btnCancel') == -1 ? false : true, // управление кнопкой Cancel
             displayModal = this.state.show ? 'flex': 'none' ,
-            containerStyle = Object.assign({}, styles.container, {display: displayModal});
+            pagePosition =  this.props.position,
+            containerStyle = Object.assign({}, styles.container, {display: displayModal}, {justifyContent:pagePosition});
 
         return (
             <div ref="container" style={containerStyle}>
@@ -53,6 +55,7 @@ class ModalPage extends React.PureComponent {
                                 height={('height' in styles.modalPageButtons)? styles.modalPageButtons.height: null}
                                 onClick={this.handleBtnClick.bind(this, 'Ok')}
                                 id='btnOk'>
+                                <image ref="image" src={buttonStyles.icons['ok']}/>
                             </Button> : null
                         }
                         <div style={styles.buttonsSeparator}></div>
@@ -65,6 +68,7 @@ class ModalPage extends React.PureComponent {
                                 onClick={this.handleBtnClick.bind(this, 'Cancel')}
                                 className='modalPageButtons'
                                 id='btnCancel'>
+                                <image ref="image" src={buttonStyles.icons['cancel']}/>
                             </Button> : null
                         }
                     </div>
@@ -77,13 +81,16 @@ class ModalPage extends React.PureComponent {
 ModalPage.propTypes = {
     modalPageName: React.PropTypes.string.isRequired,
     modalPageBtnClick: React.PropTypes.func.isRequired,
-    show: React.PropTypes.bool.isRequired
+    show: React.PropTypes.bool,
+    position: React.PropTypes.oneOf(['center', 'flex-start', 'flex-end']),
 }
 
 
 ModalPage.defaultProps = {
     modalPageName: 'defaulName',
-    modalObjects: ['btnOk', 'btnCancel']
+    modalObjects: ['btnOk', 'btnCancel'],
+    position: 'center',
+    show: false
 }
 
 module.exports = ModalPage;

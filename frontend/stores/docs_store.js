@@ -25,7 +25,6 @@ var docsStore = flux.createStore({
             requery({name: 'docsGrid', value: this.docsList, sortBy:value});
         },
         Add: function (updater) {
-            console.log('button Lisa cliked new! ' + this.docsGrid);
             add(this.docsList);
         },
         Edit: function (updater) {
@@ -55,6 +54,7 @@ var docsStore = flux.createStore({
         },
         docsGridChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
+            console.log('docsGridChange', value);
             updater.set({docsGrid: value});
 //            localStorage['docsGrid'] = value;
 
@@ -142,6 +142,7 @@ var requery = function (component) {
         sqlWhere = docsStore.sqlWhere || '';
     var sortByArray = docsStore.sortBy,
         arrType = typeof sortByArray;
+
     if (docsStore.sortBy) {
         for(var i = 0; i < sortByArray.length; i++) {
             if (i > 0) {
@@ -163,6 +164,7 @@ var requery = function (component) {
             components: JSON.stringify(componentsForUpdate), // компоненты для обновления
             parameter: component.value, // параметры
             sortBy: sqlSortBy, // сортировка
+            lastDocId: docsStore.docsGrid,
             sqlWhere: sqlWhere, // динамический фильтр грида
         },
         cache: false,

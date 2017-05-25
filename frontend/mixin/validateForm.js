@@ -1,23 +1,23 @@
 'use strict';
+const flux = require('fluxify');
 
 let validateForm = ((self, reqFields) => {
 
-        // валидация формы
-        let warning = '',
-            requiredFields = reqFields || [],
-            notRequiredFields = [],
-            notMinMaxRule = [];
+    // валидация формы
+    let warning,
+        requiredFields = reqFields || [],
+        notRequiredFields = [],
+        notMinMaxRule = [],
+        data = flux.stores.docStore.data;
 
-    console.log('validateForm self', self);
-        requiredFields.forEach((field) => {
 
-            let component = self.refs[field.name],
-                value = component.state.value,
-                props = component.props,
-                title = props.title;
+    requiredFields.forEach((field) => {
+        if (field.name in data) {
+
+            let value = data[field.name];
 
             if (!value) {
-                notRequiredFields.push(title);
+                notRequiredFields.push(field.name);
             }
             // проверка на мин . макс значения
 
@@ -39,31 +39,22 @@ let validateForm = ((self, reqFields) => {
                         checkValue = true;
                     }
                     break;
-                /*
-                 default:
-                 checkValue = true;
-                 break;
-                 */
             }
             if (checkValue) {
-                notMinMaxRule.push(title);
+                notMinMaxRule.push(field.name);
             }
-        });
-
-        if (notRequiredFields.length > 0) {
-            warning = 'puudub vajalikud andmed (' + notRequiredFields.join(', ') + ') ';
         }
-
-        if (notMinMaxRule.length > 0) {
-            warning = warning + ' min/max on vale(' + notMinMaxRule.join(', ') + ') ';
-        }
-
-        if (warning.length == 0) {
-            warning = 'Ok';
-        }
-
-        console.log('validation warning:', warning);
-        return warning; // вернем извещение об итогах валидации
     });
+
+    if (notRequiredFields.length > 0) {
+        warning = 'puudub vajalikud andmed (' + notRequiredFields.join(', ') + ') ';
+    }
+
+    if (notMinMaxRule.length > 0) {
+        warning = warning ? warning: '' + ' min/max on vale(' + notMinMaxRule.join(', ') + ') ';
+    }
+
+    return warning; // вернем извещение об итогах валидации
+});
 
 module.exports = validateForm;

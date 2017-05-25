@@ -9,7 +9,7 @@ var PageLabel = React.createClass({
         }
     },
 
-    componentWillMount: function() {
+    componentDidMount: function() {
         var self = this;
   //      console.log('page label componentWillMount')
         flux.stores.docStore.on('change:edited', function(newValue, previousValue) {

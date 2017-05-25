@@ -6,7 +6,7 @@ module.exports = function(docTypeId) {
 
     switch(docTypeId) {
         case 'ARV':
-            component = require('../frontend/docs/arve.jsx');
+            component = require('../frontend/docs/arve/arve.jsx');
             break;
         case 'JOURNAL':
             component = require('../frontend/docs/journal.jsx');
@@ -21,7 +21,7 @@ module.exports = function(docTypeId) {
             component = require('../frontend/docs/palk_oper.jsx');
             break;
         default:
-            component = require('../frontend/docs/arve.jsx');
+            component = require('../frontend/docs/arve/arve.jsx');
     }
     return component;
 

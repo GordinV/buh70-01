@@ -63,7 +63,7 @@ describe.skip('components test, datalist', () => {
 
     it('after click event should save li clicked index', () => {
         component.handleLiClick(1);
-        let clickedIndex = component.state.clicked;
+        let clickedIndex = component.state.index;
 //        ReactTestUtils.Simulate.click(button);
 
         expect(clickedIndex).to.be.equal(1);

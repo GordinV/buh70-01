@@ -1,3 +1,5 @@
-/**
- * Created by HP on 29.03.2017.
- */
+module.exports = {
+    wrapper: {
+        display: 'inline-flex'
+    }
+}

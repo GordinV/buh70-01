@@ -18,7 +18,7 @@ var MyGrid = React.createClass({
     render: function() {
         var gridRows = this.state.gridData;
         var gridColumns = this.state.gridColumns;
-        var clickedItem = this.state.clicked;
+        var clickedItem = this.state.index;
 
         var className = 'th';
 
@@ -94,7 +94,7 @@ var MyComp = React.createClass({
         var myArray = this.state.sourceArray;
         var myStyle = this.state.isChecked ? 'none' : 'block'; // прячет список
         var myGridStyle = 'block';
-        var clickedItem = this.state.clicked;
+        var clickedItem = this.state.index;
 
         myArray = myArray.map(function(item, index) {
             var myClass = 'liDocLibs';

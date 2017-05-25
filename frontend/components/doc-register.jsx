@@ -3,18 +3,20 @@
 
 const React = require('react'),
     flux = require('fluxify'),
-    DataGrid = require('./data-grid/data-grid.jsx'),
+    DataGrid = require('../data-grid/data-grid.jsx'),
     BtnAdd = require('./button-register/button-register-add/button-register-add.jsx'),
     BtnEdit = require('./button-register/button-register-edit/button-register-edit.jsx'),
     BtnDelete = require('./button-register/button-register-delete/button-register-delete.jsx'),
     BtnPrint = require('./button-register/button-register-print/button-register-print.jsx'),
     BtnFilter = require('./button-register/button-register-filter/button-register-filter.jsx'),
     ModalPage = require('./modalpage/modalPage.jsx'),
-    ModalPageDelete = require('./modalPageDelete.jsx'),
-    ModalPageInfo = require('./modalPageInfo.jsx'),
+    ModalPageDelete = require('./modalpage/modalpage-delete/modalPage-delete.jsx'),
+    ModalPageInfo = require('./modalpage/modalpage-info/modalPage-info.jsx'),
     DataList = require('./datalist/datalist.jsx'),
     Sidebar = require('./sidebar/sidebar.jsx'),
-    ToolbarContainer = require('./toolbar-container/toolbar-container.jsx')
+    ToolbarContainer = require('./toolbar-container/toolbar-container.jsx'),
+    styles = require('../docs/register/register-styles'),
+    GridFilter = require('../components/data-grid/grid-filter/grid-filter.jsx');
 
 let myComponents = [];
 
@@ -30,7 +32,7 @@ var docsStore = require('../stores/docs_store.js');
 var Parent = React.createClass({
     displayName: 'Parent',
 
-    filterData: ['btnOk', 'btnCancel'], // массив объектов, куда запишем параметры для фильтрации @todo вынести все в отдельный компонет для фильтрации
+    filterData: [], // массив объектов, куда запишем параметры для фильтрации @todo вынести все в отдельный компонет для фильтрации
 
     getInitialState: function getInitialState() {
         return {
@@ -39,8 +41,8 @@ var Parent = React.createClass({
             getFilter: false,
             getDeleteModalPage: false,
             showSystemMessage: false,
-            activRowId: 0
-
+            activRowId: 0,
+            filterString: null
         };
     },
 
@@ -126,28 +128,9 @@ var Parent = React.createClass({
             myListValue = myListData[0].value;
         }
 
-        var filterComponent;
-        if (this.state.getFilter) {
-            filterComponent = this.getFilterFields();
-        }
-
         if (myListData.length > 0 && myListData[0].data.length > 0) {
             myListData = myListData[0].data;
         }
-
-        let docContainerStyle = {
-                display: 'flex',
-                flexFlow: 'row wrap',
-                height: '87%',
-                border: '3px solid brown'
-            },
-            docWrapperStyle = {
-                display: 'flex',
-                height: '100%',
-                flex: '1 100%',
-                alignItems: 'stretch',
-                flexDirection: 'row'
-            };
 
         let myGrid = this.findComponent('docsGrid') || [],
             myGridColums = [],
@@ -161,10 +144,13 @@ var Parent = React.createClass({
         }
 
         // получим параметры для кнопок управления, взависимости от активной строки
-        let toolbarParams = this.prepareParamsForToolbar();
-        return (<div id="parentDiv">
+        let toolbarParams = this.prepareParamsForToolbar(),
+            filterData = this.getFilterFields(),
+            filterString = this.getFilterString();
 
-                <div id="docContainer" style={docContainerStyle}>
+        return (<div id="parentDiv">
+                <span>Filter: {filterString}</span>
+                <div id="docContainer" style={styles.container}>
                     <ToolbarContainer>
                         <div>
                             <BtnAdd onClick={this.btnAddClick} show={toolbarParams['btnAdd'].show}
@@ -179,7 +165,7 @@ var Parent = React.createClass({
                         </div>
                     </ToolbarContainer>
 
-                    <div style={docWrapperStyle}>
+                    <div style={styles.wrapper}>
                         <Sidebar width="30%" toolbar={true} ref="list-sidebar">
                             <DataList data={myListData}
                                       name="docsList"
@@ -195,24 +181,18 @@ var Parent = React.createClass({
                                     gridColumns={myGridColums}
                                     onChangeAction='docsGridChange'
                                     url='api'/>
-                                (<ModalPage
+                                <ModalPage
                                     modalPageBtnClick={this.modalPageBtnClick}
                                     modalPageName='Filter'
                                     show={this.state.getFilter}>
-                                    {filterComponent}
-                                </ModalPage>)
-                                {this.state.getDeleteModalPage ?
-                                    (<ModalPageDelete
-                                        modalPageBtnClick={this.modalPageDelBtnClick}
-                                    />) : null
-                                }
-                                {
-                                    this.state.showSystemMessage ?
-                                        (<ModalPageInfo
-                                            modalPageBtnClick={this.modalPageInfoBtnClick}
-                                            systemMessage={systemMessage}
-                                        />) : null
-                                }
+                                    <GridFilter ref= 'gridFilter' gridConfig = {myGridColums} data = {filterData}/>
+                                </ModalPage>
+                                <ModalPageDelete modalPageBtnClick={this.modalPageDelBtnClick}
+                                                 show={this.state.getDeleteModalPage}/>
+                                <ModalPageInfo
+                                    modalPageBtnClick={this.modalPageInfoBtnClick}
+                                    show={this.state.showSystemMessage}
+                                    systemMessage={systemMessage}/>
                             </div>
                         </Sidebar>
                     </div>
@@ -221,60 +201,16 @@ var Parent = React.createClass({
         )
     },
 
-    getGridComponent: () => {
-        let myGrid = this.findComponent('docsGrid') || [],
-            myGridColums = [],
-            myGridData = [],
-            systemMessage = flux.stores.docsStore.systemMessage;
-
-        // проверим наличие данных, если есть пропихнем компонентам
-        if (myGrid.length > 0 && myGrid[0].data.length > 0) {
-            myGridColums = myGrid[0].data[0].columns;
-            myGridData = myGrid[0].data[0].data;
-        }
-
-
-        return (
-            <div>
-                <div id="gridTable">
-                    <DataGrid
-                        gridData={myGridData}
-                        gridColumns={myGridColums}
-                        onChangeAction='docsGridChange'
-                        url='api'/>
-                </div>
-                {this.state.getFilter ?
-                    (<ModalPage
-                        modalPageBtnClick={this.modalPageBtnClick}
-                        modalPageName='Filter'
-                    > {filterComponent} </ModalPage>)
-                    : null
-                }
-                {
-                    this.state.getDeleteModalPage ?
-                        (<ModalPageDelete
-                            modalPageBtnClick={this.modalPageDelBtnClick}
-                        />) : null
-                }
-                {
-                    this.state.showSystemMessage ?
-                        (<ModalPageInfo
-                            modalPageBtnClick={this.modalPageInfoBtnClick}
-                            systemMessage={systemMessage}
-                        />) : null
-                }
-            </div>
-        )
-    },
-
     modalPageBtnClick: function (btnEvent) {
         // обработчик для кнопки фильтрации
         let filterString = '';
         if (btnEvent == 'Ok') {
-            // собирем данные в объект и вернем на форму
-            this.filterData = this.filterData.map((row) => {
-                row.value = this.refs[row.refs].value;
+            // собираем данные
+            let gridFilter = this.refs['gridFilter'],
+                filterData = gridFilter.state.data;
 
+            this.filterData = filterData.map((row) => {
+                console.log('row', row);
                 if (row.value) {
                     filterString = filterString + (filterString.length > 0 ? " and " : " where ");
                     switch (row.type) {
@@ -298,6 +234,7 @@ var Parent = React.createClass({
                 }
                 return row;
             }, this);
+            // применем фильтр
             flux.doAction('sqlWhereChange', filterString);
         }
         this.setState({getFilter: false})
@@ -324,9 +261,8 @@ var Parent = React.createClass({
     },
 
     getFilterFields: function () {
-        // @todo вынести в отдельный модуль
-        // создаст из полкй грида компоненты для формирования условий фильтрации
-        var gridComponents = docsStore.data,
+        // создаст из полtй грида компоненты для формирования условий фильтрации
+        let gridComponents = docsStore.data,
             gridData = [],
             previosFilter = this.filterData,
             filterFields;
@@ -344,12 +280,11 @@ var Parent = React.createClass({
             }
         }
 
-
         if (gridData) {
             this.filterData = []; // обнулим массив
             filterFields =
                 gridData.map((row, index) => {
-                    var componentType = 'text',
+                    let componentType = 'text',
                         componentObjektValue;
 
                     for (let i = 0; i < previosFilter.length; i++) {
@@ -372,29 +307,26 @@ var Parent = React.createClass({
                         refs: row.id
                     });
 
-                    return <li key={index}>
-                        <div className="form-widget">
-                            <label className="form-widget-label"><span>{row.name}</span>
-                                <input
-                                    type={componentType}
-                                    className='ui-c2'
-                                    title={row.name}
-                                    name={row.name}
-                                    placeholder={row.name}
-                                    ref={row.id}
-                                    defaultValue={componentObjektValue || null}
-                                />
-                            </label>
-                        </div>
-                    </li>
                 })
-            filterFields = <div className="fieldset">
-                <ul>{filterFields}</ul>
-            </div>
         }
-
-        return filterFields;
+        // обновим строку фильтрации
+        this.getFilterString();
+        return this.filterData;
     },
+
+    getFilterString: function() {
+        console.log('getFilterString');
+    // преобразует данные филтра в строку
+        let string = '';
+
+        this.filterData.map(row => {
+           if (row.value) {
+               string = string + row.name + ':' + row.value + '; ';
+           }
+        });
+        console.log('filterString', string);
+        return string;
+},
 
     prepareParamsForToolbar: function () {
         // читаем данные со стора, формируем параметры для кнопок управления, и туда их отдаем

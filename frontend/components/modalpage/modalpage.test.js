@@ -11,7 +11,7 @@ const handleClick = (e) => {
 
 describe('component test, modalPage', () => {
 
-    const ModalPage = require('./modalpage.jsx'),
+    const ModalPage = require('./modalPage.jsx'),
         style = require('./modalpage-styles');
 
     const component = ReactTestUtils.renderIntoDocument(<ModalPage

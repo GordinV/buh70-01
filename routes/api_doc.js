@@ -15,6 +15,17 @@ exports.post = function(req, res) {
          localStorage = require('../middleware/local_storage'),
          params = [];
 
+     if (docId) {
+         req.session.docs.push(
+             {  component:'doc',
+                 parameter: docTypeId,
+                 sortBy:null,
+                 sqlWhere:null,
+                 docId: docId,
+                 action: action
+             });
+     }
+
     switch(action) {
         case 'delete':
             params = [user.userId, docId];
