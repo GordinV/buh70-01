@@ -5,12 +5,6 @@ module.exports = function(docTypeId) {
     var component = {};
 
     switch(docTypeId) {
-        case 'ARV':
-            component = require('../frontend/docs/arve/arve.jsx');
-            break;
-        case 'JOURNAL':
-            component = require('../frontend/docs/journal.jsx');
-            break;
         case 'SORDER':
             component = require('../frontend/docs/sorder.jsx');
             break;

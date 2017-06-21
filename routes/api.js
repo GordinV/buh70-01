@@ -40,8 +40,6 @@ exports.post = function (req, res) {
 //        res.send();
     }
 
-    console.log('api.post docType, components, sortBy:', docTypeId, components, sortBy, sqlWhere, parameter, lastDocId);
-
     req.session.docs = []; // очистим результаты предыдущего запроса
 
     async.forEach(components,(component, callback) => {

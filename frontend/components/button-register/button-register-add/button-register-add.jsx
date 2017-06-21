@@ -13,7 +13,7 @@ class ButtonRegisterAdd extends React.PureComponent{
     }
 
     handleClick(e) {
-        return this.props.onClick();
+        return this.props.onClick('add');
     }
 
     render() {

@@ -74,9 +74,15 @@ var docStore = flux.createStore({
 
         ],
         bpm: [], // данные БП документа
-        task:{} // текущая задача
+        task:{}, // текущая задача
+        backup: {} // хранит неизмененное состояние документа
     },
     actionCallbacks: {
+        backupChange: function( updater, value ){
+            // хранит начальные данных документа
+            updater.set( {backup: value} );
+        },
+
         setLibsFilter: function(updater, libName, filter) {
 
             // ищем справочник
@@ -92,7 +98,6 @@ var docStore = flux.createStore({
                 }
             }
         },
-
         gridRowIdChange: function(updater, value) {
  //           console.log('gridRowIdChange called:' + value);
             updater.set({gridRowId:value});
@@ -247,6 +252,8 @@ function saveDoc() {
         if (err) return err;
 
         try {
+
+            console.log('saved:', data);
             let newId = data[0].id;
             // обновим ид
             saveData.data.id = newId;
@@ -288,6 +295,7 @@ function saveDoc() {
 */
 
 };
+
 
 function reloadDocument(docId) {
     // reload document

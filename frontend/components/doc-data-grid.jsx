@@ -43,7 +43,6 @@ var MyCell = React.createClass({
         // отработаем редактирование
         flux.doAction('gridCellEditedChange', this.props.id); // закроем редактирование в других ячейках
         this.setState({editable: value});
-        //       console.log('cell click' + value + ' id:' + this.props.id + 'readOnly:' + this.state.readOnly);
 
     },
 
@@ -155,8 +154,6 @@ var DataGrid = React.createClass({
             clicked: idx
         });
         var rowId = flux.stores.docStore.gridRowId;
-        //       console.log('clicked rowId :' + rowId + 'rowIndex:' + idx);
-
     },
 
     delRow: function (index) {
@@ -192,8 +189,6 @@ var DataGrid = React.createClass({
             var field = gridColumns[i].id;
             row[field] = '';
         }
-//        console.log('new row:' + JSON.stringify(gridData));
-//        this.setState({gridData:gridData});
         return row;
     },
 
@@ -203,22 +198,18 @@ var DataGrid = React.createClass({
             // получаем чистую строку
             var newRow = this.newRow();
             // пройдем по новой строке и заполним ее поля значениями из источника
-//            console.log('чистую строку:' + JSON.stringify(row) + ' newRow:' + JSON.stringify(newRow));
 
             for (var key in newRow) {
-//                console.log('key:' + JSON.stringify(key));
                 newRow[key] = row[key];
             }
             return newRow; // вернем сформированную новую строку
         }, this);
-//        console.log('gridData:' + JSON.stringify(gridData) );
         return gridData;
     },
 
     deleteRow: function () {
         // удаление строки из грида
         var rowIndex = flux.stores.docStore.gridRowId;
-               console.log('deleteRow:' + rowIndex);
         this.delRow(rowIndex);
     },
 
@@ -241,8 +232,6 @@ var DataGrid = React.createClass({
 
         // откроем модальное окно для редактирования
         this.props.handleGridRow('ADD', newRow);
-
-
     },
 
     editRow: function () {
@@ -256,8 +245,6 @@ var DataGrid = React.createClass({
     },
 
     render: function () {
-
-//        console.log('grid render', this.props);
         var gridStyle = {
             width: '100px'
         };

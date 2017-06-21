@@ -13,7 +13,7 @@ class ButtonRegisterDelete extends React.PureComponent{
     }
 
     handleClick(e) {
-        return this.props.onClick();
+        return this.props.onClick('delete');
     }
 
     render() {

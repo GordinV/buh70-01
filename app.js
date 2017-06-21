@@ -21,6 +21,9 @@ var app = express(),
     session = require('express-session'),
     pgSession = require('connect-pg-simple')(session);
 
+global.__base = __dirname + '/';
+global.__components = 'frontend/components/';
+
 require('babel-polyfill');
 
 require('node-jsx').install({extension: '.jsx'});

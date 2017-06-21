@@ -10,7 +10,7 @@ exports.get = function(req, res, params) {
         docIdPattern = /[^0-9]/gi,
         docId = parameter.replace(docIdPattern, '').trim(),
         docTypeId = parameter.replace( docTypePattern, '').trim(),
-        docComponent = require('../middleware/returnDocComponent')(docTypeId), // вернет компонент по типу тип документа
+        docComponent = {},
         results = [] , // {} сюда будем писать результат выборки
         DocDataObject = require('../models/documents'), // погружаем модель
         docInitData = {
@@ -19,6 +19,19 @@ exports.get = function(req, res, params) {
             bpm:[]
         };
 //        localStorage = require('../middleware/local_storage')(req);
+
+    switch (docTypeId) {
+        case 'ARV':
+            docComponent = require('../frontend/docs/arve/arve.jsx');
+            break;
+
+        case 'JOURNAL':
+            docComponent = require('../frontend/docs/journal/journal.jsx');
+            break;
+        default:
+            docComponent = require('../middleware/returnDocComponent')(docTypeId); // вернет компонент по типу тип документа
+    };
+
 
     // пишем в сессию выбранный документ
     if (req.session.docs) {
@@ -36,9 +49,11 @@ exports.get = function(req, res, params) {
 
     //var Doc = React.createFactory(require('../frontend/docs/arve'));
     let Doc = React.createFactory(docComponent),
-        now = new Date();
+        now = new Date(),
+        docTemplate = (docTypeId == 'ARV' || docTypeId == 'JOURNAL') ? docTypeId: 'document';
 
-//    console.log('DocDataObject.selectDoc',docTypeId, [docId, user.userId] );
+    console.log('DocDataObject.selectDoc',docTypeId,docTemplate  );
+
     DocDataObject.selectDoc(docTypeId, [docId, user.userId], (err, data, bpm)=> {
 
         if (err) {
@@ -63,7 +78,7 @@ exports.get = function(req, res, params) {
 
 
                 let html = ReactServer.renderToString(Component);
-                res.render('document', {"user": user, react:html, store: JSON.stringify(docInitData)});
+                res.render(docTemplate, {"user": user, react:html, store: JSON.stringify(docInitData)});
             } catch(e) {
                 console.error('error:', e);
                 res.render('error', {message: 'Error in document', status:500} );

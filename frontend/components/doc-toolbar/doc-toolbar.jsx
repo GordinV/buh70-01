@@ -6,6 +6,7 @@ const React = require('react'),
     BtnAdd = require('./../button-register/button-register-add/button-register-add.jsx'),
     BtnEdit = require('./../button-register/button-register-edit/button-register-edit.jsx'),
     BtnSave = require('./../button-register/button-register-save/button-register-save.jsx'),
+    BtnCancel = require('./../button-register/button-register-cancel/button-register-cancel.jsx'),
     BtnPrint = require('./../button-register/button-register-print/button-register-print.jsx'),
     TaskWidget = require('./../task-widget/task-widget.jsx');
 
@@ -16,13 +17,17 @@ class DocToolBar extends React.PureComponent {
         this.btnEditClick = this.btnEditClick.bind(this);
         this.btnAddClick = this.btnAddClick.bind(this);
         this.btnSaveClick = this.btnSaveClick.bind(this);
+        this.btnCancelClick = this.btnCancelClick.bind(this);
         this.btnPrintClick = this.btnPrintClick.bind(this);
+        this.handleButtonTask = this.handleButtonTask.bind(this);
+        this.handleSelectTask = this.handleSelectTask.bind(this);
 
     }
 
     render() {
         let isEditMode = this.props.edited,
-            isDocDisabled = this.props.docStatus == 2 ? true: false,
+            isDocDisabled = this.props.docStatus == 2 ? true : false,
+            docId = flux.stores.docStore.data.id || 0,
             toolbarParams = {
                 btnAdd: {
                     show: !isEditMode,
@@ -39,6 +44,10 @@ class DocToolBar extends React.PureComponent {
                 btnSave: {
                     show: isEditMode,
                     disabled: false
+                },
+                btnCancel: {
+                    show: isEditMode && docId !==0,
+                    disabled: false
                 }
             };
 
@@ -50,9 +59,12 @@ class DocToolBar extends React.PureComponent {
                          disabled={toolbarParams['btnEdit'].disabled}/>
                 <BtnSave ref='btnSave' onClick={this.btnSaveClick} show={toolbarParams['btnSave'].show}
                          disabled={toolbarParams['btnSave'].disabled}/>
+                <BtnCancel ref='btnCancel' onClick={this.btnCancelClick} show={toolbarParams['btnCancel'].show}
+                           disabled={toolbarParams['btnCancel'].disabled}/>
                 <BtnPrint ref='btnPrint' onClick={this.btnPrintClick} show={toolbarParams['btnPrint'].show}
                           disabled={toolbarParams['btnPrint'].disabled}/>
-                {this.props.bpm ? <TaskWidget ref='taskWidget' taskList={this.props.bpm}
+                {this.props.bpm ? <TaskWidget ref='taskWidget'
+                                              taskList={this.props.bpm}
                                               handleSelectTask={this.handleSelectTask}
                                               handleButtonTask={this.handleButtonTask}
                     /> : null}
@@ -62,6 +74,7 @@ class DocToolBar extends React.PureComponent {
     }
 
     btnAddClick() {
+        console.log('btnAddClick called')
         // обработчик для кнопки Add
         // отправим извещение наверх
 //        this.props.onClick(this.name);
@@ -73,7 +86,7 @@ class DocToolBar extends React.PureComponent {
     btnEditClick() {
         // обработчик для кнопки Edit
         // переводим документ в режим редактирования, сохранен = false
-        if (!this.props.docStatus || this.props.docStatus < 2 ) {
+        if (!this.props.docStatus || this.props.docStatus < 2) {
             flux.doAction('editedChange', true);
             flux.doAction('savedChange', false);
         }
@@ -87,8 +100,8 @@ class DocToolBar extends React.PureComponent {
         // обработчик для кнопки Save
         // валидатор
 
-//        let isValid = !this.validator(); @todo validator
-        let isValid = true;
+        let validationMessage = this.props.validator ? this.props.validator() : 'validator do not exists',
+            isValid = this.props.validator ? !this.props.validator() : true;
 
         if (isValid) {
             // если прошли валидацию, то сохранеям
@@ -99,18 +112,20 @@ class DocToolBar extends React.PureComponent {
         }
     }
 
-    handleButtonTask() {
-        // метод вызывается при выборе задачи
-        // найдем актуальную задачу
+    btnCancelClick() {
+        // обработчик для кнопки Cancel
+        if (this.props.eventHandler) {
+            this.props.eventHandler('CANCEL');
+        }
 
-        let actualTask = this.state.taskList.filter((task) => {
-                if (task.actualStep) {
-                    return task;
-                }
-            }),
-            task = actualTask.map((task) => {
-                return task.action
-            }); // оставим только название процедуры
+        flux.doAction('editedChange', false);
+        flux.doAction('savedChange', true);
+
+    }
+
+    handleButtonTask(task) {
+        // метод вызывается при выборе задачи
+        //@todo Закончить
 
         flux.doAction('executeTask', task);
     }
@@ -118,7 +133,7 @@ class DocToolBar extends React.PureComponent {
 
     handleSelectTask(e) {
         // метод вызывается при выборе задачи
-        //todo Закончить
+        //@todo Закончить
         const taskValue = e.target.value;
     }
 
@@ -127,7 +142,8 @@ class DocToolBar extends React.PureComponent {
 DocToolBar.PropTypes = {
     bpm: React.PropTypes.array,
     edited: React.PropTypes.bool,
-    docStatus: React.PropTypes.number
+    docStatus: React.PropTypes.number,
+    validator: React.PropTypes.func
 }
 
 DocToolBar.defaultProps = {

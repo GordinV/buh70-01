@@ -124,7 +124,7 @@ const Arv = {
                 name: 'Контировка',
                 action: 'generateJournal',
                 nextStep: 2,
-                task: 'human',
+                task: 'automat',
                 data: [],
                 status: null,
                 actualStep: false

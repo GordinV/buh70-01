@@ -1,10 +1,12 @@
-﻿DROP FUNCTION if exists docs.sp_get_number(integer, text, integer, integer);
+﻿-- Function: docs.sp_get_number(integer, text, integer, integer)
+
+-- DROP FUNCTION docs.sp_get_number(integer, text, integer, integer);
 
 CREATE OR REPLACE FUNCTION docs.sp_get_number(
-    tnRekvId integer,
-    tcDok text,
-    tnYear integer,
-    tnDokPropId integer)
+    tnrekvid integer,
+    tcdok text,
+    tnyear integer,
+    tndokpropid integer)
   RETURNS text AS
 $BODY$
 DECLARE 
@@ -39,7 +41,7 @@ begin
 	end case;
 
 	-- building sql query with regexp for only numbers 
-	lcSqlString = 'select max(SUBSTRING(number, ' || quote_literal('Y*[0-9]\d+') || ')::integer) ::integer as number from ' 
+	lcSqlString = 'select max(SUBSTRING(coalesce(number,''0''), ' || quote_literal('Y*[0-9]\d+') || ')::integer) ::integer as number from ' 
 		|| lcTableName 
 		|| ' where rekvId = $1::integer and year(kpv) = $2::integer and number ilike $3::text '
 		|| lcAdditionalWhere ;
@@ -49,24 +51,16 @@ begin
 	-- will plus pref and encrement
 
 	raise notice 'lcSqlString %', lcSqlString;
-	lcNumber = lcPref || (v_number.number + 1)::text;
+	lcNumber = lcPref || (coalesce(v_number.number,0) + 1)::text;
 	
         return lcNumber ;
 end; 
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-
+ALTER FUNCTION docs.sp_get_number(integer, text, integer, integer)
+  OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION docs.sp_get_number(integer, text, integer, integer) TO public;
+GRANT EXECUTE ON FUNCTION docs.sp_get_number(integer, text, integer, integer) TO postgres;
 GRANT EXECUTE ON FUNCTION docs.sp_get_number(integer, text, integer, integer) TO dbpeakasutaja;
 GRANT EXECUTE ON FUNCTION docs.sp_get_number(integer, text, integer, integer) TO dbkasutaja;
-
-
-select docs.sp_get_number(1, 'ARV', year(date()), 1);
-
-/*
-select trim(number) as number from docs.arv 
-	where rekvId = 1::integer and year(kpv) = 2016::integer and number ilike '%'::text  order by number desc limit 1
-
-select max(SUBSTRING(number, E'Y*[0-9]\\d+')) ::integer as number from docs.arv where rekvId = 1::integer and year(kpv) = 2016::integer and number ilike '%'::text
-
-*/

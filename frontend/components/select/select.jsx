@@ -10,7 +10,7 @@ class Select extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            value: props.value /* здесь по значению ИД */,
+            value: props.value/* здесь по значению ИД */,
             readOnly: props.readOnly,
             disabled: props.disabled,
             data: props.data,
@@ -18,43 +18,16 @@ class Select extends React.PureComponent {
             btnDelete: props.btnDelete /* если истину, то рисуем рядом кнопку для очистки значения*/
         };
         this.onChange = this.onChange.bind(this);
+        this.btnDelClick = this.btnDelClick.bind(this);
 
     }
 
-    /*   getInitialState: function () {
-     var libData = [];
-     var libs = flux.stores.docStore.libs,
-     // грузим данные из хранилища
-     data = libs.filter(function (item) {
-     if (item.id == this.props.libs) {
-     return item;
-     }
-     }, this),
-     idValue = this.props.value; // для привязки данных
-
-     if (data && data.length > 0 && data[0].data) {
-     libData = data[0].data;
-     }
-
-     return {
-     value: this.props.value /!* здесь по значению ИД *!/,
-     readOnly: this.props.readOnly,
-     disabled: true,
-     data: libData || [],
-     fieldValue: this.props.value /!*здесь по значени поля collId *!/,
-     brnDelete: this.props.btnDelete /!* если истину, то рисуем рядом кнопку для очистки значения*!/};
-     },
-     */
     findFieldValue(data, collId, value) {
         // привяжет к значеню поля
         // надо привязать данные
-        // kood -> id
-        let id = 0;
         data.forEach((row) => {
             if (row[collId] == value) {
-                id = row.id;
-//                return id;
-                this.setState({value: row.id, fieldValue: row[collId]});
+                this.setState({value: row[collId], fieldValue: row[collId]});
                 return;
             }
         }, this);
@@ -68,12 +41,14 @@ class Select extends React.PureComponent {
             data = this.state.data;
 
         data.forEach((row) => {
-            if (row['id'] == rowId) {
+            if (row[collId] == rowId) {
                 fieldValue = row[collId];
                 this.setState({fieldValue: fieldValue});
+                return;
             }
         }, this);
 
+        return fieldValue;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -82,7 +57,6 @@ class Select extends React.PureComponent {
             readOnly: nextProps.readOnly, data: nextProps.data
         });
     }
-
 
     componentDidMount() {
         if (this.props.collId && this.props.collId !== 'id') {
@@ -93,30 +67,17 @@ class Select extends React.PureComponent {
 
     onChange(e) {
         let fieldValue = e.target.value;
-/*
-            data = flux.stores.docStore.data,
-            propValue = data[this.props.name];
-*/
 
         if (fieldValue == '') {
             fieldValue = null;
         }
 
-        // найдем по ид значение поля в collId
-        this.getValueById(this.props.collId, fieldValue);
-        // сохраним ид как value
-
-        this.setState({value: fieldValue});
-/*
-
-        if (propValue !== 'undefined') {
-            // если используется привязка к данным
-            // получить значение
-            data[this.props.name] = fieldValue;
-            // задать новое значение поля
-            flux.doAction('dataChange', data);
+        if (this.props.collId) {
+            // найдем по ид значение поля в collId
+            fieldValue = this.getValueById(this.props.collId, fieldValue);
         }
-*/
+        // сохраним ид как value
+        this.setState({value: e.target.value, fieldValue: fieldValue});
 
         if (this.props.onChange) {
             // смотрим к чему привязан селект и отдаим его наверх
@@ -124,6 +85,13 @@ class Select extends React.PureComponent {
         }
 
     }
+
+/*
+    shouldComponentUpdate(nextProps, nextState) {
+        // @todo добавить проверку на изменение состояния
+        return true;
+    }
+*/
 
     render() {
         let dataOptions = this.state.data || [],
@@ -147,8 +115,9 @@ class Select extends React.PureComponent {
             }
         }
 
+
         let dataValue = dataOptions.filter((item) => {
-            if (item.id == this.state.value) {
+            if (item[this.props.collId] === this.state.value) {
                 return item;
             }
         }, this);
@@ -160,18 +129,12 @@ class Select extends React.PureComponent {
                     item = item[0];
                 }
                 let key = 'option-' + index;
-                return <option value={item.id} key={key} ref={key}> {item.name} </option>
+                return <option value={item[this.props.collId]} key={key} ref={key}> {item.name} </option>
             }, this);
             inputDefaultValue = dataValue.length > 0 ? dataValue[0].name : this.props.defaultValue;
         } else {
             Options = <option value={0} key={Math.random()}> Empty </option>
         }
-
-        /*
-         let widget = <select value={this.state.value} onChange={this.onChange}
-         style={{width: '100%', height: '100%'}}>{Options}
-         </select>; // если для грида, оставим только селект
-         */
 
         let inputStyle = Object.assign({}, styles.input, inputReadOnly ? {} : styles.hide,
             inputReadOnly ? styles.readOnly: {}),
@@ -197,7 +160,7 @@ class Select extends React.PureComponent {
                     onChange={this.onChange}>{Options}
             </select>
             <button ref="button"
-                    className='ui-c1-button'
+                    style={buttonStyle}
                     onClick={this.btnDelClick}>
                 Delete
             </button>
@@ -206,7 +169,7 @@ class Select extends React.PureComponent {
 
     btnDelClick(event) {
         // по вызову кнопку удалить, обнуляет значение
-        this.setState({value: null});
+        this.setState({value: ''});
         this.onChange(event);
     }
 }
@@ -216,14 +179,17 @@ Select.PropTypes = {
     readOnly: React.PropTypes.bool,
     disabled: React.PropTypes.bool,
     btnDelete: React.PropTypes.bool,
-    libs:React.PropTypes.string
+    libs:React.PropTypes.string,
+    collId: React.PropTypes.string
 }
 
 Select.defaultProps = {
     readOnly: false,
     disabled: false,
     valid: true,
-    btnDelete: false
+    btnDelete: false,
+    value: 0,
+    collId: 'id'
 }
 
 module.exports = Select;

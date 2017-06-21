@@ -1,7 +1,6 @@
 'use strict';
 
 const React = require('react'),
-    flux = require('fluxify'),
     styles = require('./data-grid-styles'),
     keydown = require('react-keydown'),
     KEYS = [ 38, 40]; // мониторим только стрелки вверх и внизх
@@ -13,7 +12,6 @@ const isExists = (object, prop) => {
     }
     return result;
 }
-
 
 //@keydown @todo
 class DataGrid extends React.PureComponent {
@@ -32,9 +30,9 @@ class DataGrid extends React.PureComponent {
         this.handleGridHeaderClick.bind(this);
         this.handleCellDblClick.bind(this);
         this.handleKeyDown.bind(this);
+        this.prepareTableRow = this.prepareTableRow.bind(this);
 
     }
-
 
     componentDidMount() {
         // надем по по props.value индекс активной строки
@@ -43,7 +41,6 @@ class DataGrid extends React.PureComponent {
            this.setState({activeRow: index});
         }
    }
-
 
     getGridRowIndexById(docId) {
         // ищем индех в массиве данных
@@ -71,16 +68,20 @@ class DataGrid extends React.PureComponent {
         if (this.props.gridData.length > 0 && this.props.onChangeAction) {
             let docId = this.props.gridData[idx].id;
 
-            // сохраним в хранилище
-            flux.doAction(this.props.onChangeAction, docId);
+            if (this.props.onClick) {
+                this.props.onClick(this.props.onChangeAction, docId)
+            }
+
         }
+
     }
 
     handleCellDblClick(idx) {
-        // отметим активную строку и вызовен редактирование
+        // отметим активную строку и вызовен обработчик события dblClick
         this.handleCellClick(idx)
-        // вызовет метод редактирования
-        flux.doAction('Edit');
+        if (this.props.onDblClick) {
+            this.props.onDblClick();
+        }
     }
 
     handleGridHeaderClick(name) {
@@ -101,7 +102,10 @@ class DataGrid extends React.PureComponent {
             sort: sort
         });
 
-        flux.doAction('sortByChange', sortBy);
+        if (this.props.onHeaderClick) {
+            this.props.onHeaderClick(sortBy);
+        }
+
     }
 
     handleKeyDown(e) {
@@ -128,6 +132,15 @@ class DataGrid extends React.PureComponent {
          });
     }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({gridColumns: nextProps.gridColumns, gridData:nextProps.gridData})
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        // @todo добавить проверку на изменение состояния
+        return true;
+    }
+
     render() {
         let className = 'th';
         /*
@@ -151,15 +164,12 @@ class DataGrid extends React.PureComponent {
     } // render
 
     prepareTableRow() {
-        let data = this.props.gridData,
-            gridColumns = this.props.gridColumns;
-
-        return data.map((row, rowIndex) => {
+        return this.state.gridData.map((row, rowIndex) => {
             let setRowActive = {},
                 objectIndex = 'tr-' + rowIndex,
                 activeRow = this.state.activeRow;
 
-            return (<tr
+            let rowObject = (<tr
                 ref={objectIndex}
                 onClick={this.handleCellClick.bind(this, rowIndex)}
                 onDoubleClick = {this.handleCellDblClick.bind(this, rowIndex)}
@@ -167,12 +177,13 @@ class DataGrid extends React.PureComponent {
                 style= {Object.assign({}, styles.tr, activeRow === rowIndex ? styles.focused: {})}
                 key={objectIndex}>
                 {
-                    gridColumns.map((column, columnIndex) => {
+                    this.state.gridColumns.map((column, columnIndex) => {
                         let cellIndex = 'td-' + rowIndex + '-' + columnIndex;
 
                         let display = (isExists(column, 'show') ? column.show: true) ? true: false,
                             width = isExists(column, 'width') ? column.width: '100%',
                             style = Object.assign({}, styles.td, !display ? {display: 'none'} : {}, {width: width});
+
                         return (
                             <td style={style} ref= {cellIndex} key={cellIndex}>
                                 {row[column.id]}
@@ -181,7 +192,8 @@ class DataGrid extends React.PureComponent {
                     })
                 }
 
-            </tr>)
+            </tr>);
+                return rowObject;
         }, this);
     }
 
@@ -217,7 +229,11 @@ class DataGrid extends React.PureComponent {
 DataGrid.propTypes = {
     gridColumns: React.PropTypes.array.isRequired,
     gridData: React.PropTypes.array.isRequired,
-    onChangeAction: React.PropTypes.string
+    onChangeAction: React.PropTypes.string,
+    onClick: React.PropTypes.func,
+    onDblClick: React.PropTypes.func,
+    onHeaderClick: React.PropTypes.func,
+    activeRow: React.PropTypes.number
 }
 
 

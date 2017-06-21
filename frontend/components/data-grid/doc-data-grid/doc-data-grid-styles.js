@@ -19,8 +19,8 @@ module.exports = {
     },
 
     icons: {
-        asc : '/images/icons/sort-alpha-asc.png',
-        desc : '/images/icons/sort-alpha-desc.png'
+        asc : 'images/icons/sort-alpha-asc.png',
+        desc : 'images/icons/sort-alpha-desc.png'
     },
 
     image: {

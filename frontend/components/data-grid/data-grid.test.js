@@ -12,19 +12,23 @@ describe('component test, data-grid', () => {
         style = require('./data-grid-styles'),
         model = require('../../../models/docs_grid_config'),
         config = model.DOK.gridConfiguration,
-        data = require('../../../test/fixture/dataGrid-fixture');
+        data = require('../../../test/fixture/dataGrid-fixture'),
+        handleClick = jest.fn(),
+        handleDblClick = jest.fn(),
+        handleHeaderClick = jest.fn();
+
 
     const component = ReactTestUtils.renderIntoDocument(<DataGrid
         gridData={data}
         gridColumns={config}
         onChangeAction='docsGridChange'
+        onClick = {handleClick}
+        onDblClick = {handleDblClick}
+        onHeaderClick = {handleHeaderClick}
         url='api'/>);
 
     let table = component.refs['dataGridTable'];
 
-    const handleClick =(e) => {
-
-    }
 
     it('should be define', () => {
         expect(component).toBeDefined();
@@ -40,6 +44,7 @@ describe('component test, data-grid', () => {
         ReactTestUtils.Simulate.click(header);
 
         expect(component.state.activeColumn).toBe('id');
+        expect(handleHeaderClick).toBeCalled();
     });
 
     it('test handleGridCellClick', () => {
@@ -48,6 +53,16 @@ describe('component test, data-grid', () => {
         ReactTestUtils.Simulate.click(row);
 
         expect(component.state.activeRow).toBe(1);
+        expect(handleClick).toBeCalled();
+    });
+
+    it('test handleDblClick', () => {
+        let row = component.refs['tr-1'];
+
+        ReactTestUtils.Simulate.doubleClick(row);
+
+        expect(component.state.activeRow).toBe(1);
+        expect(handleDblClick).toBeCalled();
     });
 
     it('test handleGridCellDblClick', () => {

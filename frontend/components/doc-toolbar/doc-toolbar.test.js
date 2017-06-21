@@ -8,7 +8,12 @@ const ToolBar = require('./doc-toolbar.jsx');
 let tasks = [{step: 0, name: 'Start', action: 'start', status: 'opened'}];
 
 describe('components test, DocToolbar', () => {
-    let component = ReactTestUtils.renderIntoDocument(<ToolBar bpm = {tasks} docStatus = {0}/>);
+    const validator = jest.fn();
+
+
+    let component = ReactTestUtils.renderIntoDocument(<ToolBar bpm = {tasks}
+                                                               validator ={validator}
+                                                               docStatus = {0}/>);
 
     it('should be defined', () => {
         expect(component).toBeDefined();
@@ -41,10 +46,19 @@ describe('components test, DocToolbar', () => {
 
     it('btnSaveClick function test', ()=> {
         component.btnSaveClick();
+        expect(validator).toBeCalled();
+
         setTimeout(()=>{
             expect(flux.stores.docStore.edited).toBeFalsy();
             expect(flux.stores.docStore.saved).toBeTruthy();
         }, 1000);
+    });
+
+    it('taskWidget should be shown', ()=> {
+        let taskWidget = component.refs['taskWidget'];
+        expect(taskWidget).toBeDefined();
+        let taskButton = taskWidget.refs['buttonTask'];
+        expect(taskButton).toBeDefined();
     })
 
 });

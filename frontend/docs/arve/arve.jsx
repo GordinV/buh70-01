@@ -6,33 +6,38 @@ const
     Form = require('../../components/form/form.jsx'),
     InputText = require('../../components/input-text/input-text.jsx'),
     InputDate = require('../../components/input-date/input-date.jsx'),
-//    InputNumber = require('../components/doc-input-number.jsx'),
-//    Toolbar = require('../components/doc-toolbar.jsx'),
+    InputNumber = require('../../components/input-number/input-number.jsx'),
     DocCommon = require('../../components/doc-common/doc-common.jsx'),
     Select = require('../../components/select/select.jsx'),
     TextArea = require('../../components/text-area/text-area.jsx'),
-    DataGrid = require('../../components/doc-data-grid.jsx'),
-    GridRow = require('../../components/arv-grid-row.jsx'),
+    DataGrid = require('../../components/data-grid/data-grid.jsx'),
+    GridButtonAdd = require('../../components/button-register/button-register-add/button-register-add.jsx'),
+    GridButtonEdit = require('../../components/button-register/button-register-edit/button-register-edit.jsx'),
+    GridButtonDelete = require('../../components/button-register/button-register-delete/button-register-delete.jsx'),
     DokProp = require('../../components/docprop/docprop.jsx'),
     relatedDocuments = require('../../mixin/relatedDocuments.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
+    ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     styles = require('./arve.styles');
 
-const LIBRARIES = ['asutused','kontod','dokProps','users','aa','tunnus','project','nomenclature'];
+//@todo поменять на this.state.libs
+const LIBDOK = 'ARV',
+    LIBRARIES = ['asutused', 'kontod', 'dokProps', 'users', 'aa', 'tunnus', 'project', 'nomenclature'];
 
 // Create a store
-var docStore = require('../../stores/doc_store.js');
+const docStore = require('../../stores/doc_store.js');
 
 var now = new Date();
 
-class Arve extends  React.PureComponent {
-    constructor (props) {
+class Arve extends React.PureComponent {
+    constructor(props) {
         super(props);
         this.state = {
             docData: this.props.data.row,
-            edited: false,
+            bpm: this.props.bpm,
+            edited: this.props.data.row.id == 0,
             showMessageBox: 'none',
             gridData: this.props.data.details,
             relations: this.props.data.relations,
@@ -41,13 +46,16 @@ class Arve extends  React.PureComponent {
             gridRowEvent: null,
             gridRowData: null,
             libs: {
-                asutused: []
-            }
+                asutused: [],
+                nomenclature: []
+            },
+            checked: false,
+            warning: ''
 
         }
 
-        this.pages =  [{pageName: 'Arve'}]
-        this.requiredFields= [
+        this.pages = [{pageName: 'Arve'}]
+        this.requiredFields = [
             {
                 name: 'kpv',
                 type: 'D',
@@ -63,11 +71,19 @@ class Arve extends  React.PureComponent {
             {name: 'asutusid', type: 'N', min: null, max: null},
             {name: 'summa', type: 'N', min: -9999999, max: 999999}
         ]
-
+        this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
+        this.validation = this.validation.bind(this);
+        this.modalPageClick = this.modalPageClick.bind(this);
+        this.handleGridBtnClick = this.handleGridBtnClick.bind(this);
+        this.addRow = this.addRow.bind(this);
+        this.handleGridRowChange = this.handleGridRowChange.bind(this);
+        this.validateGridRow = this.validateGridRow.bind(this);
+        this.handleGridRowInput = this.handleGridRowInput.bind(this);
+        this.createGridRow = this.createGridRow.bind(this);
     }
 
-
-    validation () {
+    validation() {
+        if (!this.state.edited) return '';
 
         let requiredFields = this.requiredFields;
         let warning = require('../../mixin/validateForm')(this, requiredFields);
@@ -89,7 +105,7 @@ class Arve extends  React.PureComponent {
         flux.doAction('dataChange', data);
         flux.doAction('detailsChange', details); // данные грида
         flux.doAction('gridConfigChange', gridConfig); // данные грида
-        flux.doAction('gridNameChange', 'arv-grid-row'); // задаем имя компонента строки грида (для редактирования
+//        flux.doAction('gridNameChange', 'arv-grid-row'); // задаем имя компонента строки грида (для редактирования
 
         // отслеживает изменения данных в гриде
         docStore.on('change:details', function (newValue, previousValue) {
@@ -108,7 +124,7 @@ class Arve extends  React.PureComponent {
 
         // грузим справочники
         LIBRARIES.forEach(lib => {
-            flux.doAction("loadLibs",lib);
+            flux.doAction("loadLibs", lib);
         });
 
         // если новый документ (id == 0)
@@ -120,29 +136,43 @@ class Arve extends  React.PureComponent {
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
+            if(newValue) {
+                // делаем копии
+                flux.doAction('backupChange', {
+                    row: Object.assign({},flux.stores.docStore.data),
+                    details: Object.assign([],flux.stores.docStore.details)
+                });
+
+            }
+
             if (newValue !== previousValue) {
                 self.setState({edited: newValue});
             }
         });
 
         docStore.on('change:libs', (newValue, previousValue) => {
-            if (newValue.length > 0 ) {
-                let libs = newValue,
-                    libsData = this.state.libs;
+            let isChanged = false,
+                libs = newValue,
+                libsData = this.state.libs;
+
+            if (newValue.length > 0) {
 
                 libs.forEach(lib => {
                     if (this.state.libs[lib.id] && lib.data.length > 0) {
                         libsData[lib.id] = lib.data;
+                        isChanged = true;
                     }
                 });
-                this.setState({libs:libsData});
+            }
+
+            if (isChanged) {
+                self.setState({libs: libsData});
             }
         });
 
-
     }
 
-    relatedDocuments () {
+    relatedDocuments() {
         // формируем зависимости
         let relatedDocuments = this.state.relations;
         if (relatedDocuments.length > 0) {
@@ -166,190 +196,207 @@ class Arve extends  React.PureComponent {
         }
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        // @todo добавить проверку на изменение состояния
+        return true;
+    }
+
     render() {
         // формируем зависимости
         relatedDocuments(this);
 
-        let data = this.state.docData,
+        let bpm = this.state.bpm,
             isEditeMode = this.state.edited,
-            gridData = this.state.gridData,
-            gridColumns = this.state.gridConfig,
             toolbarParams = this.prepaireToolBarParameters(isEditeMode),
-            validationMessage = this.validation();
+            validationMessage = this.validation(),
+            libs = flux.stores.docStore.libs;
 
         return (
-            <Form pages={this.pages} ref="form" handlePageClick={this.handlePageClick} disabled={isEditeMode}>
-                <ToolbarContainer ref='toolbarContainer'>
+            <Form pages={this.pages}
+                  ref="form"
+                  handlePageClick={this.handlePageClick}
+                  disabled={isEditeMode}>
+                <ToolbarContainer ref='toolbar-container'>
                     <div className='doc-toolbar-warning'>
                         {validationMessage ? <span>{validationMessage}</span> : null }
                     </div>
                     <div>
-                        <DocToolBar bpm={data.bpm} edited ={isEditeMode} docStatus = {data.doc_status}/>
+                        <DocToolBar bpm={bpm}
+                                    ref='doc-toolbar'
+                                    edited={isEditeMode}
+                                    docStatus={this.state.docData.doc_status}
+                                    validator={this.validation}
+                                    eventHandler={this.handleToolbarEvents}/>
                     </div>
                 </ToolbarContainer>
                 <div style={styles.doc}>
                     <div style={styles.docRow}>
-                        <DocCommon data={data} readOnly={!isEditeMode}/>
+                        <DocCommon
+                            ref='doc-common'
+                            data={this.state.docData}
+                            readOnly={!isEditeMode}/>
                     </div>
                     <div style={styles.docRow}>
                         <div style={styles.docColumn}>
-                            <InputText className='ui-c2' title='Number' name='number' value={data.number}
+                            <InputText className='ui-c2'
+                                       ref="input-number"
+                                       title='Number' name='number'
+                                       value={this.state.docData.number}
                                        readOnly={!isEditeMode}
-                                       onChange = {this.handleInputChange} />
-                            <InputDate title='Kuupäev ' name='kpv' value={data.kpv} ref='kpv'
+                                       onChange={this.handleInputChange}/>
+                            <InputDate title='Kuupäev ' name='kpv' value={this.state.docData.kpv}
+                                       ref='input-kpv'
                                        placeholder='Kuupäev' readOnly={!isEditeMode}
-                                       onChange = {this.handleInputChange}/>
-                            <InputDate className='ui-c2' title='Tähtaeg ' name='tahtaeg' value={data.tahtaeg}
-                                       ref="tahtaeg"
+                                       onChange={this.handleInputChange}/>
+                            <InputDate className='ui-c2' title='Tähtaeg ' name='tahtaeg'
+                                       value={this.state.docData.tahtaeg}
+                                       ref="input-tahtaeg"
                                        placeholder='Tähtaeg' readOnly={!isEditeMode}
-                                       onChange = {this.handleInputChange}/>
+                                       onChange={this.handleInputChange}/>
                             <Select className='ui-c2'
                                     title="Asutus"
                                     name='asutusid'
                                     libs="asutused"
                                     data={this.state.libs['asutused']}
-                                    value={data.asutusid}
-                                    defaultValue={data.asutus}
+                                    value={this.state.docData.asutusid}
+                                    defaultValue={this.state.docData.asutus}
                                     placeholder='Asutus'
-                                    ref="asutusid"
-                                    btnDelete = {true}
-                                    onChange = {this.handleInputChange}
+                                    ref="select-asutusid"
+                                    btnDelete={isEditeMode}
+                                    onChange={this.handleInputChange}
                                     readOnly={!isEditeMode}/>
-                            <InputText className='ui-c2' title='Lisa ' name='lisa' value={data.lisa}
+                            <InputText className='ui-c2' title='Lisa ' name='lisa' value={this.state.docData.lisa}
                                        placeholder='Lisa'
-                                       ref='lisa' readOnly={!isEditeMode}
-                                       onChange = {this.handleInputChange}/>
+                                       ref='input-lisa' readOnly={!isEditeMode}
+                                       onChange={this.handleInputChange}/>
                         </div>
                         <div style={styles.docColumn}>
                             <DokProp className='ui-c2'
                                      title="Konteerimine: "
                                      name='doklausid'
                                      libs="dokProps"
-                                     value={data.doklausid}
-                                     defaultValue={data.dokprop}
+                                     value={this.state.docData.doklausid}
+                                     defaultValue={this.state.docData.dokprop}
                                      placeholder='Konteerimine'
-                                     ref="doklausid"
+                                     ref="dokprop-doklausid"
                                      readOnly={!isEditeMode}/>
                         </div>
                     </div>
                     <div style={styles.docRow}>
-                        <TextArea title="Märkused" name='muud' placeholder='Märkused'
-                                  ref="muud"
-                                  onChange = {this.handleInputChange}
-                                  value={data.muud} readOnly={!isEditeMode}/>
+                        <TextArea title="Märkused"
+                                  name='muud'
+                                  placeholder='Märkused'
+                                  ref="textarea-muud"
+                                  onChange={this.handleInputChange}
+                                  value={this.state.docData.muud}
+                                  readOnly={!isEditeMode}/>
                     </div>
+
+                    {isEditeMode ?
+                        <div style={styles.docRow}>
+                            <ToolbarContainer
+                                ref='grid-toolbar-container'
+                                position={'left'}>
+                                <GridButtonAdd onClick={this.handleGridBtnClick} ref="grid-button-add"/>
+                                <GridButtonEdit onClick={this.handleGridBtnClick} ref="grid-button-edit"/>
+                                <GridButtonDelete onClick={this.handleGridBtnClick} ref="grid-button-delete"/>
+                            </ToolbarContainer>
+                        </div> : null}
+
                     <div style={styles.docRow}>
-                        <DataGrid source='details' gridData={gridData} gridColumns={gridColumns}
+                        <DataGrid source='details'
+                                  gridData={this.state.gridData}
+                                  gridColumns={this.state.gridConfig}
                                   handleGridRow={this.handleGridRow}
-                                  readOnly={!isEditeMode} ref="DataGrid"/>
+                                  readOnly={!isEditeMode}
+                                  ref="data-grid"/>
                     </div>
                     <div style={styles.docRow}>
-                        <InputText title="Summa " name='summa' placeholder='Summa'
-                                   ref="summa"
-                                   value={data.summa} disabled='true'
-                                   onChange = {this.handleInputChange}
+                        <InputText title="Summa "
+                                   name='summa'
+                                   placeholder='Summa'
+                                   ref="input-summa"
+                                   value={this.state.docData.summa} disabled='true'
+                                   onChange={this.handleInputChange}
                                    pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
-                        <InputText title="Käibemaks " name='kbm' placeholder='Käibemaks'
-                                   ref="kbm"
+                        <InputText title="Käibemaks "
+                                   name='kbm'
+                                   placeholder='Käibemaks'
+                                   ref="input-kbm"
                                    disabled='true'
-                                   value={data.kbm}
-                                   onChange = {this.handleInputChange}
+                                   value={this.state.docData.kbm}
+                                   onChange={this.handleInputChange}
                                    pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
                     </div>
                     {this.state.gridRowEdit ?
-                        <GridRow modalPageClick={this.modalPageClick}
-                                 gridEvent={this.state.gridRowEvent}
-                                 gridRowData={this.state.gridRowData}/> : null}
+                        this.createGridRow()
+                        : null}
                 </div>
             </Form >
         );
     }
 
-    handleGridRow(gridEvent, data) {
-        // управление модальным окном
-        this.setState({gridRowEdit: true, gridRowEvent: gridEvent, gridRowData: data});
-    }
-
-    modalPageClick (btnEvent, data) {
+    modalPageClick(btnEvent, data) {
         // отработаем Ok из модального окна
-        var gridData = flux.stores.docStore.details,
-            docData = flux.stores.docStore.data,
-            gridRowId = flux.stores.docStore.gridRowId,
-            gridColumns = flux.stores.docStore.gridConfig;
-        var gridRow = {};
-
-        if (gridRowId >= 0) {
-            gridRow = gridData[gridRowId];
-        }
+        let gridData = this.state.gridData,
+            docData = this.state.docData,
+            gridColumns = this.state.gridConfig,
+            gridRow = this.state.gridRowData;
 
         if (btnEvent == 'Ok') {
-            if (gridRowId < 0) {
-                // новая запись
-                // формируем пустую строку
-                gridRow = {};
-                gridRow['id'] = 'NEW' + Math.random();  // генерируем новое ИД
-                gridColumns.forEach((field) => gridRow[field] = null); // создаем поля в объекте
-            }
-            // сохраним данные в хранилище
-            data.forEach((field) => gridRow[field.name] = field.value);
 
-            // заполним поля kood, nimetus
-            var libs = flux.stores.docStore.libs,
-                nomLib = libs.filter((data) => {
-                    if (data.id == 'nomenclature') {
-                        return data;
-                    }
-                });
-
-            // поставим значение код и наменование в грид
-            var nomRow = nomLib[0].data.filter(function (row) {
-                if (row.id == Number(gridRow.nomid)) {
-                    return row;
-                }
-            });
-            if (nomRow) {
-                gridRow['kood'] = nomRow[0].kood;
-                gridRow['nimetus'] = nomRow[0].name;
-            }
-
-            if (gridRowId > 0) {
-                gridData[gridRowId] = gridRow;
+            // ищем по ид строку в данных грида, если нет, то добавим строку
+            if (!gridData.some(row => {
+                    if (row.id === gridRow.id) return true;
+                })) {
+                // вставка новой строки
+                gridData.splice(0, 0, gridRow);
             } else {
-                gridData.push(gridRow); // добавляем строку
-                flux.doAction('gridRowIdChange', gridData.length); // помечаем новую строку
+                gridData = gridData.map(row => {
+                    if (row.id === gridRow.id) {
+                        // нашли, замещаем
+                        return gridRow;
+                    } else {
+                        return row;
+                    }
+                })
             }
-            flux.doAction('detailsChange', gridData); // пишем изменения в хранилище
+
         }
 
-        // считаем итоги
-
-        var docSumma = gridData.reduce((sum, row) => sum + Number(row.summa), 0), // сумма счета
-            docKbm = gridData.reduce((sum, row) => sum + Number(row.kbm), 0), // сумма налога
-            docKbmta = docSumma - docKbm;
-
-        docData.summa = docSumma;
-        docData.kbm = docKbm;
-        docData.kbmta = docKbmta;
-
-        this.refs['DataGrid'].replaceState({gridData: gridData});
-        this.setState({gridRowEdit: false, docData: docData});
+        docData = this.recalcDocSumma(docData);
+        this.setState({gridRowEdit: false, gridData: gridData, docData: docData});
 
     }
 
-    handlePageClick (page)  {
+    handlePageClick(page) {
         if (page.docId) {
-            var url = "/document/" + page.docTypeId + page.docId;
+            let url = "/document/" + page.docTypeId + page.docId;
             document.location.href = url;
         }
     }
 
-    handleSelectTask (e) {
+    handleSelectTask(e) {
         // метод вызывается при выборе задачи
         var taskValue = e.target.value;
     }
 
-    handleInputChange (inputName, inputValue) {
+    handleToolbarEvents(event) {
+        // toolbar event handler
+
+        switch (event) {
+            case 'CANCEL':
+                let backup = flux.stores.docStore.backup;
+                this.setState({docData: backup.row, gridData: backup.details, warning: ''});
+                break;
+            default:
+                console.error('handleToolbarEvents, no event handler for ', event);
+        }
+    }
+
+    handleInputChange(inputName, inputValue) {
         // обработчик изменений
+
         let data = flux.stores.docStore.data;
         data[inputName] = inputValue;
         // задать новое значение поля
@@ -357,7 +404,7 @@ class Arve extends  React.PureComponent {
 
     }
 
-    prepaireToolBarParameters (isEditMode) {
+    prepaireToolBarParameters(isEditMode) {
         let toolbarParams = {
             btnAdd: {
                 show: !isEditMode,
@@ -380,12 +427,279 @@ class Arve extends  React.PureComponent {
         return toolbarParams;
     }
 
+    handleGridBtnClick(btnName, id) {
+        switch (btnName) {
+            case 'add':
+                this.addRow();
+                break;
+            case 'edit':
+                this.editRow();
+                break;
+            case 'delete':
+                this.deleteRow();
+                break;
+        }
+    }
+
+    deleteRow() {
+        // удалит активную строку
+        let gridData = this.state.gridData,
+            gridActiveRow = this.refs['data-grid'].state.activeRow,
+            docData = this.state.docData;
+
+        gridData.splice(gridActiveRow, 1);
+
+        // перерасчет итогов
+        docData = this.recalcDocSumma(docData);
+
+        // изменим состояние
+        this.setState({gridData: gridData, docData: docData});
+    }
+
+    editRow() {
+        // откроет активную строку для редактирования
+        let gridData = this.state.gridData,
+            gridActiveRow = this.refs['data-grid'].state.activeRow,
+            gridRow = gridData[gridActiveRow];
+
+        // откроем модальное окно для редактирования
+        this.setState({gridRowEdit: true, gridRowEvent: 'edit', gridRowData: gridRow});
+    }
+
+    addRow() {
+        // добавит в состояние новую строку
+
+        let gridColumns = this.state.gridConfig,
+            gridData = this.state.gridData,
+            newRow = new Object();
+
+        for (let i = 0; i < gridColumns.length; i++) {
+            let field = gridColumns[i].id;
+            newRow[field] = '';
+        }
+
+        newRow.id = 'NEW' + Math.random(); // генерим новое ид
+
+        // откроем модальное окно для редактирования
+        this.setState({gridRowEdit: true, gridRowEvent: 'add', gridRowData: newRow});
+
+    }
+
+    createGridRow() {
+        //@todo вынести в отдельный файл
+        let style = {
+            border: '1px solid black',
+            backgroundColor: 'white',
+            position: 'relative',
+            margin: '10% 30% 10% 30%',
+            width: 'auto',
+            opacity: '1',
+            top: '100px'
+        };
+
+        let row = Object.assign({},this.state.gridRowData),
+            validateMessage = '',
+            modalObjects = ['btnOk','btnCancel'],
+            buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked;
+
+        if (buttonOkReadOnly) {
+            // уберем кнопку Ок
+            modalObjects.splice(0,1);
+        }
+
+
+        if (!row) return <div/>;
+
+        let nomData = this.state.libs['nomenclature'].filter(lib => {
+            if (!lib.dok || lib.dok === LIBDOK) return lib;
+        });
+
+        return (<div className='.modalPage'>
+            <ModalPage
+                modalObjects = {modalObjects}
+                ref="modalpage-grid-row"
+                show={true}
+                modalPageBtnClick={this.modalPageClick}
+                modalPageName='Rea lisamine / parandamine'>
+                <div ref="grid-row-container">
+                    <div style={styles.docRow}>
+                        <Select title="Teenus"
+                                name='nomid'
+                                libs="nomenclature"
+                                data={nomData}
+                                readOnly={false}
+                                value={row.nomid}
+                                defaultValue={row.kood}
+                                ref='nomid'
+                                placeholder='Teenuse kood'
+                                onChange={this.handleGridRowChange}/>
+                    </div>
+                    <div style={styles.docRow}>
+                        <InputNumber title='Kogus '
+                                     name='kogus'
+                                     value={row.kogus}
+                                     readOnly={false}
+                                     disabled={false}
+                                     bindData={false}
+                                     ref='kogus'
+                                     className='ui-c2'
+                                     onChange={this.handleGridRowInput}/>
+                    </div>
+                    <div style={styles.docRow}>
+                        <InputNumber title='Hind '
+                                     name='hind'
+                                     value={row.hind}
+                                     readOnly={false}
+                                     disabled={false}
+                                     bindData={false}
+                                     ref='hind'
+                                     className='ui-c2'
+                                     onChange={this.handleGridRowInput}/>
+                    </div>
+                    <div style={styles.docRow}>
+                        <InputNumber title='Kbm-ta: '
+                                     name='kbmta'
+                                     value={row.kbmta}
+                                     disabled={true}
+                                     bindData={false}
+                                     ref='kbmta'
+                                     className='ui-c2'
+                                     onChange={this.handleGridRowChange}/>
+                    </div>
+                    <div style={styles.docRow}>
+                        <InputNumber title='Kbm: '
+                                     name='kbm'
+                                     value={row.kbm}
+                                     disabled={true}
+                                     bindData={false}
+                                     ref='kbm'
+                                     className='ui-c2'
+                                     onBlur={this.handleGridRowInput}/>
+                    </div>
+                    <div style={styles.docRow}>
+                        <InputNumber title='Summa: '
+                                     name='Summa'
+                                     value={row.summa}
+                                     disabled={true}
+                                     bindData={false}
+                                     ref='summa'
+                                     className='ui-c2'
+                                     onChange={this.handleGridRowInput}/>
+                    </div>
+                </div>
+                <div><span>{validateMessage}</span></div>
+            </ModalPage>
+        </div>);
+    }
+
+    handleGridRowChange(name, value) {
+        // отслеживаем изменения данных на форме
+        let rowData = Object({},this.state.gridRowData);
+
+        if (value !== rowData[name] && name === 'nomid') {
+            // произошло изменение услуги, обнулим значения
+            rowData['kogus'] = 0;
+            rowData['hind'] = 0;
+            rowData['summa'] = 0;
+            rowData['kbm'] = 0;
+            rowData['kbmta'] = 0;
+            rowData['nomid'] = value;
+        }
+        // ищем по справочнику поля код и наименование
+
+        let libData = this.state.libs['nomenclature'];
+        libData.forEach(row => {
+            if (row.id == value) {
+                rowData['kood'] = row.kood;
+                rowData['nimetus'] = row.name;
+                return;
+            }
+        });
+
+        rowData[name] = value;
+        this.setState({gridRowData: rowData});
+        this.validateGridRow();
+
+    }
+
+    handleGridRowInput(name, value) {
+        // пересчет сумм
+        let rowData = Object.assign({},this.state.gridRowData);
+        rowData[name] = value;
+        rowData = this.recalcRowSumm(rowData);
+        this.setState({gridRowData: rowData});
+        this.validateGridRow();
+    }
+
+    recalcRowSumm(gridRowData) {
+        // перерасчет суммы строки и расчет налога
+        gridRowData['kogus'] = Number(gridRowData.kogus);
+        gridRowData['hind'] = Number(gridRowData.hind);
+        gridRowData['kbmta'] = Number(gridRowData['kogus']) * Number(gridRowData['hind']);
+        gridRowData['kbm'] = Number(gridRowData['kbmta'] * 0.20); // @todo врменно
+        gridRowData['summa'] = Number(gridRowData['kbmta']) + Number(gridRowData['kbm']);
+
+        return gridRowData;
+    }
+
+    recalcDocSumma(docData) {
+        let gridData = Object.assign([],this.state.gridData);
+
+        docData['summa'] = 0;
+        docData['kbm'] = 0;
+        gridData.forEach(row => {
+            docData['summa'] += Number(row['summa']);
+            docData['kbm'] += Number(row['kbm']);
+        });
+        return docData;
+    }
+
+    validateGridRow() {
+        // will check values on the form and return string with warning
+        let warning = '',
+            gridRowData = this.state.gridRowData;
+        // только после проверки формы на валидность
+        if (!gridRowData['nomid']) warning = warning + ' код услуги';
+        if (!gridRowData['kogus']) warning = warning + ' кол-во';
+        if (!gridRowData['hind']) warning = warning + ' цена';
+
+        if (warning.length > 2) {
+            // есть проблемы
+            warning = 'Отсутсвуют данные:' + warning;
+        }
+        this.setState({checked: true, warning: warning});
+    }
+
+
 }
 
 
-InputDate.PropTypes = {
-    data: React.PropTypes.object.isRequired
+Arve.PropTypes = {
+    docData: React.PropTypes.object.isRequired,
+    bpm: React.PropTypes.array,
+    edited: React.PropTypes.bool,
+    showMessageBox: React.PropTypes.string,
+    gridData: React.PropTypes.array,
+    relations: React.PropTypes.array,
+    gridConfig: React.PropTypes.array,
+    gridRowEdit: React.PropTypes.bool,
+    gridRowEvent: React.PropTypes.string,
+    gridRowData: React.PropTypes.object,
+    libs: React.PropTypes.object,
+    checked: React.PropTypes.bool,
+    warning: React.PropTypes.string
 
 }
+
+
+/*
+ Arve.defaultProps = {
+ disabled: false,
+ show: true
+ };
+ */
+
 
 module.exports = Arve;
+
+

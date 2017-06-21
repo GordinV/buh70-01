@@ -23,8 +23,6 @@ docStore.on('change:data', function(newValue, previousValue) {
 
 // запросим компонент документа по его типу
 const Doc = require('../middleware/returnDocComponent')(storeData.docTypeId);
-console.log('storeData: Doc', Doc);
-
 
 ReactDOM.render(
     <Doc data={storeData.data} bpm = {storeData.bpm}/>

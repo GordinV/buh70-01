@@ -221,9 +221,21 @@ const Doc = {
     },
 
     saveDocPromise: (docTypeId, params)=> {
-        // промисификация для функции saveDoc 
-        var doc = require('./' + docTypeId),
-            sql = doc.saveDoc;
+        // промисификация для функции saveDoc
+
+        let doc = require('./' + docTypeId),
+            sql = doc.saveDoc,
+            docStatus = params[0].data['doc_status'] || 0,
+            docBpm =  params[0].data['bpm'];
+
+/*
+        if (!docStatus && docBpm.length == 0) {
+            // if doc has status = 0 and no bpm then we will add empty bpm to the doc
+            doc.bpm[0].status = 'opened';
+            params[0].data.bpm = doc.bpm;
+        }
+*/
+
         return Doc.executeSqlQueryPromise(sql, params);
     },
 

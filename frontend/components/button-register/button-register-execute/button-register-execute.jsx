@@ -14,7 +14,6 @@ class ButtonRegisterExecute extends React.PureComponent{
     }
 
     handleClick() {
-        console.log('clicked');
         this.props.onClick();
     }
 

@@ -3,49 +3,47 @@
 const React = require('react'),
     styles = require('../button-register-styles'),
     Button = require('../button-register.jsx'),
-    ICON = 'edit';
+    ICON = 'cancel';
 
 
-class ButtonRegisterEdit extends React.PureComponent{
+class ButtonRegisterCancel extends React.PureComponent{
 // кнопка создания документа в регистрах
     constructor(props) {
         super(props);
         this.state = {
-            disabled: this.props.disabled
+            disabled: props.disabled
         }
-        this.handleClick = this.handleClick.bind(this);
     }
 
     handleClick(e) {
-        return this.props.onClick('edit');
+        return this.props.onClick();
     }
 
     componentWillReceiveProps(nextProps) {
         this.setState({disabled: nextProps.disabled})
-
     }
 
     render() {
         return <Button
-            value = 'Edit'
-            ref="btnEdit"
+            ref="btnCancel"
+            value='Cancel'
             show={this.props.show}
             disabled={this.state.disabled}
-            onClick={(e) => this.handleClick(e)}>
+            onClick={(e)=> this.handleClick(e)}>
             <image ref='image' src={styles.icons[ICON]}/>
         </Button>
     }
 };
 
-ButtonRegisterEdit.propTypes = {
+ButtonRegisterCancel.propTypes = {
     onClick: React.PropTypes.func.isRequired,
     disabled: React.PropTypes.bool
 }
 
 
-ButtonRegisterEdit.defaultProps = {
+ButtonRegisterCancel.defaultProps = {
     disabled: false,
     show: true
 };
 
-module.exports = ButtonRegisterEdit;
+module.exports = ButtonRegisterCancel;

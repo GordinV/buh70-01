@@ -6,22 +6,26 @@ module.exports = {
 
     },
     input: {
-        width: '60%',
-        marginLeft: '10px'
+        width: '70%',
+        marginLeft: '5px'
+
     },
     hide: {
         display: 'none'
     },
     select: {
         width: '60%',
-        margin: '5px'
+        marginLeft: '5px'
     },
     readOnly: {
         backgroundColor: '#F3EFEF'
     },
     label : {
-        width: '40%',
+        width: '30%',
         margin: '5px'
+    },
+    button: {
+        width: '10%'
     }
 
 }

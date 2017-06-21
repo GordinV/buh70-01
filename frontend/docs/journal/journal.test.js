@@ -6,15 +6,15 @@ const flux = require('fluxify');
 let docStore = require('../../stores/doc_store.js');
 
 
-describe('doc test, Arve', () => {
+describe('doc test, Journal', () => {
     // проверяем на наличие компонента и его пропсы и стейты
     // проверяем изменение стейтов после клика
-    const Arve = require('./arve.jsx');
+    const Journal = require('./journal.jsx');
 //    const style = require('./input-text-styles');
 
-    let dataRow = require('./../../../test/fixture/doc-common-fixture'),
+    let dataRow = require('./../../../test/fixture/doc-journal-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/arv'),
+        model = require('./../../../models/journal'),
         data = {
             row: dataRow,
             bpm: model.bpm,
@@ -26,15 +26,10 @@ describe('doc test, Arve', () => {
 
     let onChangeHandler = jest.fn();
 
-    let doc = ReactTestUtils.renderIntoDocument(<Arve data={data} bpm={model.bpm}/>);
+    let doc = ReactTestUtils.renderIntoDocument(<Journal data={data} bpm={model.bpm}/>);
 
     it('should be defined', () => {
         expect(doc).toBeDefined();
-    });
-
-    it('should contain data about bpm', () => {
-        let data = doc.state.docData;
-        expect(data.bpm).toBeDefined();
     });
 
     it('should contain objects in non-edited mode', () => {
@@ -44,14 +39,12 @@ describe('doc test, Arve', () => {
         expect(doc.refs['doc-common']).toBeDefined();
         expect(doc.refs['input-number']).toBeDefined();
         expect(doc.refs['input-kpv']).toBeDefined();
-        expect(doc.refs['input-tahtaeg']).toBeDefined();
+        expect(doc.refs['input-dok']).toBeDefined();
         expect(doc.refs['select-asutusid']).toBeDefined();
-        expect(doc.refs['input-lisa']).toBeDefined();
-        expect(doc.refs['dokprop-doklausid']).toBeDefined();
+        expect(doc.refs['textarea-selg']).toBeDefined();
         expect(doc.refs['textarea-muud']).toBeDefined();
         expect(doc.refs['data-grid']).toBeDefined();
         expect(doc.refs['input-summa']).toBeDefined();
-        expect(doc.refs['input-kbm']).toBeDefined();
         expect(doc.refs['data-grid']).toBeDefined();
     });
 
@@ -84,31 +77,27 @@ describe('doc test, Arve', () => {
         expect(state.gridRowData.id).toContain('NEW');
         expect(doc.refs['modalpage-grid-row']).toBeDefined();
         expect(doc.refs['grid-row-container']).toBeDefined();
-        expect(doc.refs['nomid']).toBeDefined();
-        expect(doc.refs['kogus']).toBeDefined();
-        expect(doc.refs['hind']).toBeDefined();
-        expect(doc.refs['kbmta']).toBeDefined();
-        expect(doc.refs['kbm']).toBeDefined();
+        expect(doc.refs['deebet']).toBeDefined();
+        expect(doc.refs['kreedit']).toBeDefined();
         expect(doc.refs['summa']).toBeDefined();
     });
 
-    it ('select teenus test', ()=> {
+    it ('select grid row test', ()=> {
 
-        let inputSelect = doc.refs['nomid'],
-            inputHind = doc.refs['hind'];
+        let db = doc.refs['deebet'],
+            kr = doc.refs['kreedit'],
+            summa = doc.refs['summa'];
 
-        expect(inputSelect).toBeDefined();
-        expect(inputHind).toBeDefined();
+        expect(db).toBeDefined();
+        expect(kr).toBeDefined();
+        expect(summa).toBeDefined();
 
-        doc.handleGridRowChange('nomid', 2)
-        doc.handleGridRowInput('hind', 10);
-        doc.handleGridRowInput('kogus', 1);
-        expect(doc.state.gridRowData['nomid']).toBe(2);
-        expect(doc.state.gridRowData['hind']).toBe(10);
-        expect(doc.state.gridRowData['kogus']).toBe(1);
-        expect(doc.state.gridRowData['kbm']).toBe(2);
-        expect(doc.state.gridRowData['kbmta']).toBe(10);
-        expect(doc.state.gridRowData['summa']).toBe(12);
+        doc.handleGridRowChange('deebet', '111')
+        doc.handleGridRowChange('kreedit', '113')
+        doc.handleGridRowInput('summa', 10);
+        expect(doc.state.gridRowData['deebet']).toBe('111');
+        expect(doc.state.gridRowData['kreedit']).toBe('113');
+        expect(doc.state.gridRowData['summa']).toBe(10);
 
 //        ReactTestUtils.Simulate.change(inputSelect, {"target": {"value": 2}});
 //        expect(inputSelect.state.value).toBe(2);
@@ -123,6 +112,7 @@ describe('doc test, Arve', () => {
         expect(doc.refs['modalpage-grid-row']).not.toBeDefined();
         expect(doc.state.gridData.length).toBe(3);
     });
+
 
     it('gridRow ModalPage btnCancel click test', () => {
         let btnAdd = doc.refs['grid-button-add'];
@@ -144,21 +134,11 @@ describe('doc test, Arve', () => {
         expect(doc.state.gridData.length).toBe(2);
     });
 
-    it('test recalcRowSumm', () => {
-        let data = {
-            kogus: 1,
-            hind: 10,
-            kbmta: 0,
-            kbm: 0,
-            summa: 0
-        };
+    it('test recalcDocSumma', () => {
 
-        expect(doc.recalcRowSumm).toBeDefined();
-        data = doc.recalcRowSumm(data);
-        expect(data.kbmta).toBe(10);
-        expect(data.kbm).toBe(2);
-        expect(data.summa).toBe(12);
+        expect(doc.recalcDocSumma).toBeDefined();
+        let docData = doc.recalcDocSumma(data.row);
+        expect(docData.summa).toBe(99);
     });
-
 
 });

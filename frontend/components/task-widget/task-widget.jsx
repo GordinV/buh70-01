@@ -6,11 +6,11 @@ const React = require('react'),
 class TaskWidget extends React.PureComponent {
     constructor(props) {
         super(props);
-        let tasks = props.taskList;
+        let tasks = props.taskList || [];
 
-        console.log('tasks', tasks);
-        if (tasks.length == 0) {
-            tasks = [{step: 0, name: 'Start', action: 'start', status: 'opened'}];
+
+        if (!tasks[0].status) {
+            tasks[0].status = 'opened';
         }
 
         this.state = {
@@ -26,6 +26,7 @@ class TaskWidget extends React.PureComponent {
                 return task;
             }
         });
+
         if (!tasks) return <div></div>
 
         return (<div style={styles.wrapper}>
@@ -33,6 +34,7 @@ class TaskWidget extends React.PureComponent {
                     <select
                         className='ui-c2'
                         onChange={this.handleSelectTask}
+                        show = {true}
                         ref='selectTask'>
                         {
                             tasks.map((taskName, index) => {
@@ -58,7 +60,16 @@ class TaskWidget extends React.PureComponent {
     }
 
     handleButtonTask() {
-        this.props.handleButtonTask();
+        // найдем актуальную задачу
+        let actualTask = this.state.taskList.filter((task) => {
+                if (task.actualStep) {
+                    return task;
+                }
+            }),
+            task = actualTask.map((task) => {
+                return task.action
+            }); // оставим только название процедуры
+        this.props.handleButtonTask(task);
     }
 
     getDefaultTask() {

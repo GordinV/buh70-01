@@ -151,10 +151,6 @@ td.show, th.show {
     display:flex;
 }
 
-button {
-    margin:5px;
-}
-
 .pageLabel {
     border:1px solid black;
     border-radius: 3px;

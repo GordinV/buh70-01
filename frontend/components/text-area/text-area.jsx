@@ -12,55 +12,8 @@ class Input extends React.PureComponent {
 
     }
 
-    /*
-     getDefaultProps: function () {
-     return {
-     name: 'defaulName',
-     className: 'doc-input',
-     placeholder: 'defaulName',
-     title: ''
-     }
-     },
-     */
-
-    /*
-     componentDidMount() {
-     // создаем обработчик события на изменение docId. Если значение = 0 (добавляем новую запись, то просто очитка полей, иначе подгрузка данных
-     flux.stores.docStore.on('change:docId', (newValue, previousValue)=> {
-     if (newValue !== previousValue) {
-     // отслеживаем создание нового документа
-     let data = flux.stores.docStore.data,
-     value = data[this.props.name];
-     if (newValue == 0) {
-     // совый документ
-     this.setState({value:0});
-     } else {
-     this.setState({value:value});
-     }
-     }
-     });
-     flux.stores.docStore.on('change:edited', (newValue, previousValue)=> {
-     if (newValue !== previousValue ) {
-     this.setState({readOnly: !newValue});
-     }
-     });
-     flux.stores.docStore.on('change:data', (newValue, previousValue)=> {
-     // слушуем изменения данных;
-     if (JSON.stringify(newValue) !== JSON.stringify(previousValue)) {
-     let data = newValue,
-     fieldValue = data[this.props.name];
-     if (data[this.props.name]) {
-     this.setState({value: fieldValue});
-     }
-     }
-     });
-
-     },
-     */
-
     onChange(e) {
         let fieldValue = e.target.value;
-//            data = flux.stores.docStore.data;
 
         this.setState({value: fieldValue});
         if (this.props.onChange) {
@@ -116,7 +69,7 @@ Input.PropTypes = {
 
 Input.defaultProps = {
     readOnly: false,
-    disabled: true,
+    disabled: false,
     valid: true
 }
 

@@ -12,6 +12,8 @@ module.exports = function(app) {
   app.get('/logout', require('./logout').get);
 //  app.post('/logout', require('./logout').post);
 //  app.get('/api/doc/', checkAuth, require('./api_doc').get);
+  app.get('/arv/:id', checkAuth, require('./arv').get);
+  app.get('/journal/:id', checkAuth, require('./journal').get);
   app.get('/document/:id', checkAuth, require('./document').get);
 
 

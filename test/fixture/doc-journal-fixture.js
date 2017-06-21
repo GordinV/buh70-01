@@ -45,23 +45,20 @@ module.exports = {
         }
     ],
     details: [{
-       id: 1,
-        nomid: 1,
-        kood:'kood1',
-        name: 'nimetu1',
-        hind: 10,
-        kogus: 1,
-        kbm: 2,
-        summa: 12
-    },{
+        id: 1,
+        deebet:'db',
+        kreedit: 'kr',
+        summa: 44,
+        tunnus:'tunnus',
+        proj: 'proj'
+    },
+        {
         id: 2,
-        nomid: 2,
-        kood:'kood2',
-        name: 'nimetu2',
-        hind: 20,
-        kogus: 2,
-        kbm: 4,
-        summa: 44
+        deebet:'db',
+        kreedit: 'kr',
+        summa: 55,
+        tunnus:'tunnus',
+        proj: 'proj'
 
     }],
     doc_status: 0

@@ -18,7 +18,9 @@ module.exports = {
 //    context: __dirname + '/frontend',
     entry: {
         docs: './frontend/docs.js',
-        doc:  './frontend/doc.js'
+        doc:  './frontend/doc.js',
+        arv:  './frontend/arv.js',
+        journal: './frontend/journal.js'
     },
     output: {
         path: __dirname + '/public/javascripts',
@@ -48,7 +50,7 @@ module.exports = {
         new webpack.DefinePlugin({NODE_ENV:JSON.stringify(NODE_ENV)}),
         new webpack.optimize.CommonsChunkPlugin({
             name:"common",
-            chunks: ['docs', 'doc'], // список модулей для выявления общих модулей
+            chunks: ['docs', 'doc', 'arv', 'journal'], // список модулей для выявления общих модулей
             minChunks: 2
         })
 ],

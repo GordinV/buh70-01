@@ -4,7 +4,7 @@ module.exports = {
         {
             sql: "select d.id, $2::integer as userid, d.docs_ids, (created::date || 'T' || created::time)::text as created, (lastupdate::date || 'T' || lastupdate::time)::text as lastupdate, d.bpm, "+
                 " trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, "+
-                " trim(s.nimetus) as status, "+
+                " trim(s.nimetus) as status, d.status as doc_status,"+
                 " jid.number as number, " +
                 " j.rekvId, to_char(j.kpv,'YYYY-MM-DD') as kpv, j.asutusid,  trim(j.dok) as dok, j.selg, j.muud, " +
                 " (select sum(j1.summa) as summa from docs.journal1 as j1 where parentid = j.id) as summa, " +
@@ -19,7 +19,7 @@ module.exports = {
                 " where d.id = $1",
             sqlAsNew: "select $1::integer as id, (now()::date || 'T' || now()::time)::text as created, (now()::date || 'T' || now()::time)::text as lastupdate, null as bpm," +
             " trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, " +
-            " trim(s.nimetus) as status, " +
+            " trim(s.nimetus) as status, 0 as doc_status, " +
             " trim('') as number,  null as rekvId,  to_char(now(),'YYYY-MM-DD') as kpv, " +
             " null as asutusid, null as dok, null as selg, null as muud, 0 as summa,  null as regkood, null as asutus "+
             " from libs.library l,   libs.library s, ou.userid u " +
@@ -66,19 +66,6 @@ module.exports = {
             {id: 'summa', name: 'Summa', width: '100px', show: true, type: 'number', readOnly: false},
             {id: 'tunnus', name: 'Tunnus', width: '100px', show: true, type: 'text', readOnly: false},
             {id: 'proj', name: 'Projekt', width: '100px', show: true, type: 'text', readOnly: false}
-
-            /*
-            {
-                id: 'kood',
-                name: 'Kood',
-                width: '100px',
-                show: true,
-                type: 'select',
-                readOnly: false,
-                dataSet: 'nomenclature',
-                valueFieldName: 'nomid'
-            },
-*/
         ]
     },
     requiredFields: [
@@ -91,6 +78,44 @@ module.exports = {
         {name: 'selg', type: 'C'},
         {name: 'summa', type: 'N'}
     ],
-    saveDoc: "select docs.sp_salvesta_journal($1, $2, $3) as id"
+    bpm: [
+        {
+            step: 0,
+            name: 'Регистация документа',
+            action: 'start',
+            nextStep: 1,
+            task: 'human',
+            data: [],
+            actors: [],
+            status: null,
+            actualStep: false
+        },
+        {
+            step: 1,
+            name: 'Конец',
+            action: 'endProcess',
+            nextStep: null,
+            task: 'automat',
+            data: [],
+            actors: [],
+            status: null,
+            actualStep: false
+        }
+    ],
+    saveDoc: "select docs.sp_salvesta_journal($1, $2, $3) as id",
+    register: {command: `update docs.doc set status = 1 where id = $1`, type: "sql"},
+    endProcess: {command: "update docs.doc set status = 2 where id = $1", type: "sql"},
+    executeTask: function (task, docId, userId) {
+        // выполнит задачу, переданную в параметре
+
+        let executeTask = task;
+        if (executeTask.length == 0 ) {
+            executeTask = ['start'];
+        }
+
+        let taskFunction = eval(executeTask[0]);
+        return taskFunction(docId, userId);
+    }
+
 
 }

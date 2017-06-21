@@ -35,6 +35,10 @@ class Register extends React.PureComponent {
         this.btnFilterClick = this.btnFilterClick.bind(this);
         this.modalPageBtnClick = this.modalPageBtnClick.bind(this);
         this.modalPageDelBtnClick = this.modalPageDelBtnClick.bind(this);
+        this.clickHandler = this.clickHandler.bind(this);
+        this.dblClickHandler = this.dblClickHandler.bind(this);
+        this.headerClickHandler = this.headerClickHandler.bind(this);
+
         this.state = {
             // у каждого компонента свой объект
             components: this.props.components,
@@ -53,7 +57,7 @@ class Register extends React.PureComponent {
         // создаем обработчик события на изменение даннх
         docsStore.on('change:data', (newValue, previousValue) => {
             // данные изменились, меняем состояние
-            this.setState({components: docsStore.data})
+            self.setState({components: docsStore.data})
         })
 
         // создаем обработчик события на изменение строки грида
@@ -135,7 +139,6 @@ class Register extends React.PureComponent {
             gridConfig = prepairedGridData[0].data[0].columns;
             gridData = prepairedGridData[0].data[0].data;
         }
-
         return (<div ref="parentDiv">
                 <span>Filter: {filterString}</span>
                 <div ref="docContainer" style={styles.container}>
@@ -160,6 +163,7 @@ class Register extends React.PureComponent {
                                       name="docsList"
                                       bindDataField="kood"
                                       value={listValue}
+                                      onClickAction = {this.clickHandler}
                                       onChangeAction='docsListChange'
                             />
                         </Sidebar>
@@ -169,6 +173,9 @@ class Register extends React.PureComponent {
                                     gridData={gridData}
                                     gridColumns={gridConfig}
                                     onChangeAction='docsGridChange'
+                                    onClick = {this.clickHandler}
+                                    onDblClick = {this.dblClickHandler}
+                                    onHeaderClick = {this.headerClickHandler}
                                     value =  {prepairedGridData[0].lastDocId}
                                     url='api'/>
                                 <ModalPage ref = 'modalpageFilter'
@@ -190,6 +197,22 @@ class Register extends React.PureComponent {
                 </div>
             </div>
         )
+    }
+
+    clickHandler(action, id) {
+        // сохраним в хранилище
+        if (action && id) {
+            flux.doAction(action, id);
+        }
+    }
+
+    dblClickHandler() {
+        // вызовет метод редактирования
+        flux.doAction('Edit');
+    }
+
+    headerClickHandler(sortBy) {
+        flux.doAction('sortByChange', sortBy);
     }
 
     modalPageBtnClick(btnEvent) {
