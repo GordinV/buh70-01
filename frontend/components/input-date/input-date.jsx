@@ -13,26 +13,6 @@ class InputDate extends React.PureComponent {
         this.onChange = this.onChange.bind(this);
     }
 
-    /*
-     getDefaultProps () {
-     let date = new Date(),
-     year = date.getFullYear(),
-     month = date.getMonth(),
-     day = date.getDate(),
-     maxDate = new Date(year + 1, month, day),
-     refId = 'InputDate',
-     minDate = new Date(year - 5, month, day);
-
-     return {
-     bindData: true,
-     min: minDate,
-     max: maxDate,
-     readOnly: false,
-     disabled: false
-     };
-     },
-     */
-
     componentWillReceiveProps(nextProps) {
         this.setState({value: nextProps.value, readOnly: nextProps.readOnly});
     }
@@ -57,14 +37,8 @@ class InputDate extends React.PureComponent {
 
     }
 
-    /*
-     propTypes: {
-     name: React.PropTypes.string.isRequired
-     },
-     */
-
     render() {
-        let inputPlaceHolder = this.props.name,
+        let inputPlaceHolder = this.props.placeholder || this.props.title,
             inputStyle = Object.assign({}, styles.input,
                 this.props.width ? {width: this.props.width} : {},
                 this.state.readOnly ? styles.readOnly : {}
@@ -115,7 +89,9 @@ InputDate.PropTypes = {
     disabled: React.PropTypes.bool,
     valid: React.PropTypes.bool,
     pattern: React.PropTypes.string,
-    width: React.PropTypes.string
+    width: React.PropTypes.string,
+    title: React.PropTypes.string,
+    placeholder: React.PropTypes.string
 
 }
 
@@ -123,7 +99,8 @@ InputDate.PropTypes = {
 InputDate.defaultProps = {
     readOnly: false,
     disabled: false,
-    valid: true
+    valid: true,
+    title: ''
 }
 
 

@@ -28,7 +28,7 @@ class Input extends React.PureComponent {
     }
 
     render() {
-        let inputPlaceHolder = this.props.placeholder || this.props.name,
+        let inputPlaceHolder = this.props.placeholder || this.props.title,
             inputStyle = Object.assign({}, styles.input,
                 this.props.width ? {width: this.props.width} : {},
                 this.state.readOnly ? styles.readOnly : {}
@@ -72,7 +72,8 @@ Input.PropTypes = {
 Input.defaultProps = {
     readOnly: false,
     disabled: false,
-    valid: true
+    valid: true,
+    title: ''
 }
 
 module.exports = Input;

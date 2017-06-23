@@ -28,6 +28,9 @@ exports.get = function(req, res, params) {
         case 'JOURNAL':
             docComponent = require('../frontend/docs/journal/journal.jsx');
             break;
+        case 'SORDER':
+            docComponent = require('../frontend/docs/sorder/sorder.jsx');
+            break;
         default:
             docComponent = require('../middleware/returnDocComponent')(docTypeId); // вернет компонент по типу тип документа
     };
@@ -50,9 +53,7 @@ exports.get = function(req, res, params) {
     //var Doc = React.createFactory(require('../frontend/docs/arve'));
     let Doc = React.createFactory(docComponent),
         now = new Date(),
-        docTemplate = (docTypeId == 'ARV' || docTypeId == 'JOURNAL') ? docTypeId: 'document';
-
-    console.log('DocDataObject.selectDoc',docTypeId,docTemplate  );
+        docTemplate = (docTypeId == 'ARV' || docTypeId == 'JOURNAL' || docTypeId == 'SORDER') ? docTypeId: 'document';
 
     DocDataObject.selectDoc(docTypeId, [docId, user.userId], (err, data, bpm)=> {
 

@@ -141,4 +141,34 @@ describe('doc test, Journal', () => {
         expect(docData.summa).toBe(99);
     });
 
+    it ('test toolbar btnEdit', ()=> {
+        let docToolbar = doc.refs['doc-toolbar'];
+        expect(docToolbar.btnEditClick).toBeDefined();
+        if (!doc.state.edited)  {
+            docToolbar.btnEditClick();
+            setTimeout(() => {
+                expect(doc.state.edited).toBeTruthy();
+                done();
+            }, 1000);
+        }
+    });
+
+    it ('doc-toolbar btnCancel test', (done) => {
+        let docToolbar = doc.refs['doc-toolbar'];
+        expect(docToolbar.btnCancelClick).toBeDefined();
+
+        docToolbar.btnCancelClick();
+
+        setTimeout(() => {
+            expect(doc.state).toBeDefined();
+            expect(doc.state.edited).toBeFalsy();
+            done();
+        },1000);
+    });
+
+    it('backup test',() => {
+        //@todo реализовать
+        expect(doc.handleToolbarEvents).toBeDefined();
+    });
+
 });

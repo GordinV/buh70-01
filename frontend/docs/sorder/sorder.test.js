@@ -6,15 +6,15 @@ const flux = require('fluxify');
 let docStore = require('../../stores/doc_store.js');
 
 
-describe('doc test, Arve', () => {
+describe('doc test, Sorder', () => {
     // проверяем на наличие компонента и его пропсы и стейты
     // проверяем изменение стейтов после клика
-    const Arve = require('./arve.jsx');
+    const Sorder = require('./sorder.jsx');
 //    const style = require('./input-text-styles');
 
-    let dataRow = require('./../../../test/fixture/doc-common-fixture'),
+    let dataRow = require('./../../../test/fixture/doc-sorder-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/arv'),
+        model = require('./../../../models/sorder'),
         data = {
             row: dataRow,
             bpm: model.bpm,
@@ -26,15 +26,10 @@ describe('doc test, Arve', () => {
 
     let onChangeHandler = jest.fn();
 
-    let doc = ReactTestUtils.renderIntoDocument(<Arve data={data} bpm={model.bpm}/>);
+    let doc = ReactTestUtils.renderIntoDocument(<Sorder data={data} bpm={model.bpm}/>);
 
     it('should be defined', () => {
         expect(doc).toBeDefined();
-    });
-
-    it('should contain data about bpm', () => {
-        let data = doc.state.docData;
-        expect(data.bpm).toBeDefined();
     });
 
     it('should contain objects in non-edited mode', () => {
@@ -44,22 +39,24 @@ describe('doc test, Arve', () => {
         expect(doc.refs['doc-common']).toBeDefined();
         expect(doc.refs['input-number']).toBeDefined();
         expect(doc.refs['input-kpv']).toBeDefined();
-        expect(doc.refs['input-tahtaeg']).toBeDefined();
-        expect(doc.refs['select-asutusid']).toBeDefined();
-        expect(doc.refs['input-lisa']).toBeDefined();
-        expect(doc.refs['dokprop-doklausid']).toBeDefined();
-        expect(doc.refs['textarea-muud']).toBeDefined();
+        expect(doc.refs['select-kassaId']).toBeDefined();
+        expect(doc.refs['select-asutusId']).toBeDefined();
+        expect(doc.refs['input-arvnr']).toBeDefined();
+        expect(doc.refs['input-dokument']).toBeDefined();
+        expect(doc.refs['dokprop']).toBeDefined();
+        expect(doc.refs['textarea-nimi']).toBeDefined();
+        expect(doc.refs['textarea-aadress']).toBeDefined();
+        expect(doc.refs['textarea-alus']).toBeDefined();
         expect(doc.refs['data-grid']).toBeDefined();
         expect(doc.refs['input-summa']).toBeDefined();
-        expect(doc.refs['input-kbm']).toBeDefined();
-        expect(doc.refs['data-grid']).toBeDefined();
+        expect(doc.refs['textarea-muud']).toBeDefined();
     });
 
     it('test doc-toolbar-events', (done) => {
         let docToolbar = doc.refs['doc-toolbar'];
 
-        expect(docToolbar.btnAddClick).toBeDefined();
-        docToolbar.btnAddClick();
+        expect(docToolbar.btnEditClick).toBeDefined();
+        docToolbar.btnEditClick();
 
         setTimeout(() => {
             let state = doc.state;
@@ -72,11 +69,18 @@ describe('doc test, Arve', () => {
             done();
         }, 1000);
 
+
+    });
+
+    it('backup test',() => {
+        //@todo реализовать
+        expect(doc.handleToolbarEvents).toBeDefined();
     });
 
     it('doc-toolbar btnAdd click event test (handleGridBtnClick(btnName, id))', () => {
         let btnAdd = doc.refs['grid-button-add'];
         expect(btnAdd).toBeDefined();
+
         doc.handleGridBtnClick('add');
         let state = doc.state;
         expect(state.gridRowEdit).toBeTruthy();
@@ -85,30 +89,29 @@ describe('doc test, Arve', () => {
         expect(doc.refs['modalpage-grid-row']).toBeDefined();
         expect(doc.refs['grid-row-container']).toBeDefined();
         expect(doc.refs['nomid']).toBeDefined();
-        expect(doc.refs['kogus']).toBeDefined();
-        expect(doc.refs['hind']).toBeDefined();
-        expect(doc.refs['kbmta']).toBeDefined();
-        expect(doc.refs['kbm']).toBeDefined();
         expect(doc.refs['summa']).toBeDefined();
+        expect(doc.refs['konto']).toBeDefined();
+        expect(doc.refs['tunnus']).toBeDefined();
+        expect(doc.refs['project']).toBeDefined();
+
     });
 
-    it ('select teenus test', ()=> {
+    it ('select grid row test', ()=> {
 
-        let inputSelect = doc.refs['nomid'],
-            inputHind = doc.refs['hind'];
+        let nomId = doc.refs['nomid'],
+            konto = doc.refs['konto'],
+            summa = doc.refs['summa'];
 
-        expect(inputSelect).toBeDefined();
-        expect(inputHind).toBeDefined();
+        expect(nomId).toBeDefined();
+        expect(konto).toBeDefined();
+        expect(summa).toBeDefined();
 
-        doc.handleGridRowChange('nomid', 2)
-        doc.handleGridRowInput('hind', 10);
-        doc.handleGridRowInput('kogus', 1);
-        expect(doc.state.gridRowData['nomid']).toBe(2);
-        expect(doc.state.gridRowData['hind']).toBe(10);
-        expect(doc.state.gridRowData['kogus']).toBe(1);
-        expect(doc.state.gridRowData['kbm']).toBe(2);
-        expect(doc.state.gridRowData['kbmta']).toBe(10);
-        expect(doc.state.gridRowData['summa']).toBe(12);
+        doc.handleGridRowChange('nomid', 3)
+        doc.handleGridRowChange('konto', '113')
+        doc.handleGridRowInput('summa', 10);
+        expect(doc.state.gridRowData['nomid']).toBe(3);
+        expect(doc.state.gridRowData['konto']).toBe('113');
+        expect(doc.state.gridRowData['summa']).toBe(10);
 
 //        ReactTestUtils.Simulate.change(inputSelect, {"target": {"value": 2}});
 //        expect(inputSelect.state.value).toBe(2);
@@ -123,6 +126,7 @@ describe('doc test, Arve', () => {
         expect(doc.refs['modalpage-grid-row']).not.toBeDefined();
         expect(doc.state.gridData.length).toBe(3);
     });
+
 
     it('gridRow ModalPage btnCancel click test', () => {
         let btnAdd = doc.refs['grid-button-add'];
@@ -144,20 +148,22 @@ describe('doc test, Arve', () => {
         expect(doc.state.gridData.length).toBe(2);
     });
 
-    it('test recalcRowSumm', () => {
-        let data = {
-            kogus: 1,
-            hind: 10,
-            kbmta: 0,
-            kbm: 0,
-            summa: 0
-        };
+    it('test recalcDocSumma', () => {
 
-        expect(doc.recalcRowSumm).toBeDefined();
-        data = doc.recalcRowSumm(data);
-        expect(data.kbmta).toBe(10);
-        expect(data.kbm).toBe(2);
-        expect(data.summa).toBe(12);
+        expect(doc.recalcDocSumma).toBeDefined();
+        let docData = doc.recalcDocSumma(data.row);
+        expect(docData.summa).toBe(99);
+    });
+
+    it('test for libs', () => {
+        expect(doc.createLibs).toBeDefined();
+        let libs = doc.createLibs();
+        expect(libs).toEqual({ asutused: [],
+            kontod: [],
+            dokProps: [],
+            tunnus: [],
+            project: [],
+            nomenclature: [] });
     });
 
     it ('test toolbar btnEdit', ()=> {
@@ -184,5 +190,6 @@ describe('doc test, Arve', () => {
             done();
         },1000);
     });
+
 
 });

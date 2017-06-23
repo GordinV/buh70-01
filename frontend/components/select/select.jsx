@@ -97,7 +97,7 @@ class Select extends React.PureComponent {
         let dataOptions = this.state.data || [],
             inputClassName = this.props.className || 'doc-input',
             inputReadOnly = this.state.readOnly || false,
-            inputPlaceHolder = this.props.placeholder || this.props.name,
+            inputPlaceHolder = this.props.placeholder || this.props.title,
             Options = null,
             inputDefaultValue = this.props.defaultValue; // Дадим дефолтное значение для виджета, чтоб покать его сразу, до подгрузки библиотеки
 
@@ -180,7 +180,9 @@ Select.PropTypes = {
     disabled: React.PropTypes.bool,
     btnDelete: React.PropTypes.bool,
     libs:React.PropTypes.string,
-    collId: React.PropTypes.string
+    collId: React.PropTypes.string,
+    title: React.PropTypes.string,
+    placeholder: React.PropTypes.string
 }
 
 Select.defaultProps = {
@@ -189,7 +191,8 @@ Select.defaultProps = {
     valid: true,
     btnDelete: false,
     value: 0,
-    collId: 'id'
+    collId: 'id',
+    title: ''
 }
 
 module.exports = Select;

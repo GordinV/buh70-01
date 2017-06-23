@@ -113,6 +113,7 @@ class DocToolBar extends React.PureComponent {
     }
 
     btnCancelClick() {
+        console.log('btnCancelClick');
         // обработчик для кнопки Cancel
         if (this.props.eventHandler) {
             this.props.eventHandler('CANCEL');
@@ -120,7 +121,6 @@ class DocToolBar extends React.PureComponent {
 
         flux.doAction('editedChange', false);
         flux.doAction('savedChange', true);
-
     }
 
     handleButtonTask(task) {

@@ -10,7 +10,7 @@ exports.get = function(req, res, params) {
         docIdPattern = /[^0-9]/gi,
         docId = parameter.replace(docIdPattern, '').trim(),
         docTypeId = parameter.replace( docTypePattern, '').trim(),
-        docComponent = require('../frontend/docs/arve.jsx'), // вернет компонент по типу тип документа
+        docComponent = require('../frontend/docs/sorder/sorder.jsx'), // вернет компонент по типу тип документа
         results = [] , // {} сюда будем писать результат выборки
         DocDataObject = require('../models/documents'), // погружаем модель
         docInitData = {
@@ -34,7 +34,6 @@ exports.get = function(req, res, params) {
 
     }
 
-    //var Doc = React.createFactory(require('../frontend/docs/arve'));
     let Doc = React.createFactory(docComponent),
         now = new Date();
 
@@ -62,7 +61,7 @@ exports.get = function(req, res, params) {
 
 
                 let html = ReactServer.renderToString(Component);
-                res.render('arv', {"user": user, react:html, store: JSON.stringify(docInitData)});
+                res.render('sorder', {"user": user, react:html, store: JSON.stringify(docInitData)});
             } catch(e) {
                 console.error('error:', e);
                 res.render('error', {message: 'Error in document', status:500} );
@@ -75,30 +74,6 @@ exports.get = function(req, res, params) {
 
     }, results);
 };
-
-if (!Date.prototype.toLocalISOString) {
-    (function() {
-
-        function pad(number) {
-            if (number < 10) {
-                return '0' + number;
-            }
-            return number;
-        }
-
-        Date.prototype.toLocalISOString = function() {
-            return this.getFullYear() +
-                '' +
-                '-' + pad(this.getMonth() + 1) +
-                '-' + pad(this.getDate()) +
-                'T' + pad(this.getHours()) +
-                ':' + pad(this.getMinutes()) +
-                ':' + pad(this.getSeconds()) ;
-//                '.' + (this.getMilliseconds() / 1000).toFixed(3).slice(2, 5) ;
-        };
-
-    }());
-}
 
 function getDateTime(dt) {
     if (!dt) {

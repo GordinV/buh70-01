@@ -23,6 +23,12 @@ module.exports = {
         width: 'auto',
         opacity: '1',
         top: '100px'
+    },
+    docToolbarWarning: {
+        float: 'left',
+        backgroundColor: 'red',
+        margin: '10px'
     }
+
 
 }

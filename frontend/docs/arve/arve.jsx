@@ -22,14 +22,13 @@ const
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     styles = require('./arve.styles');
 
-//@todo поменять на this.state.libs
 const LIBDOK = 'ARV',
     LIBRARIES = ['asutused', 'kontod', 'dokProps', 'users', 'aa', 'tunnus', 'project', 'nomenclature'];
 
 // Create a store
 const docStore = require('../../stores/doc_store.js');
 
-var now = new Date();
+const now = new Date();
 
 class Arve extends React.PureComponent {
     constructor(props) {
@@ -45,10 +44,7 @@ class Arve extends React.PureComponent {
             gridRowEdit: false,
             gridRowEvent: null,
             gridRowData: null,
-            libs: {
-                asutused: [],
-                nomenclature: []
-            },
+            libs: this.createLibs(),
             checked: false,
             warning: ''
 
@@ -136,11 +132,11 @@ class Arve extends React.PureComponent {
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
-            if(newValue) {
+            if (newValue) {
                 // делаем копии
                 flux.doAction('backupChange', {
-                    row: Object.assign({},flux.stores.docStore.data),
-                    details: Object.assign([],flux.stores.docStore.details)
+                    row: Object.assign({}, flux.stores.docStore.data),
+                    details: Object.assign([], flux.stores.docStore.details)
                 });
 
             }
@@ -170,30 +166,6 @@ class Arve extends React.PureComponent {
             }
         });
 
-    }
-
-    relatedDocuments() {
-        // формируем зависимости
-        let relatedDocuments = this.state.relations;
-        if (relatedDocuments.length > 0) {
-            relatedDocuments.forEach((doc) => {
-                if (doc.id) {
-                    // проверим на уникальность списка документов
-                    let isExists = this.pages.find((page) => {
-                        if (!page.docId) {
-                            return false;
-                        } else {
-                            return page.docId == doc.id && page.docTypeId == doc.doc_type;
-                        }
-                    });
-
-                    if (!isExists) {
-                        // в массиве нет, добавим ссылку на документ
-                        this.pages.push({docTypeId: doc.doc_type, docId: doc.id, pageName: doc.name + ' id:' + doc.id})
-                    }
-                }
-            });
-        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -238,46 +210,46 @@ class Arve extends React.PureComponent {
                     </div>
                     <div style={styles.docRow}>
                         <div style={styles.docColumn}>
-                            <InputText className='ui-c2'
-                                       ref="input-number"
-                                       title='Number' name='number'
+                            <InputText ref="input-number"
+                                       title='Number'
+                                       name='number'
                                        value={this.state.docData.number}
                                        readOnly={!isEditeMode}
                                        onChange={this.handleInputChange}/>
-                            <InputDate title='Kuupäev ' name='kpv' value={this.state.docData.kpv}
+                            <InputDate title='Kuupäev '
+                                       name='kpv' value={this.state.docData.kpv}
                                        ref='input-kpv'
-                                       placeholder='Kuupäev' readOnly={!isEditeMode}
+                                       readOnly={!isEditeMode}
                                        onChange={this.handleInputChange}/>
-                            <InputDate className='ui-c2' title='Tähtaeg ' name='tahtaeg'
+                            <InputDate title='Tähtaeg '
+                                       name='tahtaeg'
                                        value={this.state.docData.tahtaeg}
                                        ref="input-tahtaeg"
-                                       placeholder='Tähtaeg' readOnly={!isEditeMode}
+                                       readOnly={!isEditeMode}
                                        onChange={this.handleInputChange}/>
-                            <Select className='ui-c2'
-                                    title="Asutus"
+                            <Select title="Asutus"
                                     name='asutusid'
                                     libs="asutused"
                                     data={this.state.libs['asutused']}
                                     value={this.state.docData.asutusid}
                                     defaultValue={this.state.docData.asutus}
-                                    placeholder='Asutus'
                                     ref="select-asutusid"
                                     btnDelete={isEditeMode}
                                     onChange={this.handleInputChange}
                                     readOnly={!isEditeMode}/>
-                            <InputText className='ui-c2' title='Lisa ' name='lisa' value={this.state.docData.lisa}
-                                       placeholder='Lisa'
-                                       ref='input-lisa' readOnly={!isEditeMode}
+                            <InputText title='Lisa '
+                                       name='lisa'
+                                       value={this.state.docData.lisa}
+                                       ref='input-lisa'
+                                       readOnly={!isEditeMode}
                                        onChange={this.handleInputChange}/>
                         </div>
                         <div style={styles.docColumn}>
-                            <DokProp className='ui-c2'
-                                     title="Konteerimine: "
+                            <DokProp title="Konteerimine: "
                                      name='doklausid'
                                      libs="dokProps"
                                      value={this.state.docData.doklausid}
                                      defaultValue={this.state.docData.dokprop}
-                                     placeholder='Konteerimine'
                                      ref="dokprop-doklausid"
                                      readOnly={!isEditeMode}/>
                         </div>
@@ -285,7 +257,6 @@ class Arve extends React.PureComponent {
                     <div style={styles.docRow}>
                         <TextArea title="Märkused"
                                   name='muud'
-                                  placeholder='Märkused'
                                   ref="textarea-muud"
                                   onChange={this.handleInputChange}
                                   value={this.state.docData.muud}
@@ -314,14 +285,12 @@ class Arve extends React.PureComponent {
                     <div style={styles.docRow}>
                         <InputText title="Summa "
                                    name='summa'
-                                   placeholder='Summa'
                                    ref="input-summa"
                                    value={this.state.docData.summa} disabled='true'
                                    onChange={this.handleInputChange}
                                    pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
                         <InputText title="Käibemaks "
                                    name='kbm'
-                                   placeholder='Käibemaks'
                                    ref="input-kbm"
                                    disabled='true'
                                    value={this.state.docData.kbm}
@@ -335,6 +304,31 @@ class Arve extends React.PureComponent {
             </Form >
         );
     }
+
+    relatedDocuments() {
+        // формируем зависимости
+        let relatedDocuments = this.state.relations;
+        if (relatedDocuments.length > 0) {
+            relatedDocuments.forEach((doc) => {
+                if (doc.id) {
+                    // проверим на уникальность списка документов
+                    let isExists = this.pages.find((page) => {
+                        if (!page.docId) {
+                            return false;
+                        } else {
+                            return page.docId == doc.id && page.docTypeId == doc.doc_type;
+                        }
+                    });
+
+                    if (!isExists) {
+                        // в массиве нет, добавим ссылку на документ
+                        this.pages.push({docTypeId: doc.doc_type, docId: doc.id, pageName: doc.name + ' id:' + doc.id})
+                    }
+                }
+            });
+        }
+    }
+
 
     modalPageClick(btnEvent, data) {
         // отработаем Ok из модального окна
@@ -486,25 +480,15 @@ class Arve extends React.PureComponent {
     }
 
     createGridRow() {
-        //@todo вынести в отдельный файл
-        let style = {
-            border: '1px solid black',
-            backgroundColor: 'white',
-            position: 'relative',
-            margin: '10% 30% 10% 30%',
-            width: 'auto',
-            opacity: '1',
-            top: '100px'
-        };
-
-        let row = Object.assign({},this.state.gridRowData),
+        let style = styles.gridRow,
+            row = this.state.gridRowData,
             validateMessage = '',
-            modalObjects = ['btnOk','btnCancel'],
+            modalObjects = ['btnOk', 'btnCancel'],
             buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked;
 
         if (buttonOkReadOnly) {
             // уберем кнопку Ок
-            modalObjects.splice(0,1);
+            modalObjects.splice(0, 1);
         }
 
 
@@ -516,7 +500,7 @@ class Arve extends React.PureComponent {
 
         return (<div className='.modalPage'>
             <ModalPage
-                modalObjects = {modalObjects}
+                modalObjects={modalObjects}
                 ref="modalpage-grid-row"
                 show={true}
                 modalPageBtnClick={this.modalPageClick}
@@ -594,7 +578,7 @@ class Arve extends React.PureComponent {
 
     handleGridRowChange(name, value) {
         // отслеживаем изменения данных на форме
-        let rowData = Object({},this.state.gridRowData);
+        let rowData = Object({}, this.state.gridRowData);
 
         if (value !== rowData[name] && name === 'nomid') {
             // произошло изменение услуги, обнулим значения
@@ -624,7 +608,7 @@ class Arve extends React.PureComponent {
 
     handleGridRowInput(name, value) {
         // пересчет сумм
-        let rowData = Object.assign({},this.state.gridRowData);
+        let rowData = Object.assign({}, this.state.gridRowData);
         rowData[name] = value;
         rowData = this.recalcRowSumm(rowData);
         this.setState({gridRowData: rowData});
@@ -643,7 +627,7 @@ class Arve extends React.PureComponent {
     }
 
     recalcDocSumma(docData) {
-        let gridData = Object.assign([],this.state.gridData);
+        let gridData = Object.assign([], this.state.gridData);
 
         docData['summa'] = 0;
         docData['kbm'] = 0;
@@ -668,6 +652,15 @@ class Arve extends React.PureComponent {
             warning = 'Отсутсвуют данные:' + warning;
         }
         this.setState({checked: true, warning: warning});
+    }
+
+    createLibs() {
+        // вернет объект библиотек документа
+        let libs = {};
+        LIBRARIES.forEach((lib) => {
+            libs[lib] = [];
+        })
+        return libs;
     }
 
 

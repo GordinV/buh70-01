@@ -74,7 +74,7 @@ class SelectTextWidget extends React.PureComponent {
                         libs={this.props.libs}
                         value={this.props.value}
                         defaultValue={this.props.defaultValue}
-                        placeholder={this.props.placeholder}
+                        placeholder={this.props.placeholder || this.props.title}
                         readOnly={this.props.readOnly}
                         onChange={this.handleSelectOnChange}
                 />
@@ -97,12 +97,14 @@ SelectTextWidget.PropTypes = {
     title: React.PropTypes.string,
     libs: React.PropTypes.array,
     defaultValue: React.PropTypes.string,
-    readOnly: React.PropTypes.bool
+    readOnly: React.PropTypes.bool,
+    placeholder: React.PropTypes.string
 }
 
 
 SelectTextWidget.defaultProps = {
     readOnly: false,
+    title: ''
 }
 
 module.exports = SelectTextWidget;

@@ -7,7 +7,7 @@ storeData = JSON.parse(storeData);
 
 
 // запросим компонент документа по его типу
-const Doc = require('../frontend/docs/arve/arve.jsx');
+const Doc = require('../frontend/docs/sorder/sorder.jsx');
 
 ReactDOM.render(
     <Doc data={storeData.data} bpm = {storeData.bpm}/>

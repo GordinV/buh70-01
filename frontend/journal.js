@@ -7,7 +7,7 @@ storeData = JSON.parse(storeData);
 
 
 // запросим компонент документа по его типу
-const Doc = require('../frontend/docs/journal/journal.jsx')
+const Doc = require('../frontend/docs/journal/journal.jsx');
 
 ReactDOM.render(
     <Doc data={storeData.data} bpm = {storeData.bpm}/>

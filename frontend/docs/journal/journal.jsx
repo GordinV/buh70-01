@@ -21,7 +21,6 @@ const
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     styles = require('./journal-styles.js');
 
-//@todo поменять на this.state.libs
 const LIBRARIES = ['asutused', 'kontod', 'tunnus', 'project'];
 
 // Create a store
@@ -41,12 +40,7 @@ class Journal extends React.PureComponent {
             gridRowEdit: false,
             gridRowEvent: null,
             gridRowData: null,
-            libs: {
-                asutused: [],
-                kontod: [],
-                project: [],
-                tunnus: []
-            },
+            libs: this.createLibs(),
             checked: false,
             warning: ''
         };
@@ -61,12 +55,18 @@ class Journal extends React.PureComponent {
         this.createGridRow = this.createGridRow.bind(this);
         this.modalPageClick = this.modalPageClick.bind(this);
         this.validation = this.validation.bind(this);
+        this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
 
+    }
+
+    componentWillMount() {
+        this.relatedDocuments();
     }
 
     componentDidMount() {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
-        let data = this.state.docData,
+        let self = this,
+            data = this.state.docData,
             details = this.state.gridData,
             gridConfig = this.state.gridConfig;
 
@@ -79,9 +79,18 @@ class Journal extends React.PureComponent {
 
 
         // отслеживаем режим редактирования
-        docStore.on('change:edited', (newValue, previousValue) => {
+        docStore.on('change:edited', function (newValue, previousValue) {
+            if (newValue) {
+                // делаем копии
+                flux.doAction('backupChange', {
+                    row: Object.assign({}, flux.stores.docStore.data),
+                    details: Object.assign([], flux.stores.docStore.details)
+                });
+
+            }
+
             if (newValue !== previousValue) {
-                this.setState({edited: newValue});
+                self.setState({edited: newValue});
             }
         });
 
@@ -101,7 +110,7 @@ class Journal extends React.PureComponent {
             }
 
             if (isChanged) {
-                this.setState({libs: libsData});
+                self.setState({libs: libsData});
             }
         });
 
@@ -111,22 +120,41 @@ class Journal extends React.PureComponent {
             flux.doAction("loadLibs", lib);
         });
 
-
         if (data.id == 0) {
             flux.doAction('editedChange', true);
             flux.doAction('savedChange', false);
         }
 
-        // формируем зависимости
-        relatedDocuments(this);
+    }
 
+    relatedDocuments() {
+        // формируем зависимости
+        let relatedDocuments = this.state.relations;
+        if (relatedDocuments.length > 0) {
+            relatedDocuments.forEach((doc) => {
+                if (doc.id) {
+                    // проверим на уникальность списка документов
+                    let isExists = this.pages.find((page) => {
+                        if (!page.docId) {
+                            return false;
+                        } else {
+                            return page.docId == doc.id && page.docTypeId == doc.doc_type;
+                        }
+                    });
+
+                    if (!isExists) {
+                        // в массиве нет, добавим ссылку на документ
+                        this.pages.push({docTypeId: doc.doc_type, docId: doc.id, pageName: doc.name + ' id:' + doc.id})
+                    }
+                }
+            });
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         // @todo добавить проверку на изменение состояния
         return true;
     }
-
 
     render() {
         let data = this.state.docData,
@@ -174,7 +202,7 @@ class Journal extends React.PureComponent {
                                    name='kpv'
                                    value={data.kpv}
                                    ref='input-kpv'
-                                   placeholder='Kuupäev' readOnly={!isEditeMode}/>
+                                   readOnly={!isEditeMode}/>
                         <Select title="Partner"
                                 name='asutusid'
                                 libs="asutused"
@@ -182,21 +210,18 @@ class Journal extends React.PureComponent {
                                 value={data.asutusid}
                                 collId='id'
                                 defaultValue={data.asutus}
-                                placeholder='Partner'
                                 ref="select-asutusid"
                                 readOnly={!isEditeMode}/>
                         <InputText
                             title='Dokument '
                             name='dok'
                             value={data.dok}
-                            placeholder='Dokument'
                             ref='input-dok'
                             readOnly={!isEditeMode}/>
                     </div>
                     <div style={styles.docRow}>
                             <TextArea title="Selgitus"
                                       name='selg'
-                                      placeholder='Selgitus'
                                       ref="textarea-selg"
                                       value={data.selg}
                                       readOnly={!isEditeMode}/>
@@ -223,7 +248,6 @@ class Journal extends React.PureComponent {
                         <InputNumber
                             title="Summa: "
                             name='summa'
-                            placeholder='Summa'
                             ref="input-summa"
                             value={data.summa}
                             disabled={true}
@@ -232,7 +256,6 @@ class Journal extends React.PureComponent {
                     <div style={styles.docRow}>
                         <TextArea title="Märkused"
                                   name='muud'
-                                  placeholder='Märkused'
                                   ref="textarea-muud"
                                   value={data.muud}
                                   readOnly={!isEditeMode}/>
@@ -289,7 +312,6 @@ class Journal extends React.PureComponent {
 
         docData = this.recalcDocSumma(docData);
         this.setState({gridRowEdit: !!this.state.warning, gridData: gridData, docData: docData});
-
     }
 
     handlePageClick(page) {
@@ -300,18 +322,8 @@ class Journal extends React.PureComponent {
     }
 
     createGridRow() {
-        //@todo вынести в отдельный файл
-        let style = {
-            border: '1px solid black',
-            backgroundColor: 'white',
-            position: 'relative',
-            margin: '10% 30% 10% 30%',
-            width: 'auto',
-            opacity: '1',
-            top: '100px'
-        };
-
-        let row = this.state.gridRowData,
+        let style = styles.gridRow,
+            row = this.state.gridRowData,
             validateMessage = this.state.warning,
             buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked,
             modalObjects = ['btnOk','btnCancel'];
@@ -339,7 +351,6 @@ class Journal extends React.PureComponent {
                                 readOnly={false}
                                 value={row.deebet}
                                 ref='deebet'
-                                placeholder='Deebet'
                                 collId="kood"
                                 onChange={this.handleGridRowChange}/>
                     </div>
@@ -351,7 +362,6 @@ class Journal extends React.PureComponent {
                                 value={row.kreedit}
                                 ref='kreedit'
                                 collId="kood"
-                                placeholder='Kreedit'
                                 onChange={this.handleGridRowChange}/>
                     </div>
                     <div style={styles.docRow}>
@@ -509,8 +519,47 @@ class Journal extends React.PureComponent {
         this.setState({checked: true, warning: warning});
     }
 
+    handleToolbarEvents(event) {
+        // toolbar event handler
+
+        switch (event) {
+            case 'CANCEL':
+                let backup = flux.stores.docStore.backup;
+                this.setState({docData: backup.row, gridData: backup.details, warning: ''});
+                break;
+            default:
+                console.error('handleToolbarEvents, no event handler for ', event);
+        }
+    }
+
+    createLibs() {
+        // вернет объект библиотек документа
+        let libs = {};
+        LIBRARIES.forEach((lib) => {
+            libs[lib] = [];
+        })
+        return libs;
+    }
 
 
 }
+
+Journal.PropTypes = {
+    docData: React.PropTypes.object.isRequired,
+    bpm: React.PropTypes.array,
+    edited: React.PropTypes.bool,
+    showMessageBox: React.PropTypes.string,
+    gridData: React.PropTypes.array,
+    relations: React.PropTypes.array,
+    gridConfig: React.PropTypes.array,
+    gridRowEdit: React.PropTypes.bool,
+    gridRowEvent: React.PropTypes.string,
+    gridRowData: React.PropTypes.object,
+    libs: React.PropTypes.object,
+    checked: React.PropTypes.bool,
+    warning: React.PropTypes.string
+
+}
+
 
 module.exports = Journal;
