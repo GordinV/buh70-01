@@ -1,5 +1,5 @@
 'use strict';
-const React = require('react'),
+var React = require('react'),
     flux = require('fluxify');
 
 const Form = require('../../components/form/form.jsx'),
@@ -19,19 +19,19 @@ const Form = require('../../components/form/form.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
-    styles = require('./sorder-style');
+    styles = require('./vorder-style');
 
-const LIBDOK = 'SORDER',
-    LIBRARIES = ['asutused', 'kontod', 'dokProps', 'tunnus', 'project', 'nomenclature', 'kassa'];
+const LIBDOK = 'VORDER',
+    LIBRARIES = ['asutused', 'kontod', 'dokProps', 'tunnus', 'project', 'nomenclature','kassa'];
 
-// Create a store
 const docStore = require('../../stores/doc_store.js');
 
-const now = new Date();
+let now = new Date();
 
-class Sorder extends React.PureComponent {
+class Vorder extends React.PureComponent {
     constructor(props) {
         super(props);
+
         this.state = {
             docData: this.props.data.row,
             bpm: this.props.bpm,
@@ -45,7 +45,7 @@ class Sorder extends React.PureComponent {
             libs: this.createLibs()
         }
 
-        this.pages = [{pageName: 'Sissetuliku kassaorder'}];
+        this.pages = [{pageName: 'Väljamakse kassaorder'}];
         this.requiredFields = [
             {
                 name: 'kpv',
@@ -74,8 +74,7 @@ class Sorder extends React.PureComponent {
 
     }
 
-    componentDidMount () {
-
+    componentDidMount() {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
             data = this.props.data.row,
@@ -96,6 +95,7 @@ class Sorder extends React.PureComponent {
             if (newValue.length > 0) {
 
                 libs.forEach(lib => {
+
                     if (self.state.libs[lib.id] && lib.data.length > 0) {
                         libsData[lib.id] = lib.data;
                         isChanged = true;
@@ -138,19 +138,14 @@ class Sorder extends React.PureComponent {
 
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
-
-    render() {
+    render () {
         // формируем зависимости
         relatedDocuments(this);
 
         let data = this.state.docData,
-            bpm = this.state.bpm,
             isEditeMode = this.state.edited,
             validationMessage = this.validation(),
+            bpm = this.state.bpm,
             gridData = this.state.gridData,
             gridColumns = this.state.gridConfig;
 
@@ -172,8 +167,7 @@ class Sorder extends React.PureComponent {
                                     eventHandler={this.handleToolbarEvents}/>
                     </div>
                 </ToolbarContainer>
-
-                <div style={styles.doc}>
+                <div className='div-doc'>
                     <div style={styles.docRow}>
                         <DocCommon
                             ref='doc-common'
@@ -304,20 +298,6 @@ class Sorder extends React.PureComponent {
         );
     }
 
-    handleInput(name, value) {
-        // изменения допустимы только в режиме редактирования
-        if (!this.state.edited) {
-            console.error('not in edite mode');
-            return false;
-        }
-
-        let data = this.state.docData;
-
-        data[name] = value;
-        this.setState({docData: data});
-    }
-
-
     handleToolbarEvents(event) {
         // toolbar event handler
 
@@ -331,61 +311,19 @@ class Sorder extends React.PureComponent {
         }
     }
 
+    handleInput(name, value) {
+        let data = this.state.docData;
+
+        data[name] = value;
+        this.setState({docData: data});
+    }
+
     validation() {
         if (!this.state.edited) return '';
 
         let requiredFields = this.requiredFields;
         let warning = require('../../mixin/validateForm')(this, requiredFields);
         return warning;
-    }
-
-    handleGridRow(gridEvent, data) {
-        // управление модальным окном
-        this.setState({gridRowEdit: true, gridRowEvent: gridEvent, gridRowData: data});
-    }
-
-    modalPageClick(btnEvent, data) {
-        // отработаем Ok из модального окна
-        let gridData = this.state.gridData,
-            docData = this.state.docData,
-            gridColumns = this.state.gridConfig,
-            gridRow = this.state.gridRowData;
-
-        if (btnEvent == 'Ok') {
-
-            // ищем по ид строку в данных грида, если нет, то добавим строку
-            if (!gridData.some(row => {
-                    if (row.id === gridRow.id) return true;
-                })) {
-                // вставка новой строки
-                gridData.splice(0, 0, gridRow);
-            } else {
-                gridData = gridData.map(row => {
-                    if (row.id === gridRow.id) {
-                        // нашли, замещаем
-                        return gridRow;
-                    } else {
-                        return row;
-                    }
-                })
-            }
-
-        }
-
-        docData = this.recalcDocSumma(docData);
-        this.setState({gridRowEdit: false, gridData: gridData, docData: docData});
-
-    }
-
-    recalcDocSumma(docData) {
-        // перерасчет итоговой суммы документа
-        let gridData = this.state.gridData;
-
-        docData['summa'] = 0;
-        gridData.forEach(row => {
-            docData['summa'] += Number(row['summa']);
-        });
-        return docData;
     }
 
     createGridRow() {
@@ -473,6 +411,55 @@ class Sorder extends React.PureComponent {
                 div >
         )
             ;
+    }
+
+    handleGridRow(gridEvent, data) {
+        // управление модальным окном
+        this.setState({gridRowEdit: true, gridRowEvent: gridEvent, gridRowData: data});
+    }
+
+    modalPageClick(btnEvent, data) {
+        // отработаем Ok из модального окна
+        let gridData = this.state.gridData,
+            docData = this.state.docData,
+            gridColumns = this.state.gridConfig,
+            gridRow = this.state.gridRowData;
+
+        if (btnEvent == 'Ok') {
+
+            // ищем по ид строку в данных грида, если нет, то добавим строку
+            if (!gridData.some(row => {
+                    if (row.id === gridRow.id) return true;
+                })) {
+                // вставка новой строки
+                gridData.splice(0, 0, gridRow);
+            } else {
+                gridData = gridData.map(row => {
+                    if (row.id === gridRow.id) {
+                        // нашли, замещаем
+                        return gridRow;
+                    } else {
+                        return row;
+                    }
+                })
+            }
+
+        }
+
+        docData = this.recalcDocSumma(docData);
+        this.setState({gridRowEdit: false, gridData: gridData, docData: docData});
+
+    }
+
+    recalcDocSumma(docData) {
+        // перерасчет итоговой суммы документа
+        let gridData = this.state.gridData;
+
+        docData['summa'] = 0;
+        gridData.forEach(row => {
+            docData['summa'] += Number(row['summa']);
+        });
+        return docData;
     }
 
     handleGridBtnClick(btnName, id) {
@@ -594,23 +581,6 @@ class Sorder extends React.PureComponent {
         return libs;
     }
 
-};
-
-Sorder.PropTypes = {
-    docData: React.PropTypes.object.isRequired,
-    bpm: React.PropTypes.array,
-    edited: React.PropTypes.bool,
-    gridData: React.PropTypes.array,
-    relations: React.PropTypes.array,
-    gridConfig: React.PropTypes.array,
-    gridRowEdit: React.PropTypes.bool,
-    gridRowEvent: React.PropTypes.string,
-    gridRowData: React.PropTypes.object,
-    libs: React.PropTypes.object,
-    checked: React.PropTypes.bool,
-    warning: React.PropTypes.string
-
 }
 
-
-module.exports = Sorder;
+module.exports = Vorder;

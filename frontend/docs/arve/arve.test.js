@@ -185,4 +185,31 @@ describe('doc test, Arve', () => {
         },1000);
     });
 
+    it('test of onChange action', (done) => {
+        let input = doc.refs['input-number'],
+            docToolbar = doc.refs['doc-toolbar'],
+            number = input.state.value;
+
+        expect(input).toBeDefined();
+        expect(docToolbar.btnEditClick).toBeDefined();
+        expect(input.props.onChange).toBeDefined();
+        doc.handleInputChange('number', '9999');
+        // изменения вне режима редактирования не меняют состояния
+        expect(doc.state.docData['number']).toBe(number);
+        docToolbar.btnEditClick();
+
+        // изменения должны примениться
+        setTimeout(() => {
+            // изменения должны примениться
+//            input.value = '9999';
+//            ReactTestUtils.Simulate.change(input);
+            doc.handleInputChange('number', '9999');
+            expect(doc.state.docData['number']).toBe('9999');
+            docToolbar.btnCancelClick();
+            done();
+        }, 1000);
+
+    });
+
+
 });

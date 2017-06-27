@@ -49,6 +49,11 @@ var docStore = flux.createStore({
                 params:[]
             },
             {
+                id:'kassa',
+                data:[],
+                params:[]
+            },
+            {
                 id:'arvedSisse',
                 data:[],
                 params:[null,null],
@@ -247,13 +252,10 @@ function saveDoc() {
         details: docStore.details
     };
 
-
     requery('save', JSON.stringify(saveData), function(err, data) {
         if (err) return err;
 
         try {
-
-            console.log('saved:', data);
             let newId = data[0].id;
             // обновим ид
             saveData.data.id = newId;

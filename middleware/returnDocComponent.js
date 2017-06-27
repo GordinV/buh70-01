@@ -5,9 +5,6 @@ module.exports = function(docTypeId) {
     var component = {};
 
     switch(docTypeId) {
-        case 'VORDER':
-            component = require('../frontend/docs/vorder.jsx');
-            break;
         case 'PALK':
             component = require('../frontend/docs/palk_oper.jsx');
             break;

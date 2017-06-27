@@ -1,5 +1,5 @@
 'use strict';
-const React = require('react'),
+var React = require('react'),
     flux = require('fluxify');
 
 const Form = require('../../components/form/form.jsx'),
@@ -19,19 +19,19 @@ const Form = require('../../components/form/form.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
-    styles = require('./sorder-style');
+    styles = require('./smk-style');
 
-const LIBDOK = 'SORDER',
-    LIBRARIES = ['asutused', 'kontod', 'dokProps', 'tunnus', 'project', 'nomenclature', 'kassa'];
+const LIBDOK = 'SMK',
+    LIBRARIES = ['asutused', 'kontod', 'dokProps', 'tunnus', 'project', 'nomenclature', 'aa'];
 
-// Create a store
 const docStore = require('../../stores/doc_store.js');
 
-const now = new Date();
+let now = new Date();
 
-class Sorder extends React.PureComponent {
+class Smk extends React.PureComponent {
     constructor(props) {
         super(props);
+
         this.state = {
             docData: this.props.data.row,
             bpm: this.props.bpm,
@@ -45,7 +45,7 @@ class Sorder extends React.PureComponent {
             libs: this.createLibs()
         }
 
-        this.pages = [{pageName: 'Sissetuliku kassaorder'}];
+        this.pages = [{pageName: 'Sissemakse korraldus'}];
         this.requiredFields = [
             {
                 name: 'kpv',
@@ -71,11 +71,9 @@ class Sorder extends React.PureComponent {
         this.createGridRow = this.createGridRow.bind(this);
         this.componentDidMount = this.componentDidMount.bind(this);
         this.handleInput = this.handleInput.bind(this);
-
     }
 
-    componentDidMount () {
-
+    componentDidMount() {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
             data = this.props.data.row,
@@ -138,19 +136,20 @@ class Sorder extends React.PureComponent {
 
     }
 
+
     shouldComponentUpdate(nextProps, nextState) {
         // @todo добавить проверку на изменение состояния
         return true;
     }
 
-    render() {
+    render () {
         // формируем зависимости
         relatedDocuments(this);
 
         let data = this.state.docData,
-            bpm = this.state.bpm,
             isEditeMode = this.state.edited,
             validationMessage = this.validation(),
+            bpm = this.state.bpm,
             gridData = this.state.gridData,
             gridColumns = this.state.gridConfig;
 
@@ -172,8 +171,7 @@ class Sorder extends React.PureComponent {
                                     eventHandler={this.handleToolbarEvents}/>
                     </div>
                 </ToolbarContainer>
-
-                <div style={styles.doc}>
+                <div className='div-doc'>
                     <div style={styles.docRow}>
                         <DocCommon
                             ref='doc-common'
@@ -194,22 +192,14 @@ class Sorder extends React.PureComponent {
                                        ref='input-kpv'
                                        onChange = {this.handleInput}
                                        readOnly={!isEditeMode}/>
-                            <Select title="Kassa"
-                                    name='kassa_id'
-                                    libs="kassa"
-                                    value={data.kassa_id}
-                                    data={this.state.libs['kassa']}
-                                    defaultValue={data.kassa}
-                                    ref="select-kassaId"
+                            <Select title="Arvelsus arve"
+                                    name='aa_id'
+                                    libs="aa"
+                                    value={data.aa_id}
+                                    data={this.state.libs['aa']}
+                                    defaultValue={data.pank}
                                     onChange = {this.handleInput}
-                                    readOnly={!isEditeMode}/>
-                            <Select title="Partner"
-                                    name='asutusid'
-                                    data={this.state.libs['asutused']}
-                                    libs="asutused"
-                                    value={data.asutusid}
-                                    defaultValue={data.asutus}
-                                    ref="select-asutusId"
+                                    ref="select-aaId"
                                     readOnly={!isEditeMode}/>
                             <InputText title="Arve nr."
                                        name='arvnr'
@@ -217,10 +207,16 @@ class Sorder extends React.PureComponent {
                                        ref="input-arvnr"
                                        onChange = {this.handleInput}
                                        readOnly={true}/>
-                            <InputText title='Dokument '
-                                       name='dokument'
-                                       value={data.dokument}
-                                       ref='input-dokument'
+                            <InputDate title='Maksepäev '
+                                       name='maksepaev'
+                                       value={data.maksepaev}
+                                       ref='input-maksepaev'
+                                       onChange = {this.handleInput}
+                                       readOnly={!isEditeMode}/>
+                            <InputText title='Viitenumber '
+                                       name='viitenr'
+                                       value={data.viitenr}
+                                       ref='input-viitenr'
                                        onChange = {this.handleInput}
                                        readOnly={!isEditeMode}/>
                         </div>
@@ -236,26 +232,10 @@ class Sorder extends React.PureComponent {
                         </div>
                     </div>
                     <div style={styles.docRow}>
-                            <TextArea title="Nimi"
-                                      name='nimi'
-                                      ref="textarea-nimi"
-                                      value={data.nimi}
-                                      onChange = {this.handleInput}
-                                      readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docRow}>
-                            <TextArea title="Aadress"
-                                      name='aadress'
-                                      ref="textarea-aadress"
-                                      value={data.aadress}
-                                      onChange = {this.handleInput}
-                                      readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docRow}>
-                            <TextArea title="Alus"
-                                      name='alus'
-                                      ref="textarea-alus"
-                                      value={data.alus}
+                            <TextArea title="Selgitus"
+                                      name='selg'
+                                      ref="textarea-selg"
+                                      value={data.selg}
                                       onChange = {this.handleInput}
                                       readOnly={!isEditeMode}/>
                     </div>
@@ -279,7 +259,7 @@ class Sorder extends React.PureComponent {
                                   ref="data-grid"/>
                     </div>
                     <div style={styles.docRow}>
-                        <InputText title="Summa: "
+                        <InputText title="Kokku: "
                                    name='summa'
                                    ref="input-summa"
                                    value={data.summa}
@@ -304,20 +284,6 @@ class Sorder extends React.PureComponent {
         );
     }
 
-    handleInput(name, value) {
-        // изменения допустимы только в режиме редактирования
-        if (!this.state.edited) {
-            console.error('not in edite mode');
-            return false;
-        }
-
-        let data = this.state.docData;
-
-        data[name] = value;
-        this.setState({docData: data});
-    }
-
-
     handleToolbarEvents(event) {
         // toolbar event handler
 
@@ -337,6 +303,108 @@ class Sorder extends React.PureComponent {
         let requiredFields = this.requiredFields;
         let warning = require('../../mixin/validateForm')(this, requiredFields);
         return warning;
+    }
+
+    createGridRow() {
+        // формирует объекты модального окна редактирования строки грида
+        let style = styles.gridRow,
+            row = Object.assign({}, this.state.gridRowData),
+            validateMessage = '',
+            modalObjects = ['btnOk', 'btnCancel'],
+            buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked;
+
+        if (buttonOkReadOnly) {
+            // уберем кнопку Ок
+            modalObjects.splice(0, 1);
+        }
+
+        if (!row) return <div/>;
+
+        let nomData = this.state.libs['nomenclature'].filter(lib => {
+            if (!lib.dok || lib.dok === LIBDOK) return lib;
+        });
+
+        return (<div className='.modalPage'>
+                <ModalPage
+                    modalObjects={modalObjects}
+                    ref="modalpage-grid-row"
+                    show={true}
+                    modalPageBtnClick={this.modalPageClick}
+                    modalPageName='Rea lisamine / parandamine'>
+                    <div ref="grid-row-container">
+                        <div style={styles.docRow}>
+                            <Select title="Operatsioon"
+                                    name='nomid'
+                                    libs="nomenclature"
+                                    data={nomData}
+                                    value={row.nomid}
+                                    defaultValue={row.kood}
+                                    ref='nomid'
+                                    onChange={this.handleGridRowChange}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <Select title="Partner"
+                                    name='asutusid'
+                                    libs="asutused"
+                                    data={this.state.libs['asutused']}
+                                    value={row.asutusid}
+                                    defaultValue={row.asutus}
+                                    ref='asutusid'
+                                    onChange={this.handleGridRowChange}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <InputText title='Arveldus arve: '
+                                         name='aa'
+                                         value={row.aa}
+                                         bindData={false}
+                                         ref='aa'
+                                         onChange={this.handleGridRowInput}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <InputNumber title='Summa: '
+                                         name='summa'
+                                         value={row.summa}
+                                         bindData={false}
+                                         ref='summa'
+                                         onChange={this.handleGridRowInput}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <Select title="Korr. konto"
+                                    name='konto'
+                                    libs="kontod"
+                                    data={this.state.libs['kontod']}
+                                    value={row.konto}
+                                    ref='konto'
+                                    collId="kood"
+                                    onChange={this.handleGridRowChange}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <Select title="Tunnus:"
+                                    name='tunnus'
+                                    libs="tunnus"
+                                    data={this.state.libs['tunnus']}
+                                    value={row.tunnus}
+                                    ref='tunnus'
+                                    collId="kood"
+                                    onChange={this.handleGridRowChange}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <Select title="Project:"
+                                    name='proj'
+                                    libs="project"
+                                    data={this.state.libs['project']}
+                                    value={row.proj}
+                                    ref='project'
+                                    collId="kood"
+                                    onChange={this.handleGridRowChange}/>
+                        </div>
+                    </div>
+                    <div><span>{validateMessage}</span></div>
+                </ModalPage>
+            </
+                div >
+        )
+            ;
     }
 
     handleGridRow(gridEvent, data) {
@@ -386,93 +454,6 @@ class Sorder extends React.PureComponent {
             docData['summa'] += Number(row['summa']);
         });
         return docData;
-    }
-
-    createGridRow() {
-        // формирует объекты модального окна редактирования строки грида
-        let style = styles.gridRow,
-            row = Object.assign({}, this.state.gridRowData),
-            validateMessage = '',
-            modalObjects = ['btnOk', 'btnCancel'],
-            buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked;
-
-        if (buttonOkReadOnly) {
-            // уберем кнопку Ок
-            modalObjects.splice(0, 1);
-        }
-
-        if (!row) return <div/>;
-
-        let nomData = this.state.libs['nomenclature'].filter(lib => {
-            if (!lib.dok || lib.dok === LIBDOK) return lib;
-        });
-
-        return (<div className='.modalPage'>
-                <ModalPage
-                    modalObjects={modalObjects}
-                    ref="modalpage-grid-row"
-                    show={true}
-                    modalPageBtnClick={this.modalPageClick}
-                    modalPageName='Rea lisamine / parandamine'>
-                    <div ref="grid-row-container">
-                        <div style={styles.docRow}>
-                            <Select title="Teenus"
-                                    name='nomid'
-                                    libs="nomenclature"
-                                    data={nomData}
-                                    value={row.nomid}
-                                    defaultValue={row.kood}
-                                    ref='nomid'
-                                    placeholder='Teenuse kood'
-                                    onChange={this.handleGridRowChange}/>
-                        </div>
-                        <div style={styles.docRow}>
-
-                            <InputNumber title='Summa: '
-                                         name='summa'
-                                         value={row.summa}
-                                         bindData={false}
-                                         ref='summa'
-                                         onChange={this.handleGridRowInput}/>
-                        </div>
-                        <div style={styles.docRow}>
-
-                            <Select title="Korr. konto"
-                                    name='konto'
-                                    libs="kontod"
-                                    data={this.state.libs['kontod']}
-                                    value={row.konto}
-                                    ref='konto'
-                                    collId="kood"
-                                    onChange={this.handleGridRowChange}/>
-                        </div>
-                        <div style={styles.docRow}>
-                            <Select title="Tunnus:"
-                                    name='tunnus'
-                                    libs="tunnus"
-                                    data={this.state.libs['tunnus']}
-                                    value={row.tunnus}
-                                    ref='tunnus'
-                                    collId="kood"
-                                    onChange={this.handleGridRowChange}/>
-                        </div>
-                        <div style={styles.docRow}>
-                            <Select title="Project:"
-                                    name='proj'
-                                    libs="project"
-                                    data={this.state.libs['project']}
-                                    value={row.proj}
-                                    ref='project'
-                                    collId="kood"
-                                    onChange={this.handleGridRowChange}/>
-                        </div>
-                    </div>
-                    <div><span>{validateMessage}</span></div>
-                </ModalPage>
-            </
-                div >
-        )
-            ;
     }
 
     handleGridBtnClick(btnName, id) {
@@ -543,22 +524,47 @@ class Sorder extends React.PureComponent {
             rowData['summa'] = 0;
             rowData['nomid'] = value;
 //            rowData['konto'] = value;
+
+            // ищем по справочнику поля код и наименование
+            let libData = this.state.libs['nomenclature'];
+            libData.forEach(row => {
+                if (row.id == value) {
+                    rowData['kood'] = row.kood;
+                    rowData['nimetus'] = row.name;
+                    return;
+                }
+            });
+
         }
-        // ищем по справочнику поля код и наименование
-        let libData = this.state.libs['nomenclature'];
-        libData.forEach(row => {
-            if (row.id == value) {
-                rowData['kood'] = row.kood;
-                rowData['nimetus'] = row.name;
-                return;
-            }
-        });
+
+        if (name === 'asutusid') {
+            let libData = this.state.libs['asutused'];
+            libData.forEach(row => {
+                if (row.id == value) {
+                    rowData['asutus'] = row.name;
+                    return;
+                }
+            });
+        }
 
         rowData[name] = value;
 
         this.setState({gridRowData: rowData});
         this.validateGridRow();
 
+    }
+
+    handleInput(name, value) {
+        // изменения допустимы только в режиме редактирования
+        if (!this.state.edited) {
+            console.error('not in edite mode');
+            return false;
+        }
+
+        let data = this.state.docData;
+
+        data[name] = value;
+        this.setState({docData: data});
     }
 
     handleGridRowInput(name, value) {
@@ -594,23 +600,6 @@ class Sorder extends React.PureComponent {
         return libs;
     }
 
-};
-
-Sorder.PropTypes = {
-    docData: React.PropTypes.object.isRequired,
-    bpm: React.PropTypes.array,
-    edited: React.PropTypes.bool,
-    gridData: React.PropTypes.array,
-    relations: React.PropTypes.array,
-    gridConfig: React.PropTypes.array,
-    gridRowEdit: React.PropTypes.bool,
-    gridRowEvent: React.PropTypes.string,
-    gridRowData: React.PropTypes.object,
-    libs: React.PropTypes.object,
-    checked: React.PropTypes.bool,
-    warning: React.PropTypes.string
-
 }
 
-
-module.exports = Sorder;
+module.exports = Smk;

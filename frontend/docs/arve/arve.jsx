@@ -154,6 +154,10 @@ class Arve extends React.PureComponent {
             if (newValue.length > 0) {
 
                 libs.forEach(lib => {
+                    if (lib.id === 'dokProps') {
+                        // оставим только данные этого документа
+
+                    }
                     if (this.state.libs[lib.id] && lib.data.length > 0) {
                         libsData[lib.id] = lib.data;
                         isChanged = true;
@@ -329,7 +333,6 @@ class Arve extends React.PureComponent {
         }
     }
 
-
     modalPageClick(btnEvent, data) {
         // отработаем Ok из модального окна
         let gridData = this.state.gridData,
@@ -391,10 +394,23 @@ class Arve extends React.PureComponent {
     handleInputChange(inputName, inputValue) {
         // обработчик изменений
 
+        // изменения допустимы только в режиме редактирования
+        if (!this.state.edited) {
+            console.error('not in edite mode');
+            return false;
+        }
+
+        let data = this.state.docData;
+
+        data[inputName] = inputValue;
+        this.setState({docData: data});
+
+/*
         let data = flux.stores.docStore.data;
         data[inputName] = inputValue;
         // задать новое значение поля
         flux.doAction('dataChange', data);
+*/
 
     }
 

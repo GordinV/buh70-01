@@ -1,14 +1,19 @@
 
 'use strict';
 
-const isExists = (object, prop) => {
-    let result = false;
-    console.log('object, prop', object, prop);
-    if (prop in object) {
-        result = true;
-    }
-    return result;
+
+let createLibs = () => {
+    let libs = {};
+    LIBRARIES.forEach((lib) => {
+        libs[lib] = [];
+    })
+    return libs;
 }
 
-let isShow = true,
-    disp = is
+const LIBDOK = 'SORDER',
+    LIBRARIES = ['asutused', 'kontod', 'dokProps',  'tunnus', 'project', 'nomenclature'],
+    libs = createLibs();
+
+
+console.log(libs);
+

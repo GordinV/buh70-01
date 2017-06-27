@@ -3,13 +3,14 @@ module.exports = {
     type: 'DOK1',
     created: '2017-01-01',
     lastupdate: '2017-01-01',
-    status: 'ok',
-    doklausid: 1,
     kpv: '2017-07-01',
     number:'001',
+    status: 'ok',
+    doklausid: 1,
     dokprop: 'Deebet / Kreedit',
     asutusid: 1,
     asutus: 'Asutus',
+    aadress: 'Aadress',
     relations: [],
     bpm:[
         {
@@ -48,16 +49,14 @@ module.exports = {
     ],
     details: [{
         id: 1,
-        deebet:'db',
-        kreedit: 'kr',
+        konto:'113',
         summa: 44,
         tunnus:'tunnus',
         proj: 'proj'
     },
         {
             id: 2,
-            deebet:'db',
-            kreedit: 'kr',
+            konto:'221',
             summa: 55,
             tunnus:'tunnus',
             proj: 'proj'

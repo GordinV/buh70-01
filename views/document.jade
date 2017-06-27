@@ -2,9 +2,9 @@ extends layout
 block content
     link(rel='stylesheet', href='/stylesheets/document.css')
     script(type="text/babel" src="/javascripts/common.js")
-    script(type="text/babel" src="/javascripts/doc.js")
+    script(type="text/babel" src=src)
 
-    h3= "Document"
+    h3=docName
     if store
         script(type='text/javascript').
             var storeData = !{JSON.stringify(store)}

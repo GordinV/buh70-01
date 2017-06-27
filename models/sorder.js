@@ -88,7 +88,6 @@ const Sorder = {
         {name: 'asutusid', type: 'N', min: null, max: null},
         {name: 'summa', type: 'N', min: -9999999, max: 999999}
     ],
-
     bpm: [
         {
             step: 0,

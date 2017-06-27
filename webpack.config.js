@@ -20,6 +20,9 @@ module.exports = {
         arv:  './frontend/arv.js',
         journal: './frontend/journal.js',
         sorder: './frontend/sorder.js',
+        vorder: './frontend/vorder.js',
+        smk: './frontend/smk.js',
+        vmk: './frontend/vmk.js',
         docs: './frontend/docs.js',
         doc:  './frontend/doc.js',
     },
@@ -51,7 +54,7 @@ module.exports = {
         new webpack.DefinePlugin({NODE_ENV:JSON.stringify(NODE_ENV)}),
         new webpack.optimize.CommonsChunkPlugin({
             name:"common",
-            chunks: ['docs', 'doc', 'arv', 'journal','sorder'], // список модулей для выявления общих модулей
+            chunks: ['docs', 'doc', 'arv', 'journal','sorder', 'vorder','smk', 'vmk'], // список модулей для выявления общих модулей
             minChunks: 3
         })
 ],

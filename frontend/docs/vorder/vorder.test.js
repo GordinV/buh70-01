@@ -6,15 +6,15 @@ const flux = require('fluxify');
 let docStore = require('../../stores/doc_store.js');
 
 
-describe('doc test, Sorder', () => {
+describe('doc test, Vorder', () => {
     // проверяем на наличие компонента и его пропсы и стейты
     // проверяем изменение стейтов после клика
-    const Sorder = require('./sorder.jsx');
+    const Vorder = require('./vorder.jsx');
 //    const style = require('./input-text-styles');
 
-    let dataRow = require('./../../../test/fixture/doc-sorder-fixture'),
+    let dataRow = require('./../../../test/fixture/doc-vorder-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/sorder'),
+        model = require('./../../../models/vorder'),
         data = {
             row: dataRow,
             bpm: model.bpm,
@@ -26,7 +26,7 @@ describe('doc test, Sorder', () => {
 
     let onChangeHandler = jest.fn();
 
-    let doc = ReactTestUtils.renderIntoDocument(<Sorder data={data} bpm={model.bpm}/>);
+    let doc = ReactTestUtils.renderIntoDocument(<Vorder data={data} bpm={model.bpm}/>);
 
     it('should be defined', () => {
         expect(doc).toBeDefined();
@@ -189,32 +189,6 @@ describe('doc test, Sorder', () => {
             expect(doc.state.edited).toBeFalsy();
             done();
         },1000);
-    });
-
-    it('test of onChange action', (done) => {
-        let input = doc.refs['input-number'],
-            docToolbar = doc.refs['doc-toolbar'],
-            number = input.state.value;
-
-        expect(input).toBeDefined();
-        expect(docToolbar.btnEditClick).toBeDefined();
-        expect(input.props.onChange).toBeDefined();
-        doc.handleInput('number', '9999');
-        // изменения вне режима редактирования не меняют состояния
-        expect(doc.state.docData['number']).toBe(number);
-        docToolbar.btnEditClick();
-
-        // изменения должны примениться
-        setTimeout(() => {
-            // изменения должны примениться
-//            input.value = '9999';
-//            ReactTestUtils.Simulate.change(input);
-            doc.handleInput('number', '9999');
-            expect(doc.state.docData['number']).toBe('9999');
-            docToolbar.btnCancelClick();
-            done();
-        }, 1000);
-
     });
 
 

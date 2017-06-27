@@ -222,7 +222,6 @@ const Doc = {
 
     saveDocPromise: (docTypeId, params)=> {
         // промисификация для функции saveDoc
-
         let doc = require('./' + docTypeId),
             sql = doc.saveDoc,
             docStatus = params[0].data['doc_status'] || 0,

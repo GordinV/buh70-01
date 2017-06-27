@@ -4,12 +4,13 @@ module.exports = {
     created: '2017-01-01',
     lastupdate: '2017-01-01',
     status: 'ok',
-    doklausid: 1,
     kpv: '2017-07-01',
     number:'001',
+    doklausid: 1,
     dokprop: 'Deebet / Kreedit',
-    asutusid: 1,
-    asutus: 'Asutus',
+    selg: 'SMK test dok',
+    viitenr: '000000',
+    maksepaev: '2017-06-25',
     relations: [],
     bpm:[
         {
@@ -48,16 +49,18 @@ module.exports = {
     ],
     details: [{
         id: 1,
-        deebet:'db',
-        kreedit: 'kr',
+        nomid: 5,
+        asutusid: 1,
+        konto:'113',
         summa: 44,
         tunnus:'tunnus',
         proj: 'proj'
     },
         {
             id: 2,
-            deebet:'db',
-            kreedit: 'kr',
+            nomid: 5,
+            asutusid: 2,
+            konto:'221',
             summa: 55,
             tunnus:'tunnus',
             proj: 'proj'

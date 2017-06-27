@@ -99,6 +99,55 @@ const Vorder = {
         {name: 'asutusid', type: 'N', min: null, max: null},
         {name: 'summa', type: 'N', min: -9999999, max: 999999}
     ],
+    bpm: [
+        {
+            step: 0,
+            name: 'Регистация документа',
+            action: 'start',
+            nextStep: 1,
+            task: 'human',
+            data: [],
+            actors: [],
+            status: null,
+            actualStep: false
+        },
+        {
+            step: 1,
+            name: 'Контировка',
+            action: 'generateJournal',
+            nextStep: 2,
+            task: 'automat',
+            data: [],
+            status: null,
+            actualStep: false
+        },
+//        {step:2, name:'Оплата', action: 'tasumine', nextStep:3, task:'human', data:[], status:null, actualStep:false},
+        {
+            step: 2,
+            name: 'Конец',
+            action: 'endProcess',
+            nextStep: null,
+            task: 'automat',
+            data: [],
+            actors: [],
+            status: null,
+            actualStep: false
+        }
+    ],
+    executeTask: (task, docId, userId) => {
+        // выполнит задачу, переданную в параметре
+
+        let executeTask = task;
+        if (executeTask.length == 0) {
+            executeTask = ['start'];
+        }
+
+        let taskFunction = eval(executeTask[0]);
+        return taskFunction(docId, userId);
+    },
+    register: {command: `update docs.doc set status = 1 where id = $1`, type: "sql"},
+    generateJournal: {command: `select docs.gen_lausend_arv($1, $2)`, type: "sql"},
+    endProcess: {command: `update docs.doc set status = 2 where id = $1`, type: "sql"},
     saveDoc: "select docs.sp_salvesta_korder($1, $2, $3) as id"
 
 };

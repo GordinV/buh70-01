@@ -18,7 +18,7 @@ describe('model dok. type SORDER tests', function () {
         });
     });
 
-    it('Sorder validation, should return all unfilled', function (done) {
+    it.skip('Sorder validation, should return all unfilled', function (done) {
         const requiredFields = doc.requiredFields;
 
         let components = {

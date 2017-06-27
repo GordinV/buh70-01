@@ -13,6 +13,9 @@ exports.get = function(req, res, params) {
         docComponent = {},
         results = [] , // {} сюда будем писать результат выборки
         DocDataObject = require('../models/documents'), // погружаем модель
+        docTemplate = 'document', // шаблон для документа
+        docName = 'Document',
+        moduleSource = "/javascripts/doc.js", // линк с указанием модуля, передадим параметром
         docInitData = {
             docTypeId: docTypeId,
             data: [],
@@ -23,13 +26,35 @@ exports.get = function(req, res, params) {
     switch (docTypeId) {
         case 'ARV':
             docComponent = require('../frontend/docs/arve/arve.jsx');
+            moduleSource = "/javascripts/arv.js";
+            docName = 'Arve';
             break;
 
         case 'JOURNAL':
             docComponent = require('../frontend/docs/journal/journal.jsx');
+            moduleSource = "/javascripts/journal.js";
+            docName = 'Lausend';
             break;
         case 'SORDER':
             docComponent = require('../frontend/docs/sorder/sorder.jsx');
+            moduleSource = "/javascripts/sorder.js";
+            docName = 'Kassa sissetuliku order';
+
+            break;
+        case 'VORDER':
+            docComponent = require('../frontend/docs/vorder/vorder.jsx');
+            docName = 'Kassa väljamakse order';
+            moduleSource = "/javascripts/vorder.js";
+            break;
+        case 'SMK':
+            docComponent = require('../frontend/docs/smk/smk.jsx');
+            docName = 'Sissemakse korraldus';
+            moduleSource = "/javascripts/smk.js";
+            break;
+        case 'VMK':
+            docComponent = require('../frontend/docs/vmk/vmk.jsx');
+            docName = 'Väljamakse korraldus';
+            moduleSource = "/javascripts/vmk.js";
             break;
         default:
             docComponent = require('../middleware/returnDocComponent')(docTypeId); // вернет компонент по типу тип документа
@@ -50,10 +75,8 @@ exports.get = function(req, res, params) {
 
     }
 
-    //var Doc = React.createFactory(require('../frontend/docs/arve'));
     let Doc = React.createFactory(docComponent),
-        now = new Date(),
-        docTemplate = (docTypeId == 'ARV' || docTypeId == 'JOURNAL' || docTypeId == 'SORDER') ? docTypeId: 'document';
+        now = new Date();
 
     DocDataObject.selectDoc(docTypeId, [docId, user.userId], (err, data, bpm)=> {
 
@@ -79,7 +102,13 @@ exports.get = function(req, res, params) {
 
 
                 let html = ReactServer.renderToString(Component);
-                res.render(docTemplate, {"user": user, react:html, store: JSON.stringify(docInitData)});
+                res.render(docTemplate, {
+                    "user": user,
+                    react:html,
+                    src: moduleSource,
+                    docName: docName,
+                    store: JSON.stringify(docInitData)
+                });
             } catch(e) {
                 console.error('error:', e);
                 res.render('error', {message: 'Error in document', status:500} );

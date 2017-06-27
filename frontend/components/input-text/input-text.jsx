@@ -18,6 +18,7 @@ class Input extends React.PureComponent {
     }
 
     onChange(e) {
+        console.log('onChange', e.target);
         let fieldValue = e.target.value;
         this.setState({value: fieldValue});
 

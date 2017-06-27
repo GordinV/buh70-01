@@ -56,6 +56,7 @@ class Journal extends React.PureComponent {
         this.modalPageClick = this.modalPageClick.bind(this);
         this.validation = this.validation.bind(this);
         this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
+        this.handleInput = this.handleInput.bind(this);
 
     }
 
@@ -196,12 +197,14 @@ class Journal extends React.PureComponent {
                             name='number'
                             value={data.number}
                             disabled="true"
+                            onChange = {this.handleInput}
                             ref="input-number"
                             readOnly={true}/>
                         <InputDate title='Kuupäev '
                                    name='kpv'
                                    value={data.kpv}
                                    ref='input-kpv'
+                                   onChange = {this.handleInput}
                                    readOnly={!isEditeMode}/>
                         <Select title="Partner"
                                 name='asutusid'
@@ -210,6 +213,7 @@ class Journal extends React.PureComponent {
                                 value={data.asutusid}
                                 collId='id'
                                 defaultValue={data.asutus}
+                                onChange = {this.handleInput}
                                 ref="select-asutusid"
                                 readOnly={!isEditeMode}/>
                         <InputText
@@ -217,6 +221,7 @@ class Journal extends React.PureComponent {
                             name='dok'
                             value={data.dok}
                             ref='input-dok'
+                            onChange = {this.handleInput}
                             readOnly={!isEditeMode}/>
                     </div>
                     <div style={styles.docRow}>
@@ -224,6 +229,7 @@ class Journal extends React.PureComponent {
                                       name='selg'
                                       ref="textarea-selg"
                                       value={data.selg}
+                                      onChange = {this.handleInput}
                                       readOnly={!isEditeMode}/>
                     </div>
                     {isEditeMode ?
@@ -258,6 +264,7 @@ class Journal extends React.PureComponent {
                                   name='muud'
                                   ref="textarea-muud"
                                   value={data.muud}
+                                  onChange = {this.handleInput}
                                   readOnly={!isEditeMode}/>
                     </div>
                     {this.state.gridRowEdit ?
@@ -275,6 +282,19 @@ class Journal extends React.PureComponent {
         let requiredFields = this.requiredFields,
             warning = require('../../mixin/validateForm')(this, requiredFields);
         return warning;
+    }
+
+    handleInput(name, value) {
+        // изменения допустимы только в режиме редактирования
+        if (!this.state.edited) {
+            console.error('not in edite mode');
+            return false;
+        }
+
+        let data = this.state.docData;
+
+        data[name] = value;
+        this.setState({docData: data});
     }
 
     handleGridRow(gridEvent) {
