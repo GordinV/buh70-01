@@ -1,7 +1,7 @@
 module.exports =  {
     sideBarContainerStyle:{
         width:'100%',
-        height:'100%',
+        height:'400px',
         border:'1px solid red',
         background: 'white'
     },
@@ -15,8 +15,8 @@ module.exports =  {
         visibility: 'visible'
     },
     contentStyle: {
+        height:'inherit',
         width: '100%',
-        visibility: 'visible'
     },
 
     buttonStyle: {

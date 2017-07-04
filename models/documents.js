@@ -25,15 +25,18 @@ const Doc = {
 
                     db.query(sqlString, sqlParams, ((err, result) => {
                         if (err) {
-                            console.error('sql error:',(err));
+                            console.error('sql error:', (err));
                             rejected(err);
-                        };
+                        }
+                        ;
                         db.end();
-                        resolved(result.rows);
+
+                        let results = result ? result.rows: [];
+                        resolved(results);
                     }));
                 });
             } catch (err) {
-                console.error('sql error:',(err));
+                console.error('sql error:', (err));
                 rejected(err);
             }
         })
@@ -48,7 +51,7 @@ const Doc = {
                 config = require('../config/config'),
                 db = new pg.Client(config.pg.connection);
 
-            var    dataRow,
+            var dataRow,
                 sqlAsNew,
                 sqlParameter,
                 sqlCount = sqls.length;
@@ -60,13 +63,13 @@ const Doc = {
 
                 dataRow.query = db.query(sqlParameter, params); // ставим в очередь
 
-                dataRow.query.on('row', (row, result)=> {
+                dataRow.query.on('row', (row, result) => {
                     result.addRow(row);
                 });
             }
 
-            db.on('error', (err)=> {
-                console.error('db error:' ,err);
+            db.on('error', (err) => {
+                console.error('db error:', err);
                 rejected(new Error(err));
             });
 
@@ -91,23 +94,27 @@ const Doc = {
         // выполнит запрос, вернет callback и данные
         var db = this.connectDb();
 
-        db.connect(function (err) {
-            if (err) {
-                console.error('could not connect to postgres', err);
-                callback(err, null);
-            }
-
-            db.query(sqlString, sqlParams, function (err, result) {
+        try {
+            db.connect((err) => {
                 if (err) {
-                    console.error('sql error:',err);
+                    console.error('could not connect to postgres', err);
+                    callback(err, null);
                 }
-                db.end();
-//               console.log('result:' + JSON.stringify(result));
-                callback(err, result);
+
+                db.query(sqlString, sqlParams, (err, result) => {
+                    if (err) {
+                        console.error('sql error:', err);
+                    }
+                    db.end();
+                    callback(err, result);
+                });
             });
-        });
+        } catch (err) {
+            console.error(err);
+            callback(err);
+        }
     },
-    
+
     executeSqlQueries: function (sqls, params, returnData, callback) {
         // выполнит запрос, вернет callback и данные
 
@@ -126,20 +133,25 @@ const Doc = {
                 // взависимости от параметра идет запрос на новый док или уже существующий
                 sqlParameter = sqlAsNew;
             }
+            try {
+                dataRow.query = db.query(sqlParameter, params); // ставим в очередь
+            } catch (err) {
+                console.error('catched db error:', err);
+                callback(err, []);
 
-            dataRow.query = db.query(sqlParameter, params); // ставим в очередь
+            }
 
-            dataRow.query.on('row', (row, result)=> {
+            dataRow.query.on('row', (row, result) => {
                 result.addRow(row);
             });
         }
 
-        db.on('error', (err)=> {
-            console.error('db error:',err);
+        db.on('error', (err) => {
+            console.error('db error:', err);
             callback(err, []);
         });
 
-        db.on('drain', ()=> {
+        db.on('drain', () => {
             db.end;
             let dataObj = {};
 
@@ -154,8 +166,9 @@ const Doc = {
 
         try {
             db.connect(); // выполнить запрос
-        } catch(err) {
+        } catch (err) {
             console.error('SQL execution error:', err);
+            callback(err);
         }
 
     },
@@ -168,26 +181,36 @@ const Doc = {
             docBpm = [], // БП документа
             returnData = doc.returnData;
 
-        if  (doc.bpm) {
+        if (doc.bpm) {
             docBpm = doc.bpm;
         }
 
         // выполним запрос
         if (typeof sql == 'object') {
-
+            try {
                 Doc.executeSqlQueries(sql, params, returnData, (err, data) => {
 
                     if (err) {
-                        console.error(err);
+                        console.error('got error', err);
                     }
-//                    console.log('Doc.executeSqlQueries', data, docBpm);
                     callback(err, data, docBpm);
                 });
-        } else {
 
-            Doc.executeSqlQuery(sql, params,  (err, data)=> {
-                callback(err, data.rows, docBpm);
-            });
+            } catch (err) {
+                console.error('catched error', err);
+                callback(err);
+
+            }
+        } else {
+            try {
+                Doc.executeSqlQuery(sql, params, (err, data) => {
+                    callback(err, data.rows, docBpm);
+                });
+
+            } catch (err) {
+                console.error('error catched', err);
+                callback(err);
+            }
         }
     },
 
@@ -199,7 +222,7 @@ const Doc = {
         var docBpm = [], // БП документа
             returnData = doc.returnData;
 
-        if  (doc.bpm) {
+        if (doc.bpm) {
             docBpm = doc.bpm;
         }
 
@@ -215,42 +238,37 @@ const Doc = {
         // вызов метода сохранения документа
         var doc = require('./' + docTypeId),
             sql = doc.saveDoc;
-        
-        Doc.executeSqlQuery(sql, params, callback);
+
+        try {
+            Doc.executeSqlQuery(sql, params, callback);
+        } catch(err) {
+            console.error('error', err);
+            callback(err, null);
+
+        }
 
     },
 
-    saveDocPromise: (docTypeId, params)=> {
+    saveDocPromise: (docTypeId, params) => {
         // промисификация для функции saveDoc
         let doc = require('./' + docTypeId),
-            sql = doc.saveDoc,
-            docStatus = params[0].data['doc_status'] || 0,
-            docBpm =  params[0].data['bpm'];
-
-/*
-        if (!docStatus && docBpm.length == 0) {
-            // if doc has status = 0 and no bpm then we will add empty bpm to the doc
-            doc.bpm[0].status = 'opened';
-            params[0].data.bpm = doc.bpm;
-        }
-*/
+            sql = doc.saveDoc
 
         return Doc.executeSqlQueryPromise(sql, params);
     },
 
-    executeTask: function(docTypeId, params, callback) {
+    executeTask: function (docTypeId, params, callback) {
         // запустит переданные методы в моделе
         var doc = require('./' + docTypeId),
             tasks = params.params.tasks,
             docId = params.params.docId,
             userId = params.userId;
-        
+
         doc.executeTask(tasks, docId, userId, callback);
 //        callback(null,'Ok');
     },
 
-    executeAutomateTask: function(docTypeId, params) {
- //       console.log('executeAutomateTask', docTypeId, params);
+    executeAutomateTask: function (docTypeId, params) {
         let doc = require('./' + docTypeId),
             tasks = params.params.tasks,
             docId = params.params.docId,
@@ -259,8 +277,7 @@ const Doc = {
             chain = Promise.resolve(),
             results = [];
 
-        tasks = tasks.filter((task)=> {
-//            console.log('executeTaskPromise:', task);
+        tasks = tasks.filter((task) => {
 //                if (task == '') {
             // задача не должна быть выполненой, и до первой "ручной" задачи
             return task;
@@ -271,21 +288,20 @@ const Doc = {
         // 2. формруем из него массив вызовов функций
 
 
-        tasks = bpm.map((task)=> {
+        tasks = bpm.map((task) => {
             return task.action;
         });
 
-//        console.log('documents executeTaskPromise', tasks);
 
 // в цикле добавляем задачи в цепочку
-        tasks.forEach((task)=> {
+        tasks.forEach((task) => {
             chain = chain
                 .then(() => {
- //                   console.log('then task', task);
+                    //                   console.log('then task', task);
                     return executePromise(task);
                 })
                 .then((result) => {
- //                   console.log('then resuts:', results);
+                    //                   console.log('then resuts:', results);
                     results.push(result);
                 });
         });
@@ -308,7 +324,7 @@ const Doc = {
 
     },
 
-    executeTaskPromise: function(docTypeId, params) {
+    executeTaskPromise: function (docTypeId, params) {
         // обертка над методом executeTask
 
 //        console.log('executeTaskPromise 1', docTypeId, params);
@@ -343,13 +359,13 @@ const Doc = {
 
         requery: function (docTypeId, callback, results, sortBy, dynamicWhere, user) {
             // возвращаем данные для заданного типа
-            var returnData = [],
+            let returnData = [],
                 docs = this.docs,
                 configuration = null,
                 gridConfig = null,
                 sqlSelect = '',
-                sqlSortBy = (!!sortBy) ? ' order by ' + sortBy: '',
-                sqlWhere = (!!dynamicWhere) ? dynamicWhere: '',
+                sqlSortBy = ' order by ' + (!sortBy ? ' id desc ' : sortBy),
+                sqlWhere = (!!dynamicWhere) ? dynamicWhere : '',
                 sqlParams = '',
                 data = [];
 
@@ -358,15 +374,12 @@ const Doc = {
                 docTypeId = 'DOK'
             }
 
-
-            //       if (docTypeId == 'DOK' || docTypeId == 'ARV' || docTypeId == 'PALK' || docTypeId == 'TAABEL' || docTypeId == 'PVKAART' || docTypeId == 'PVOPER' ) {
-
             gridConfig = this.getGridConfiguration(docTypeId);
             sqlSelect = 'select * from (' + this.getGridQuery(docTypeId) + ') as qry ' + sqlWhere + sqlSortBy;
             //sqlParams = this.getGridParams(docTypeId);
             sqlParams = [user.asutusId, user.userId];
 
-            Doc.executeSqlQuery(sqlSelect, sqlParams, function (err, data) {
+            Doc.executeSqlQuery(sqlSelect, sqlParams, (err, data) => {
 
                 if (err) {
                     console.error('sqlError sqlSelect sqlParams', err, sqlSelect, sqlParams);
@@ -384,7 +397,6 @@ const Doc = {
 
                 }
             });
-            //       }
         },
 
     }, // объект docsGrid

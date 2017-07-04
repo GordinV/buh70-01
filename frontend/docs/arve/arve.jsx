@@ -9,6 +9,7 @@ const
     InputNumber = require('../../components/input-number/input-number.jsx'),
     DocCommon = require('../../components/doc-common/doc-common.jsx'),
     Select = require('../../components/select/select.jsx'),
+    SelectData = require('../../components/select-data/select-data.jsx'),
     TextArea = require('../../components/text-area/text-area.jsx'),
     DataGrid = require('../../components/data-grid/data-grid.jsx'),
     GridButtonAdd = require('../../components/button-register/button-register-add/button-register-add.jsx'),
@@ -38,8 +39,8 @@ class Arve extends React.PureComponent {
             bpm: this.props.bpm,
             edited: this.props.data.row.id == 0,
             showMessageBox: 'none',
-            gridData: this.props.data.details,
             relations: this.props.data.relations,
+            gridData: this.props.data.details,
             gridConfig: this.props.data.gridConfig,
             gridRowEdit: false,
             gridRowEvent: null,
@@ -76,6 +77,7 @@ class Arve extends React.PureComponent {
         this.validateGridRow = this.validateGridRow.bind(this);
         this.handleGridRowInput = this.handleGridRowInput.bind(this);
         this.createGridRow = this.createGridRow.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
     }
 
     validation() {
@@ -241,6 +243,16 @@ class Arve extends React.PureComponent {
                                     btnDelete={isEditeMode}
                                     onChange={this.handleInputChange}
                                     readOnly={!isEditeMode}/>
+{/*
+                            <SelectData title="Asutus widget"
+                                        name='asutusid'
+                                        value={this.state.docData.asutusid}
+                                        defaultValue={this.state.docData.asutus}
+                                        collName="asutus"
+                                        ref="selectData-asutusid"
+                                        onChange={this.handleInputChange}
+                                        readOnly={!isEditeMode}/>
+*/}
                             <InputText title='Lisa '
                                        name='lisa'
                                        value={this.state.docData.lisa}
@@ -393,7 +405,7 @@ class Arve extends React.PureComponent {
 
     handleInputChange(inputName, inputValue) {
         // обработчик изменений
-
+        console.log('handleInputChange', inputName, inputValue);
         // изменения допустимы только в режиме редактирования
         if (!this.state.edited) {
             console.error('not in edite mode');
@@ -404,7 +416,6 @@ class Arve extends React.PureComponent {
 
         data[inputName] = inputValue;
         this.setState({docData: data});
-
 /*
         let data = flux.stores.docStore.data;
         data[inputName] = inputValue;

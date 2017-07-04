@@ -8,14 +8,15 @@ class ModalPage extends React.PureComponent {
     constructor(props) {
         super(props);
         this.handleBtnClick.bind(this);
-        this.closeModalPage.bind(this);
+        this.changeVisibilityModalPage.bind(this);
         this.state = {
             show: this.props.show
         }
     }
 
-    closeModalPage() {
-        this.setState({show:false});
+    changeVisibilityModalPage() {
+        let visibility = this.state.show;
+        this.setState({show:!visibility});
     }
 
     componentWillReceiveProps(nextProps) {
@@ -23,7 +24,11 @@ class ModalPage extends React.PureComponent {
     }
 
     handleBtnClick(btnEvent) {
-        this.props.modalPageBtnClick(btnEvent);
+        // закрываем окно и если передан обработчик, отдаем туда данные
+        this.changeVisibilityModalPage();
+        if (this.props.modalPageBtnClick) {
+            this.props.modalPageBtnClick(btnEvent);
+        }
     }
 
     render() {
@@ -39,7 +44,7 @@ class ModalPage extends React.PureComponent {
                 <div style={styles.modalPage} ref='modalPageContainer'>
                     <div style={styles.header} ref='modalPageHeader'>
                         <span ref='headerName' style={styles.headerName}> {this.props.modalPageName} </span>
-                        <Button style={styles.buttonClose} ref="btnClose" onClick={this.closeModalPage.bind(this)} value="x" />
+                        <Button style={styles.buttonClose} ref="btnClose" onClick={this.changeVisibilityModalPage.bind(this)} value="x" />
                     </div>
                     <div style={styles.modalPageContent} ref="modalPageContent">
                         {this.props.children}

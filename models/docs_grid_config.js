@@ -1,14 +1,14 @@
 module.exports = {
     DOK: {
         gridConfiguration: [
-            {id: "id", name: "id", width: "50px", show: false},
-            {id: "type", name: "type", width: "100px"},
-            {id: "created", name: "created", width: "150px"},
-            {id: "lastupdate", name: "Last change", width: "150px"},
-            {id: "status", name: "Status", width: "100px"}
+            {id: "id", name: "id", width: "10%", show: false},
+            {id: "type", name: "type", width: "20%"},
+            {id: "created", name: "created", width: "20%"},
+            {id: "lastupdate", name: "Last change", width: "20%"},
+            {id: "status", name: "Status", width: "30%"}
 
         ],
-        sqlString: `select d.id, l.nimetus as type, to_char(d.created, 'DD.MM.YYYY HH:MM:SS')::text as created, 
+        sqlString: `select d.id, trim(l.nimetus) as type, to_char(d.created, 'DD.MM.YYYY HH:MM:SS')::text as created, 
          to_char(d.lastupdate,'DD.MM.YYYY HH:MM:SS')::text as lastupdate, 
          trim(s.nimetus) as status 
          from docs.doc d 
@@ -16,7 +16,7 @@ module.exports = {
          inner join libs.library l on l.id = d.doc_type_id 
          where d.rekvId = $1
          and docs.usersRigths(d.id, 'select', $2)
-            limit 100`,
+         limit 100`,
         params: ''
     },
 
@@ -71,7 +71,7 @@ module.exports = {
          inner join docs.journal1 j1 on j.id = j1.parentid 
          inner join libs.library s on s.kood = d.status::text 
          where d.rekvId = $1
-         and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+            and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
         params: ''
     },
     SORDER: {
@@ -95,8 +95,8 @@ module.exports = {
          inner join docs.korder1 k on d.id = k.parentid 
          inner join libs.library s on s.kood = d.status::text 
          where k.tyyp = 1
-         and d.rekvId = $1
-         and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+            and d.rekvId = $1
+            and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
         params: ''
     },
     VORDER: {
@@ -120,8 +120,8 @@ module.exports = {
              inner join docs.korder1 k on d.id = k.parentid 
              inner join libs.library s on s.kood = d.status::text
              where k.tyyp = 2
-             and d.rekvId = $1
-             and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+                and d.rekvId = $1
+                and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
         params: ''
     },
     SMK: {
@@ -148,8 +148,8 @@ module.exports = {
              inner join libs.asutus a on a.id = k1.asutusid
              inner join libs.library s on s.kood = d.status::text 
              where k.opt = 0
-             and d.rekvId = $1
-             and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+                and d.rekvId = $1
+                and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
         params: ''
     },
     VMK: {
@@ -176,8 +176,8 @@ module.exports = {
              inner join libs.asutus a on a.id = k1.asutusid
              inner join libs.library s on s.kood = d.status::text 
              where k.opt = 1
-             and d.rekvId = $1
-             and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+                and d.rekvId = $1
+                and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
         params: ''
     },
     PALK: {

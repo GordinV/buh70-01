@@ -1,14 +1,16 @@
 'use strict';
 const flux = require('fluxify');
 
-let validateForm = ((self, reqFields) => {
-
+let validateForm = ((self, reqFields, data) => {
     // валидация формы
-    let warning,
+    let warning = null,
         requiredFields = reqFields || [],
         notRequiredFields = [],
-        notMinMaxRule = [],
-        data = flux.stores.docStore.data;
+        notMinMaxRule = [];
+
+        if (!data) {
+            data = flux.stores.docStore.data;
+        }
 
 
     requiredFields.forEach((field) => {

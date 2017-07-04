@@ -1,6 +1,9 @@
 'use strict';
 //var co = require('co');
 let now = new Date();
+const start = require('./BP/start'),
+    generateJournal = require('./BP/generateJournal'),
+    endProcess = require('./BP/endProcess');
 
 const Arv = {
         select: [
@@ -21,7 +24,9 @@ const Arv = {
                  inner join ou.userid u on u.id = $2::integer 
                  left outer join libs.dokprop dp on dp.id = a.doklausid 
                  where d.id = $1`,
-                sqlAsNew: `select $1::integer as id, $2::integer as userid,  to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as created, to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as lastupdate, null as bpm,
+                sqlAsNew: `select $1::integer as id, $2::integer as userid,  
+                    to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as created, 
+                    to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as lastupdate, null as bpm,
                  trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, 
                  trim(s.nimetus) as status, 0 as doc_status, 
                  docs.sp_get_number(u.rekvId, 'ARV', year(date()), null) as number, 0.00 as summa, 
@@ -154,14 +159,15 @@ const Arv = {
             }
 
             let taskFunction = eval(executeTask[0]);
-            return taskFunction(docId, userId);
+            return taskFunction(docId, userId, this);
         }
     }
-    ;
+
 
 module.exports = Arv;
-//module.exports = start;
 
+
+/*
 const register = (docId, userId) =>{
     // заглушка
     return new Promise((resilved, rejected) => {
@@ -185,6 +191,7 @@ const tasumine = (docId, userid) => {
 
 };
 
+
 const start =(docId, userId)=> {
     // реализует старт БП документа
         const DOC_STATUS = 1, // устанавливаем активный статус для документа
@@ -199,7 +206,9 @@ const start =(docId, userId)=> {
     return DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]);
 
 };
+*/
 
+/*
 // generateJournal
 const generateJournal = (docId, userId)=> {
     // реализует контировка
@@ -219,8 +228,9 @@ const generateJournal = (docId, userId)=> {
         DocDataObject.executeSqlQueryPromise(SQL_UPDATE_DOCUMENT_BPM, [docId, JSON.stringify(bpm), JSON.stringify(history)])
     ]);
 };
+*/
 
-// generateJournal
+/*
 
 const endProcess = (docId, userId)=> {
     // реализует завершение БП документа
@@ -237,7 +247,9 @@ const endProcess = (docId, userId)=> {
     return DocDataObject.executeSqlQueryPromise(SQL, params);
 };
 
+*/
 
+/*
 const setBpmStatuses = (actualStepIndex, userId)=>  {
 // собираем данные на на статус документа, правим данные БП документа
     // 1. установить на actualStep = false
@@ -281,6 +293,7 @@ const setBpmStatuses = (actualStepIndex, userId)=>  {
     return bpm;
 
 };
+*/
 
 
 

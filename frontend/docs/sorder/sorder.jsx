@@ -210,6 +210,7 @@ class Sorder extends React.PureComponent {
                                     value={data.asutusid}
                                     defaultValue={data.asutus}
                                     ref="select-asutusId"
+                                    onChange = {this.handleInput}
                                     readOnly={!isEditeMode}/>
                             <InputText title="Arve nr."
                                        name='arvnr'

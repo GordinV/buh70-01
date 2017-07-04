@@ -79,49 +79,6 @@ class Register extends React.PureComponent {
         flux.doAction('dataChange', this.props.components);
     }
 
-    findComponent(componentName) {
-        // вернет данные компонента по его названию
-        let components = this.state.components,
-            componentData = [];
-
-        if (components.length > 0) {
-            componentData = components.filter(function (item) {
-                if (item.name == componentName) {
-                    return item;
-                }
-            });
-        }
-        return componentData;
-
-    }
-
-    btnFilterClick () {
-        // откроет модальное окно с полями для фильтрации
-        this.setState({getFilter: true})
-    }
-
-    btnDeleteClick() {
-        this.setState({getDeleteModalPage: true})
-    }
-
-    btnAddClick() {
-        // обработчик события клик кнопки "Добавить"
-        // вызовем действия на флаксе
-        flux.doAction('Add');
-    }
-
-    btnEditClick() {
-        // обработчик события клик кнопки "Изменить"
-        // вызовем действия на флаксе
-        flux.doAction('Edit');
-    }
-
-    btnPrintClick() {
-        // обработчик события клик кнопки "Изменить"
-        // вызовем действия на флаксе
-        flux.doAction('Print');
-    }
-
     render() {
         let componentlist = this.findComponent('docsList'),
             listValue = componentlist[0].value || '',
@@ -167,8 +124,7 @@ class Register extends React.PureComponent {
                                       onChangeAction='docsListChange'
                             />
                         </Sidebar>
-                        <Sidebar width="100%" toolbar={false} ref="grid-sidebar">
-                            <div>
+                        <Sidebar toolbar={false} ref="grid-sidebar">
                                 <DataGrid ref = 'dataGrid'
                                     gridData={gridData}
                                     gridColumns={gridConfig}
@@ -191,12 +147,54 @@ class Register extends React.PureComponent {
                                     modalPageBtnClick={this.modalPageInfoBtnClick}
                                     show={this.state.showSystemMessage}
                                     systemMessage={systemMessage}/>
-                            </div>
                         </Sidebar>
                     </div>
                 </div>
             </div>
         )
+    }
+
+    findComponent(componentName) {
+        // вернет данные компонента по его названию
+        let components = this.state.components,
+            componentData = [];
+
+        if (components.length > 0) {
+            componentData = components.filter(function (item) {
+                if (item.name == componentName) {
+                    return item;
+                }
+            });
+        }
+        return componentData;
+
+    }
+
+    btnFilterClick () {
+        // откроет модальное окно с полями для фильтрации
+        this.setState({getFilter: true})
+    }
+
+    btnDeleteClick() {
+        this.setState({getDeleteModalPage: true})
+    }
+
+    btnAddClick() {
+        // обработчик события клик кнопки "Добавить"
+        // вызовем действия на флаксе
+        flux.doAction('Add');
+    }
+
+    btnEditClick() {
+        // обработчик события клик кнопки "Изменить"
+        // вызовем действия на флаксе
+        flux.doAction('Edit');
+    }
+
+    btnPrintClick() {
+        // обработчик события клик кнопки "Изменить"
+        // вызовем действия на флаксе
+        flux.doAction('Print');
     }
 
     clickHandler(action, id) {

@@ -1,7 +1,6 @@
 'use strict';
 
 const React = require('react'),
-    flux = require('fluxify'),
     styles = require('./datalist-styles');
 
 class DataList extends React.PureComponent {
@@ -63,9 +62,10 @@ class DataList extends React.PureComponent {
             value: value
         });
 
-        // сохраним в хранилище
-        let changeAction = this.props.name + 'Change'
-        flux.doAction(changeAction, value)
+        if (this.props.onClickAction) {
+            //@todo избавиться от change
+            this.props.onClickAction(this.props.name + 'Change', value);
+        }
     }
 
 }

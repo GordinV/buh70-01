@@ -2,6 +2,11 @@
 
 let now = new Date();
 
+const start = require('./BP/start'),
+    generateJournal = require('./BP/generateJournal'),
+    endProcess = require('./BP/endProcess');
+
+
 const Vmk = {
     select: [
         {
@@ -11,7 +16,8 @@ const Vmk = {
                 k.number as number,  to_char(k.maksepaev,'YYYY-MM-DD') as maksepaev, k.viitenr,
                 k.aaid as aa_id, trim(aa.nimetus) as pank, 
                 k.rekvId, to_char(k.kpv,'YYYY-MM-DD') as kpv, k.selg, k.muud, k.opt, 
-                k.arvid, ('Number:' || arv.number::text || ' Kuupäev:' || arv.kpv::text || ' Jääk:' || arv.jaak::text) as arvnr 
+                k.arvid, ('Number:' || arv.number::text || ' Kuupäev:' || arv.kpv::text || ' Jääk:' || arv.jaak::text) as arvnr,
+                (select sum(summa) from docs.mk1 where parentid = k.id) as summa
                 from docs.doc d 
                 inner join libs.library l on l.id = d.doc_type_id 
                 inner join docs.mk k on k.parentId = d.id 
@@ -27,7 +33,7 @@ const Vmk = {
                 aa.id as aa_id, trim(aa.name) as pank, 
                 null as rekvId,  to_char(now(),'YYYY-MM-DD') as kpv, null as viitenr,
                 null as selg, null as muud, 1 as  opt, null as regkood, null as asutus, 
-                null as arvid, null as arvnr 
+                null as arvid, null as arvnr, 0 as summa
                 from libs.library l,   libs.library s, 
                 (select id, trim(nimetus) as name from ou.aa where pank = 1 order by default_ limit 1) as aa, 
                 (select * from ou.userid u where u.id = $2::integer) as u                
@@ -136,7 +142,7 @@ const Vmk = {
         }
 
         let taskFunction = eval(executeTask[0]);
-        return taskFunction(docId, userId);
+        return taskFunction(docId, userId, Vmk);
     },
     register: {command: `update docs.doc set status = 1 where id = $1`, type: "sql"},
     generateJournal: {command: `select docs.gen_lausend_mk($1, $2)`, type: "sql"},

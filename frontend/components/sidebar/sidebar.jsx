@@ -36,7 +36,7 @@ class SideBarContainer extends React.Component {
         //prepaire styles
         let sideBarContainerStyle = Object.assign({}, sideBarStyles.sideBarContainerStyle, {width: this.state.width}),
             toolBarStyle = Object.assign({},sideBarStyles.toolBarStyle, {visibility: this.props.toolbar ? 'visible': 'hidden'}),
-            contentStyle = Object.assign(({},sideBarStyles.contentStyle, {visibility: this.state.show ? 'visible': 'hidden'})),
+            contentStyle = Object.assign({},sideBarStyles.contentStyle, {visibility: this.state.show ? 'visible': 'hidden'}),
             buttonStyle = Object.assign({},sideBarStyles.buttonStyle, {
                 height: this.props.toolbar ? sideBarStyles.buttonStyle.height: '0',
                 visibility: this.props.toolbar ? 'visible': 'hidden'

@@ -138,6 +138,12 @@ class Vorder extends React.PureComponent {
 
     }
 
+
+    shouldComponentUpdate(nextProps, nextState) {
+        // @todo добавить проверку на изменение состояния
+        return true;
+    }
+
     render () {
         // формируем зависимости
         relatedDocuments(this);
@@ -203,6 +209,7 @@ class Vorder extends React.PureComponent {
                                     libs="asutused"
                                     value={data.asutusid}
                                     defaultValue={data.asutus}
+                                    onChange = {this.handleInput}
                                     ref="select-asutusId"
                                     readOnly={!isEditeMode}/>
                             <InputText title="Arve nr."
@@ -322,7 +329,8 @@ class Vorder extends React.PureComponent {
         if (!this.state.edited) return '';
 
         let requiredFields = this.requiredFields;
-        let warning = require('../../mixin/validateForm')(this, requiredFields);
+        let warning = require('../../mixin/validateForm')(this, requiredFields, this.state.docData);
+
         return warning;
     }
 

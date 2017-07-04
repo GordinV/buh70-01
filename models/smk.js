@@ -21,7 +21,9 @@ const Smk = {
                 left outer join docs.arv as arv on k.arvid = arv.Id 
                 inner join ou.userid u on u.id = $2::integer 
                 where d.id = $1`,
-            sqlAsNew: `select $1::integer as id, $2::integer as userid, (now()::date || 'T' || now()::time)::text as created, (now()::date || 'T' || now()::time)::text as lastupdate, null as bpm,
+            sqlAsNew: `select $1::integer as id, $2::integer as userid, 
+                (now()::date || 'T' || now()::time)::text as created, 
+                (now()::date || 'T' || now()::time)::text as lastupdate, null as bpm,
                 trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, 
                 trim(s.nimetus) as status, 
                 (select max(number) from docs.korder1 where tyyp = 1 )::integer + 1  as number, 
@@ -149,3 +151,86 @@ const Smk = {
 };
 
 module.exports = Smk;
+
+const start =(docId, userId)=> {
+    // реализует старт БП документа
+    const DOC_STATUS = 1, // устанавливаем активный статус для документа
+        DocDataObject = require('./documents'),
+        SQL_UPDATE = 'update docs.doc set status = $1, bpm = $2, history = $4 where id = $3',
+        SQL_SELECT_DOC = Smk.select[0].sql;
+
+    let  bpm = setBpmStatuses(0, userId), // выставим актуальный статус для следующего процесса
+        history = {user: userId, updated: Date.now()};
+
+    // выполнить запрос и вернуть промис
+    return DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]);
+
+};
+
+const setBpmStatuses = (actualStepIndex, userId)=>  {
+// собираем данные на на статус документа, правим данные БП документа
+    // 1. установить на actualStep = false
+    // 2. задать статус документу
+    // 3. выставить стутус задаче (пока только finished)
+    // 4. если есть следующий шаг, то выставить там actualStep = true, статус задачи opened
+
+
+    try {
+        var bpm =  Smk.bpm, // нельзя использовать let из - за использования try {}
+            nextStep = bpm[actualStepIndex].nextStep,
+            executors = bpm[actualStepIndex].actors || [];
+
+        if (!executors || executors.length == 0) {
+            // если исполнители не заданы, то добавляем автора
+            executors.push({
+                id: userId,
+                name: 'AUTHOR',
+                role: 'AUTHOR'
+            })
+        }
+
+        bpm[actualStepIndex].data = [{execution: Date.now(), executor: userId, vars: null}];
+        bpm[actualStepIndex].status = 'finished';  // 3. выставить стутус задаче (пока только finished)
+        bpm[actualStepIndex].actualStatus = false;  // 1. установить на actualStep = false
+        bpm[actualStepIndex].actors = executors;  // установить список акторов
+
+        // выставим флаг на следующий щаг
+        bpm = bpm.map(stepData => {
+            if (stepData.step === nextStep) {
+                // 4. если есть следующий шаг, то выставить там actualStep = true, статус задачи opened
+                stepData.actualStep = true;
+                stepData.status = 'opened';
+            }
+            return stepData;
+        });
+
+    } catch (e) {
+        console.error('try error', e);
+    }
+    return bpm;
+
+};
+
+
+/*
+
+// generateJournal
+const generateJournal = (docId, userId)=> {
+    // реализует контировка
+
+    const ACTUAL_STEP_STATUS = 1, // актуальный шаг БП
+        SQL_GENERATE_LAUSEND = 'select docs.gen_lausend_arv((select id from docs.arv where parentid = $1), $2) as journal_id',
+        SQL_UPDATE_DOCUMENT_BPM = 'update docs.doc set bpm = $2, history = $3  where id = $1',
+        DocDataObject = require('./documents');
+
+    let   bpm = setBpmStatuses(ACTUAL_STEP_STATUS, userId),
+        tasks = [],
+        history = {user: userId, updated: Date.now()};
+
+    // выполнить запрос и вернуть промис
+    return Promise.all([
+        DocDataObject.executeSqlQueryPromise(SQL_GENERATE_LAUSEND, [docId, userId]),
+        DocDataObject.executeSqlQueryPromise(SQL_UPDATE_DOCUMENT_BPM, [docId, JSON.stringify(bpm), JSON.stringify(history)])
+    ]);
+};
+*/

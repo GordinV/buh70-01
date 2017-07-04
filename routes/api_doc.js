@@ -16,6 +16,7 @@ exports.post = function(req, res) {
          params = [];
 
      if (docId) {
+/*
          req.session.docs.push(
              {  component:'doc',
                  parameter: docTypeId,
@@ -24,6 +25,12 @@ exports.post = function(req, res) {
                  docId: docId,
                  action: action
              });
+*/
+         let docs = req.session.docs,
+             lastInxex = docs.length - 1;
+
+         req.session.docs[lastInxex].docId = docId;
+
      }
 
     switch(action) {

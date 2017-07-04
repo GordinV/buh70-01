@@ -78,48 +78,55 @@ exports.get = function(req, res, params) {
     let Doc = React.createFactory(docComponent),
         now = new Date();
 
-    DocDataObject.selectDoc(docTypeId, [docId, user.userId], (err, data, bpm)=> {
+    try {
+        DocDataObject.selectDoc(docTypeId, [docId, user.userId], (err, data, bpm)=> {
 
-        if (err) {
-            console.error(err);
-            next(err);
-        }
-
-        docInitData.data = data;
-
-        if (data.row) {
-            if (bpm) {
-                docInitData.bpm = bpm;
+            if (err) {
+                console.error(err);
+                res.render('error', {message: 'Error in document', status:500} );
+                return;
             }
 
-            let Component = React.createElement(
-                docComponent,
-                docInitData
-            );
+            docInitData.data = data;
 
-            try {
+            if (data.row) {
+                if (bpm) {
+                    docInitData.bpm = bpm;
+                }
+
+                let Component = React.createElement(
+                    docComponent,
+                    docInitData
+                );
+
+                try {
 //                var html = ReactServer.renderToString(Component);
 
 
-                let html = ReactServer.renderToString(Component);
-                res.render(docTemplate, {
-                    "user": user,
-                    react:html,
-                    src: moduleSource,
-                    docName: docName,
-                    store: JSON.stringify(docInitData)
-                });
-            } catch(e) {
-                console.error('error:', e);
-                res.render('error', {message: 'Error in document', status:500} );
+                    let html = ReactServer.renderToString(Component);
+                    res.render(docTemplate, {
+                        "user": user,
+                        react:html,
+                        src: moduleSource,
+                        docName: docName,
+                        store: JSON.stringify(docInitData)
+                    });
+                } catch(e) {
+                    console.error('error:', e);
+                    res.render('error', {message: 'Error in document', status:500} );
+                }
+
+            } else {
+//            let error =   new Error(400,'Document not found');
+                res.render('error', {message: 'Document not found', status:400} );
             }
 
-        } else {
-//            let error =   new Error(400,'Document not found');
-            res.render('error', {message: 'Document not found', status:400} );
-        }
+        }, results);
 
-    }, results);
+    } catch(err) {
+        res.render('error', {message: 'Error in document', status:500} );
+
+    }
 };
 
 if (!Date.prototype.toLocalISOString) {
