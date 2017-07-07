@@ -6,9 +6,9 @@ const start = require('./BP/start'),
     endProcess = require('./BP/endProcess');
 
 const Arv = {
-        select: [
-            {
-                sql: `select d.id, $2::integer as userid, to_char(created, 'DD.MM.YYYY HH:MM:SS')::text as created, to_char(lastupdate,'DD.MM.YYYY HH:MM:SS')::text as lastupdate, d.bpm, 
+    select: [
+        {
+            sql: `select d.id, $2::integer as userid, to_char(created, 'DD.MM.YYYY HH:MM:SS')::text as created, to_char(lastupdate,'DD.MM.YYYY HH:MM:SS')::text as lastupdate, d.bpm, 
                  trim(l.nimetus) as doc, trim(l.kood) as doc_type_id,
                  trim(s.nimetus) as status, d.status as doc_status,
                  trim(a.number) as number, a.summa, a.rekvId, a.liik, a.operid, to_char(a.kpv,'YYYY-MM-DD') as kpv, 
@@ -24,7 +24,7 @@ const Arv = {
                  inner join ou.userid u on u.id = $2::integer 
                  left outer join libs.dokprop dp on dp.id = a.doklausid 
                  where d.id = $1`,
-                sqlAsNew: `select $1::integer as id, $2::integer as userid,  
+            sqlAsNew: `select $1::integer as id, $2::integer as userid,  
                     to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as created, 
                     to_char(now(), 'DD.MM.YYYY HH:MM:SS')::text as lastupdate, null as bpm,
                  trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, 
@@ -38,262 +38,157 @@ const Arv = {
                  where l.library = 'DOK' and l.kood = 'ARV' 
                  and u.id = $2::integer 
                  and s.library = 'STATUS' and s.kood = '0'`,
-                query: null,
-                multiple: false,
-                alias: 'row',
-                data: []
-            },
-            {
-                sql: `select a1.id, $2::integer as userid, a1.nomid, a1.kogus, a1.hind, a1.kbm, a1.kbmta, a1.summa, a1.kood1,
+            query: null,
+            multiple: false,
+            alias: 'row',
+            data: []
+        },
+        {
+            sql: `select a1.id, $2::integer as userid, a1.nomid, a1.kogus, a1.hind, a1.kbm, a1.kbmta, a1.summa, a1.kood1,
                  trim(n.kood) as kood, trim(n.nimetus) as nimetus 
                  from docs.arv1 as a1 
                  inner join docs.arv a on a.id = a1.parentId 
                  inner join libs.nomenklatuur n on n.id = a1.nomId 
                  inner join ou.userid u on u.id = $2::integer 
                  where a.parentid = $1::integer`,
-                query: null,
-                multiple: true,
-                alias: 'details',
-                data: []
-            },
-            {
-                sql: `select rd.id, $2::integer as userid, trim(l.kood) as doc_type, trim(l.nimetus) as name 
+            query: null,
+            multiple: true,
+            alias: 'details',
+            data: []
+        },
+        {
+            sql: `select rd.id, $2::integer as userid, trim(l.kood) as doc_type, trim(l.nimetus) as name 
                  from docs.doc d 
                  left outer join docs.doc rd on rd.id in (select unnest(d.docs_ids)) 
                  left outer join libs.library l on rd.doc_type_id = l.id 
                  inner join ou.userid u on u.id = $2::integer 
                  where d.id = $1::integer`,
-                query: null,
-                multiple: true,
-                alias: 'relations',
-                data: []
-            }
-
-        ],
-        returnData: {
-            row: {},
-            details: [],
-            relations: [],
-            gridConfig: [
-                {id: 'id', name: 'id', width: '0px', show: false, type: 'text', readOnly: true},
-                {id: 'nomid', name: 'nomId', width: '0px', show: false, type: 'text', readOnly: false},
-                {
-                    id: 'kood',
-                    name: 'Kood',
-                    width: '100px',
-                    show: true,
-                    type: 'select',
-                    readOnly: false,
-                    dataSet: 'nomenclature',
-                    valueFieldName: 'nomid'
-                },
-                {id: 'nimetus', name: 'Nimetus', width: '300px', show: true, readOnly: true},
-                {id: 'hind', name: 'Hind', width: '100px', show: true, type: 'number', readOnly: false},
-                {id: 'kogus', name: 'kogus', width: '100px', show: true, type: 'number', readOnly: false},
-                {id: 'kbm', name: 'Käibemaks', width: '100px', show: true, type: 'number', readOnly: false},
-                {id: 'summa', name: 'Summa', width: '100px', show: true, type: 'number', readOnly: false}
-            ]
-        },
-        saveDoc: `select docs.sp_salvesta_arv($1, $2, $3) as id`,
-        deleteDoc: `select error_code, result, error_message from docs.sp_delete_arv($1, $2)`, // $1 - userId, $2 - docId
-        requiredFields: [
-            {
-                name: 'kpv',
-                type: 'D',
-                min: now.setFullYear(now.getFullYear() - 1),
-                max: now.setFullYear(now.getFullYear() + 1)
-            },
-            {
-                name: 'tahtaeg',
-                type: 'D',
-                min: now.setFullYear(now.getFullYear() - 1),
-                max: now.setFullYear(now.getFullYear() + 1)
-            },
-            {name: 'asutusid', type: 'N', min:null, max:null},
-            {name: 'summa', type: 'N', min:-9999999, max:999999}
-        ],
-        bpm: [
-            {
-                step: 0,
-                name: 'Регистация документа',
-                action: 'start',
-                nextStep: 1,
-                task: 'human',
-                data: [],
-                actors: [],
-                status: null,
-                actualStep: false
-            },
-            {
-                step: 1,
-                name: 'Контировка',
-                action: 'generateJournal',
-                nextStep: 2,
-                task: 'automat',
-                data: [],
-                status: null,
-                actualStep: false
-            },
-//        {step:2, name:'Оплата', action: 'tasumine', nextStep:3, task:'human', data:[], status:null, actualStep:false},
-            {
-                step: 2,
-                name: 'Конец',
-                action: 'endProcess',
-                nextStep: null,
-                task: 'automat',
-                data: [],
-                actors: [],
-                status: null,
-                actualStep: false
-            }
-        ],
-        register: {command: `update docs.doc set status = 1 where id = $1`, type: "sql"},
-        generateJournal: {command: "select docs.gen_lausend_arv($1, $2)", type: "sql"},
-        endProcess: {command: "update docs.doc set status = 2 where id = $1", type: "sql"},
-        executeTask: function (task, docId, userId) {
-            // выполнит задачу, переданную в параметре
-
-            let executeTask = task;
-            if (executeTask.length == 0 ) {
-                executeTask = ['start'];
-            }
-
-            let taskFunction = eval(executeTask[0]);
-            return taskFunction(docId, userId, this);
+            query: null,
+            multiple: true,
+            alias: 'relations',
+            data: []
         }
+
+    ],
+    grid: {
+        gridConfiguration: [
+            {id: "id", name: "id", width: "25px", show: false},
+            {id: "number", name: "Number", width: "100px"},
+            {id: "kpv", name: "Kuupaev", width: "100px"},
+            {id: "summa", name: "Summa", width: "75px"},
+            {id: "tahtaeg", name: "Tähtaeg", width: "100px"},
+            {id: "jaak", name: "Jääk", width: "100px"},
+            {id: "tasud", name: "Tasud", width: "100px"},
+            {id: "asutus", name: "Asutus", width: "200px"},
+            {id: "created", name: "Lisatud", width: "150px"},
+            {id: "lastupdate", name: "Viimane parandus", width: "150px"},
+            {id: "status", name: "Staatus", width: "100px"},
+        ],
+        sqlString: `select d.id, trim(a.number) as number, to_char(a.kpv,'DD.MM.YYYY') as kpv, a.summa, 
+        to_char(a.tahtaeg,'DD.MM.YYYY') as tahtaeg, a.jaak, to_char(a.tasud,'DD.MM.YYYY') as tasud,
+         trim(asutus.nimetus) as asutus,
+         to_char(d.created,'DD.MM.YYYY HH:MM') as created, to_char(d.lastupdate,'DD.MM.YYYY HH:MM') as lastupdate,
+         trim(s.nimetus) as status 
+         from docs.doc d 
+         inner join docs.arv a on a.parentId = d.id
+         inner join libs.library s on s.kood = d.status::text
+         left outer join libs.asutus asutus on a.asutusid = asutus.id 
+         where d.rekvId = $1 
+         and docs.usersRigths(d.id, 'select', $2)`,     //  $1 всегда ид учреждения $2 - всегда ид пользователя
+        params: '',
+    },
+    returnData: {
+        row: {},
+        details: [],
+        relations: [],
+        gridConfig: [
+            {id: 'id', name: 'id', width: '0px', show: false, type: 'text', readOnly: true},
+            {id: 'nomid', name: 'nomId', width: '0px', show: false, type: 'text', readOnly: false},
+            {
+                id: 'kood',
+                name: 'Kood',
+                width: '100px',
+                show: true,
+                type: 'select',
+                readOnly: false,
+                dataSet: 'nomenclature',
+                valueFieldName: 'nomid'
+            },
+            {id: 'nimetus', name: 'Nimetus', width: '300px', show: true, readOnly: true},
+            {id: 'hind', name: 'Hind', width: '100px', show: true, type: 'number', readOnly: false},
+            {id: 'kogus', name: 'kogus', width: '100px', show: true, type: 'number', readOnly: false},
+            {id: 'kbm', name: 'Käibemaks', width: '100px', show: true, type: 'number', readOnly: false},
+            {id: 'summa', name: 'Summa', width: '100px', show: true, type: 'number', readOnly: false}
+        ]
+    },
+    saveDoc: `select docs.sp_salvesta_arv($1, $2, $3) as id`,
+    deleteDoc: `select error_code, result, error_message from docs.sp_delete_arv($1, $2)`, // $1 - userId, $2 - docId
+    requiredFields: [
+        {
+            name: 'kpv',
+            type: 'D',
+            min: now.setFullYear(now.getFullYear() - 1),
+            max: now.setFullYear(now.getFullYear() + 1)
+        },
+        {
+            name: 'tahtaeg',
+            type: 'D',
+            min: now.setFullYear(now.getFullYear() - 1),
+            max: now.setFullYear(now.getFullYear() + 1)
+        },
+        {name: 'asutusid', type: 'N', min: null, max: null},
+        {name: 'summa', type: 'N', min: -9999999, max: 999999}
+    ],
+    bpm: [
+        {
+            step: 0,
+            name: 'Регистация документа',
+            action: 'start',
+            nextStep: 1,
+            task: 'human',
+            data: [],
+            actors: [],
+            status: null,
+            actualStep: false
+        },
+        {
+            step: 1,
+            name: 'Контировка',
+            action: 'generateJournal',
+            nextStep: 2,
+            task: 'automat',
+            data: [],
+            status: null,
+            actualStep: false
+        },
+//        {step:2, name:'Оплата', action: 'tasumine', nextStep:3, task:'human', data:[], status:null, actualStep:false},
+        {
+            step: 2,
+            name: 'Конец',
+            action: 'endProcess',
+            nextStep: null,
+            task: 'automat',
+            data: [],
+            actors: [],
+            status: null,
+            actualStep: false
+        }
+    ],
+    register: {command: `update docs.doc set status = 1 where id = $1`, type: "sql"},
+    generateJournal: {command: "select docs.gen_lausend_arv($1, $2)", type: "sql"},
+    endProcess: {command: "update docs.doc set status = 2 where id = $1", type: "sql"},
+    executeTask: function (task, docId, userId) {
+        // выполнит задачу, переданную в параметре
+
+        let executeTask = task;
+        if (executeTask.length == 0) {
+            executeTask = ['start'];
+        }
+
+        let taskFunction = eval(executeTask[0]);
+        return taskFunction(docId, userId, this);
     }
-
-
-module.exports = Arv;
-
-
-/*
-const register = (docId, userId) =>{
-    // заглушка
-    return new Promise((resilved, rejected) => {
-        resolved('ok');
-    })
-};
-
-const calcDocumentSaldo = (docId, userid)=> {
-    // заглушка
-    return new Promise((resilved, rejected) => {
-        resolved('ok');
-    })
-
 }
 
-const tasumine = (docId, userid) => {
-    // заглушка
-    return new Promise((resilved, rejected) => {
-        resolved('ok');
-    })
-
-};
-
-
-const start =(docId, userId)=> {
-    // реализует старт БП документа
-        const DOC_STATUS = 1, // устанавливаем активный статус для документа
-            DocDataObject = require('./documents'),
-            SQL_UPDATE = 'update docs.doc set status = $1, bpm = $2, history = $4 where id = $3',
-            SQL_SELECT_DOC = Arv.select[0].sql;
-
-         let  bpm = setBpmStatuses(0, userId), // выставим актуальный статус для следующего процесса
-            history = {user: userId, updated: Date.now()};
-
-        // выполнить запрос и вернуть промис
-    return DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]);
-
-};
-*/
-
-/*
-// generateJournal
-const generateJournal = (docId, userId)=> {
-    // реализует контировка
-    
-        const ACTUAL_STEP_STATUS = 1, // актуальный шаг БП
-            SQL_GENERATE_LAUSEND = 'select docs.gen_lausend_arv((select id from docs.arv where parentid = $1), $2) as journal_id',
-            SQL_UPDATE_DOCUMENT_BPM = 'update docs.doc set bpm = $2, history = $3  where id = $1',
-            DocDataObject = require('./documents');
-        
-         let   bpm = setBpmStatuses(ACTUAL_STEP_STATUS, userId),
-             tasks = [],
-             history = {user: userId, updated: Date.now()};
-    
-    // выполнить запрос и вернуть промис
-    return Promise.all([
-        DocDataObject.executeSqlQueryPromise(SQL_GENERATE_LAUSEND, [docId, userId]),
-        DocDataObject.executeSqlQueryPromise(SQL_UPDATE_DOCUMENT_BPM, [docId, JSON.stringify(bpm), JSON.stringify(history)])
-    ]);
-};
-*/
-
-/*
-
-const endProcess = (docId, userId)=> {
-    // реализует завершение БП документа
-
-    const   ACTUAL_TASK_STEP = 2, // устанавливаем активный статус для документа
-            DOC_STATUS = 2, // закрыт
-            SQL = 'update docs.doc set bpm = $2, history = $3, status = $4 where id = $1',
-            DocDataObject = require('./documents');
-    
-    let bpm = setBpmStatuses(ACTUAL_TASK_STEP, userId), // выставим актуальный статус для следующего процесса
-        history = {user: userId, updated: Date.now()},
-        params = [docId, JSON.stringify(bpm), JSON.stringify(history), DOC_STATUS];
-
-    return DocDataObject.executeSqlQueryPromise(SQL, params);
-};
-
-*/
-
-/*
-const setBpmStatuses = (actualStepIndex, userId)=>  {
-// собираем данные на на статус документа, правим данные БП документа
-    // 1. установить на actualStep = false
-    // 2. задать статус документу
-    // 3. выставить стутус задаче (пока только finished)
-    // 4. если есть следующий шаг, то выставить там actualStep = true, статус задачи opened
-
-
-    try {
-        var bpm =  Arv.bpm, // нельзя использовать let из - за использования try {}
-            nextStep = bpm[actualStepIndex].nextStep,
-            executors = bpm[actualStepIndex].actors || [];
-
-        if (!executors || executors.length == 0) {
-            // если исполнители не заданы, то добавляем автора
-            executors.push({
-                id: userId,
-                name: 'AUTHOR',
-                role: 'AUTHOR'
-            })
-        }
-
-        bpm[actualStepIndex].data = [{execution: Date.now(), executor: userId, vars: null}];
-        bpm[actualStepIndex].status = 'finished';  // 3. выставить стутус задаче (пока только finished)
-        bpm[actualStepIndex].actualStatus = false;  // 1. установить на actualStep = false
-        bpm[actualStepIndex].actors = executors;  // установить список акторов
-
-        // выставим флаг на следующий щаг
-        bpm = bpm.map(stepData => {
-            if (stepData.step === nextStep) {
-                // 4. если есть следующий шаг, то выставить там actualStep = true, статус задачи opened
-                stepData.actualStep = true;
-                stepData.status = 'opened';
-            }
-            return stepData;
-        });
-
-    } catch (e) {
-        console.error('try error', e);
-    }
-    return bpm;
-
-};
-*/
-
-
+module.exports = Arv;
 

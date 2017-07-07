@@ -24,6 +24,9 @@ var app = express(),
 global.__base = __dirname + '/';
 global.__components = 'frontend/components/';
 
+global.rekvId = 0; // иниуиализируем ид учреждения
+global.userId = 0; //иниуиализируем ид пользователя
+
 require('babel-polyfill');
 
 require('node-jsx').install({extension: '.jsx'});
@@ -71,9 +74,7 @@ require('routes')(app);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(err, req, res, next) {
-    console.log('app.use');
     if (typeof err == 'number') { // next(404);
-        console.log('app.use err', err);
         err = new HttpError(err);
     }
 
@@ -85,11 +86,9 @@ app.use(function(err, req, res, next) {
 
         if (app.get('env') == 'development') {
 //            errorhandler()(err, req, res, next);
-            console.log('app.use err 2', err);
             res.render('error', {"message": err.message });
 
         } else {
-            console.log('Prod. error', err);
             log.error(err);
             err = new HttpError(500);
 //            res.sendHttpError(err);

@@ -74,6 +74,34 @@ const Vmk = {
         }
 
     ],
+    grid: {
+        gridConfiguration: [
+            {id: "id", name: "id", width: "25px"},
+            {id: "kpv", name: "Kuupäev", width: "100px"},
+            {id: "number", name: "Number", width: "100px"},
+            {id: "asutus", name: "Maksja", width: "200px"},
+            {id: "aa", name: "Arveldus arve", width: "100px"},
+            {id: "viitenr", name: "Viite number", width: "100px"},
+            {id: "maksepaev", name: "Maksepäev", width: "100px"},
+            {id: "created", name: "Lisatud", width: "150px"},
+            {id: "lastupdate", name: "Viimane parandus", width: "150px"},
+            {id: "status", name: "Status", width: "100px"}
+        ],
+        sqlString: `select d.id, to_char(k.kpv,'DD-MM-YYYY') as kpv, trim(k.number) as number, 
+             trim(a.nimetus) as asutus, k1.aa, k1.summa, k.viitenr,
+             to_char(k.maksepaev,'DD-MM-YYYY') as maksepaev,
+             to_char(d.created,'DD.MM.YYYY HH:MM') as created, to_char(d.lastupdate,'DD.MM.YYYY HH:MM') as lastupdate , 
+             s.nimetus as status 
+             from docs.doc d 
+             inner join docs.mk k on d.id = k.parentid 
+             inner join docs.mk1 k1 on k.id = k1.parentid 
+             inner join libs.asutus a on a.id = k1.asutusid
+             inner join libs.library s on s.kood = d.status::text 
+             where k.opt = 1
+                and d.rekvId = $1
+                and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+        params: ''
+    },
     returnData: {
         row: {},
         details: [],

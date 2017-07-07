@@ -6,7 +6,6 @@ const setBpmStatuses = (actualStepIndex, userId, doc)=>  {
     // 2. задать статус документу
     // 3. выставить стутус задаче (пока только finished)
     // 4. если есть следующий шаг, то выставить там actualStep = true, статус задачи opened
-
     try {
         var bpm =  doc.bpm, // нельзя использовать let из - за использования try {}
             nextStep = bpm[actualStepIndex].nextStep,

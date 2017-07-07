@@ -1,7 +1,13 @@
 'use strict';
 
+const getRekvIdFromSession = () => {
+    return   global.rekvId; //@todo доделать, убрать из глобальной видимости
+}
+
 const Doc = {
+
     tasks: [], // задачи
+
     connectDb: function () {
         var pg = require('pg'),
             config = require('../config/config'),
@@ -345,12 +351,12 @@ const Doc = {
     // грид документов
     docsGrid: {
         getGridQuery: function (docType) {
-            var config = require('./docs_grid_config.js');
-            return config[docType].sqlString;
+                let config = require(`./${docType.toLowerCase()}`);
+                return config['grid'].sqlString
         },
         getGridConfiguration: function (docType) {
-            var config = require('./docs_grid_config.js');
-            return config[docType].gridConfiguration;
+                let config = require(`./${docType.toLowerCase()}`);
+                return config['grid'].gridConfiguration;
         },
         getGridParams: function (docType) {
             var config = require('./docs_grid_config.js');
@@ -401,8 +407,11 @@ const Doc = {
 
     }, // объект docsGrid
     docsList: {
-        sqlString: 'select l.id, trim(l.nimetus)::text as name, ltrim(rtrim(kood))::text as kood from libs.library l where ($1 = 0 or l.rekvid = $1) and l.library = $2 order by l.kood;',
-        params: [1, 'DOK'],
+        sqlString: `select l.id, trim(l.nimetus)::text as name, ltrim(rtrim(kood))::text as kood 
+            from libs.library l 
+            where ($1 = 0 or l.rekvid = $1) and l.library = $2 
+            order by l.kood`,
+        params: [getRekvIdFromSession(), 'DOK'],
         data: [],
         requery: function (parameter, callback, results) {
             Doc.executeSqlQuery(this.sqlString, this.params, function (err, data) {
@@ -421,8 +430,8 @@ const Doc = {
         },
 
         docs: [{id: 1, name: 'Arved'}, {id: 2, name: 'Palk'}]
-    }  // объект docsList
-
+    } // объект docsList
 };
 
 module.exports = Doc;
+

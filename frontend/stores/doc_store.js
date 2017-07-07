@@ -301,7 +301,6 @@ function saveDoc() {
 
 };
 
-
 function reloadDocument(docId) {
     // reload document
 

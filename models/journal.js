@@ -1,5 +1,12 @@
-var now = new Date();
-module.exports = {
+'use strict';
+
+let now = new Date();
+
+const start = require('./BP/start'),
+    generateJournal = require('./BP/generateJournal'),
+    endProcess = require('./BP/endProcess');
+
+const Journal  = {
     select: [
         {
             sql: "select d.id, $2::integer as userid, d.docs_ids, (created::date || 'T' || created::time)::text as created, (lastupdate::date || 'T' || lastupdate::time)::text as lastupdate, d.bpm, "+
@@ -56,6 +63,33 @@ module.exports = {
         }
 
     ],
+    grid: {
+        gridConfiguration: [
+            {id: "id", name: "id", width: "25px", "type": "integer"},
+            {id: "kpv", name: "Kuupaev", width: "100px", "type": "date"},
+            {id: "number", name: "Number", width: "100px", "type": "integer"},
+            {id: "selg", name: "Selgitus", width: "200px", "type": "text"},
+            {id: "dok", name: "Dokument", width: "200px", "type": "text"},
+            {id: "deebet", name: "Db", width: "50px", "type": "string"},
+            {id: "kreedit", name: "Kr", width: "50px", "type": "string"},
+            {id: "summa", name: "Summa", width: "100px", "type": "number"},
+            {id: "created", name: "Lisatud", width: "150px", "type": "date"},
+            {id: "lastupdate", name: "Viimane parandus", width: "150px", "type": "date"},
+            {id: "status", name: "Status", width: "100px", "type": "string"}
+        ],
+        sqlString: `select d.id, to_char(j.kpv,'DD.MM.YYYY') as kpv, jid.number, j.selg, j.dok, 
+         j1.deebet, j1.kreedit, j1.summa, 
+         to_char(d.created,'DD.MM.YYYY HH:MM') as created, to_char(d.lastupdate,'DD.MM.YYYY HH:MM') as lastupdate , 
+         s.nimetus as status 
+         from docs.journal j 
+         inner join docs.doc d on d.id = j.parentid 
+         inner join docs.journalid jid on j.id = jid.journalid 
+         inner join docs.journal1 j1 on j.id = j1.parentid 
+         inner join libs.library s on s.kood = d.status::text 
+         where d.rekvId = $1
+            and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+        params: ''
+    },
     returnData: {
         row: {},
         details: [],
@@ -114,8 +148,9 @@ module.exports = {
         }
 
         let taskFunction = eval(executeTask[0]);
-        return taskFunction(docId, userId);
+        return taskFunction(docId, userId, Journal);
     }
-
-
 }
+
+module.exports = Journal;
+

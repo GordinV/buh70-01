@@ -25,6 +25,8 @@ exports.get = function (req, res) {
         parameter = lastParams['parameter'];
     }
 
+
+
     let results = [], // {}
         user = require('../middleware/userData')(req),  // check for userid in session
         sortBy,

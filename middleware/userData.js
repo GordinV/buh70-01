@@ -10,7 +10,6 @@ var userData = function(req) {
             login:''
         };
 
-
     if (req.session.user) {
         user.userId = req.session.user.id;
         user.userName = req.session.user.userName;
@@ -20,8 +19,14 @@ var userData = function(req) {
         user.userAccessList = req.session.user.userAccessList;
         user.userLibraryList = req.session.user.userLibraryList;
         user.login= req.session.user.login;
+
+        global.rekvId = user.asutusId;
+        global.userId = user.userId;
+
     } else {
         user = null;
+        global.rekvId = null;
+        global.userId = null;
     }
     return user;
 }

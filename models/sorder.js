@@ -72,6 +72,31 @@ const Sorder = {
         }
 
     ],
+    grid: {
+        gridConfiguration: [
+            {id: "id", name: "id", width: "25px"},
+            {id: "kpv", name: "Kuupaev", width: "100px"},
+            {id: "number", name: "Number", width: "100px"},
+            {id: "nimi", name: "Nimi", width: "200px"},
+            {id: "dokument", name: "Dokument", width: "200px"},
+            {id: "summa", name: "Summa", width: "100px"},
+            {id: "created", name: "Lisatud", width: "150px"},
+            {id: "lastupdate", name: "Viimane parandus", width: "150px"},
+            {id: "status", name: "Status", width: "100px"}
+        ],
+        sqlString: `select d.id, to_char(k.kpv,'DD-MM-YYYY') as kpv, trim(k.number) as number, trim(k.nimi) as nimi, 
+        trim(k.dokument) as dokument, 
+         to_char(d.created,'DD.MM.YYYY HH:MM') as created, to_char(d.lastupdate,'DD.MM.YYYY HH:MM') as lastupdate , 
+         k.summa,
+         s.nimetus as status 
+         from docs.doc d 
+         inner join docs.korder1 k on d.id = k.parentid 
+         inner join libs.library s on s.kood = d.status::text 
+         where k.tyyp = 1
+            and d.rekvId = $1
+            and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+        params: ''
+    },
     returnData: {
         row: {},
         details: [],
