@@ -12,7 +12,8 @@ const React = require('react'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     ModalPageDelete = require('./../../components/modalpage/modalpage-delete/modalPage-delete.jsx'),
     ModalPageInfo = require('./../../components/modalpage/modalpage-info/modalPage-info.jsx'),
-    DataList = require('./../../components/datalist/datalist.jsx'),
+//    DataList = require('./../../components/datalist/datalist.jsx'),
+    TreeList = require('./../../components/tree/tree.jsx'),
     Sidebar = require('./../../components/sidebar/sidebar.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     styles = require('./doc-register-styles'),
@@ -52,7 +53,7 @@ class Register extends React.PureComponent {
     }
 
     componentDidMount() {
-        var self = this;
+        const self = this;
 
         // создаем обработчик события на изменение даннх
         docsStore.on('change:data', (newValue, previousValue) => {
@@ -115,7 +116,7 @@ class Register extends React.PureComponent {
 
                     <div style={styles.wrapper}>
                         <Sidebar width="30%" toolbar={true} ref="list-sidebar">
-                            <DataList ref= 'dataList'
+                            <TreeList ref= 'treeList'
                                       data={dataList}
                                       name="docsList"
                                       bindDataField="kood"

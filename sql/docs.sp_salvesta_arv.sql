@@ -13,7 +13,7 @@ declare
 	arv1_id integer;
 	userName text;
 	doc_id integer = data->>'id';	
-	doc_type_kood text = data->>'doc_type_id';
+	doc_type_kood text = 'ARV'/*data->>'doc_type_id'*/;
 	doc_type_id integer = (select id from libs.library where kood = doc_type_kood and library = 'DOK' limit 1);
 	doc_details json = data->>'details';
 	doc_data json = data->>'data';

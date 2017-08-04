@@ -37,7 +37,8 @@ module.exports = {
                 "               order by l.kood;", [rekvId, lib],  function (err, result) {
                 if (err) {
                     console.error(err);
-                    return console.error('error in query');
+                    return callback(err);
+
                 }
                 db.end();
                 callback(err, result);

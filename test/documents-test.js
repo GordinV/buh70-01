@@ -106,7 +106,7 @@ describe('SQL functions tests', function () {
             console.log('data', data);
             if (data ) {
                 // проверим содержимое результата
-                let Model = require('../models/arv'),
+                let Model = require('../models/raamatupidamine/arv'),
                     returnData  = Model.returnData;
 
                  if ( _.isEqual( _.keys(returnData), _.keys(data))) {

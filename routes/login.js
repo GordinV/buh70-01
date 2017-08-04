@@ -48,7 +48,7 @@ exports.post = function (req, res, next) {
                     console.error('Ошибка в пароле');
                    // return next(err);
                 }
-                callback(err, result, kasutaja);
+                return callback(err, result, kasutaja);
 
             });
         },

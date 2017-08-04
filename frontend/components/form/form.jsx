@@ -53,7 +53,8 @@ Form.PropTypes = {
 
 
 Form.defaultProps = {
-    disabled: false
+    disabled: false.valueOf(),
+    pages: []
 }
 
 module.exports = Form;

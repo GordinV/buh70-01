@@ -1,6 +1,6 @@
 'use strict';
 const flux = require('fluxify'),
-        ORDER_BY = [{column:'id', direction: 'desc'}];
+    ORDER_BY = [{column: 'id', direction: 'desc'}];
 
 var docsStore = flux.createStore({
     id: 'docsStore',
@@ -9,21 +9,21 @@ var docsStore = flux.createStore({
         docsList: '',
         name: 'vlad',
         data: [],
-        sortBy:ORDER_BY,
-        sqlWhere:'',
+        sortBy: ORDER_BY,
+        sqlWhere: '',
         systemMessage: null
     },
     actionCallbacks: {
-        systemMessageChange: function(updater, value) {
+        systemMessageChange: function (updater, value) {
             updater.set({systemMessage: value});
         },
-        sqlWhereChange: function(updater, value) {
+        sqlWhereChange: function (updater, value) {
             updater.set({sqlWhere: value});
             requery({name: 'docsGrid', value: this.docsList});
         },
-        sortByChange: function(updater, value) {
+        sortByChange: function (updater, value) {
             updater.set({sortBy: value});
-            requery({name: 'docsGrid', value: this.docsList, sortBy:value});
+            requery({name: 'docsGrid', value: this.docsList, sortBy: value});
         },
         Add: function (updater) {
             add(this.docsList);
@@ -37,7 +37,7 @@ var docsStore = flux.createStore({
         },
         Delete: function (updater) {
             let docTypeId = this.docsList;
-            requeryForAction('delete', (err, data)=> {
+            requeryForAction('delete', (err, data) => {
                 if (err) {
                     flux.doAction('systemMessageChange', err); // пишем изменения в хранилище
                 } else {
@@ -55,7 +55,6 @@ var docsStore = flux.createStore({
         },
         docsGridChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
-            console.log('docsGridChange', value);
             updater.set({docsGrid: value});
             localStorage['docsGrid'] = value;
 
@@ -71,7 +70,6 @@ var docsStore = flux.createStore({
         },
         dataChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
- //           console.log('dataChange:', value);
             updater.set({data: value});
         },
 
@@ -92,32 +90,62 @@ const requeryForAction = (action, callback) => {
     if (!window.jQuery || !$) return // для тестов
 
     // метод обеспечит запрос на выполнение
+    let docId = docsStore.docsGrid,
+        docTypeId = docsStore.docsList;
+
+    if (!docId || typeof docId == 'string') {
+        docId = 0;
+    }
+
+    if (!docId) {
+        // doc not selected
+        let data = docsStore.data;
+        data.forEach(row => {
+            //@todo Привести в божеский вид
+            if (!docTypeId && row.name == 'docsList') {
+                // не назначен тип документа
+                docTypeId = row['value'];
+                flux.doAction('docsListChange', docTypeId);
+            }
+
+            if (row.name == 'docsGrid') {
+                docId = row.data[0].data[0].id;
+                flux.doAction('docsGridChange', docId);
+            }
+
+        });
+
+    }
+
+    console.log('docId docTypeId:', docId, docTypeId, docsStore.docsList, docsStore.docsGrid, docsStore.data);
+
     let parameters = {
-        docId : docsStore.docsGrid,
-        doc_type_id : docsStore.docsList
+        docId: docId,
+        doc_type_id: docTypeId
     }
 
     $.ajax({
         url: '/api/doc',
-        type:"POST",
+        type: "POST",
         dataType: 'json',
         data: {
             action: action,
             data: JSON.stringify(parameters)
         },
         cache: false,
-        success: function(data) {
+        success: function (data) {
             // должны получить объект - результат
             let errorMesssage = null;
             if (data.result == 'Error') {
                 errorMesssage = 'Error, ' + data.message;
             }
-            callback(errorMesssage,data);
+
+            callback(errorMesssage, data);
         },
-        error: function(xhr, status, err) {
+        error: function (xhr, status, err) {
             console.error('/error', status, err.toString());
             callback(err, null);
-            }
+        }
     });
 }
 
@@ -133,7 +161,7 @@ const requery = (component) => {
     // фильтруем список компонентов
     let componentsForUpdate = components.filter((item) => {
         // ищем объект по наименованию. или вернем все если параметр не задан
- //       console.log('component:' + JSON.stringify(component));
+        //       console.log('component:' + JSON.stringify(component));
         if (component.name == '' || item.name == component.name) {
             return item.name;
         }
@@ -146,11 +174,11 @@ const requery = (component) => {
         arrType = typeof sortByArray;
 
     if (docsStore.sortBy) {
-        for(let i = 0; i < sortByArray.length; i++) {
+        for (let i = 0; i < sortByArray.length; i++) {
             if (i > 0) {
-                sqlSortBy = sqlSortBy +',';
+                sqlSortBy = sqlSortBy + ',';
             }
-            sqlSortBy = sqlSortBy + sortByArray[i].column + ' '+ sortByArray[i].direction;
+            sqlSortBy = sqlSortBy + sortByArray[i].column + ' ' + sortByArray[i].direction;
         }
     }
 
@@ -172,7 +200,7 @@ const requery = (component) => {
         cache: false,
         success: function (data) {
             // должны получить объект
- //           console.log('parent arrived data:' + JSON.stringify(data) + 'тип:' + typeof data);
+            //           console.log('parent arrived data:' + JSON.stringify(data) + 'тип:' + typeof data);
 
             data.forEach(function (item) {
                 // find item

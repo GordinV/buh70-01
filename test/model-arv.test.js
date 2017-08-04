@@ -3,7 +3,7 @@
 describe('dok. type ARV tests', function () {
     let globalDocId = 0; // для сохранения ид документа
 
-    const doc = require('../models/arv'),
+    const doc = require('../models/raamatupidamine/arv'),
         docTypeId = 'arv',
         DocDataObject = require('../models/documents');
 
@@ -34,24 +34,27 @@ describe('dok. type ARV tests', function () {
         expect(warning).toBeNull();
     });
 
-    it(`${docTypeId} unit save test`, () => {
+    it(`${docTypeId} unit save test`, (done) => {
         DocDataObject.saveDoc(docTypeId.toUpperCase(), [docData, 1, 1], (err, data) => {
             expect(err).toBeNull();
             expect(data).toBeDefined();
             expect(data['rows'].length).toBeGreaterThan(0);
             expect(data['rows'][0].id).toBeGreaterThan(0);
+            globalDocId = data['rows'][0].id;
+            done();
         });
     });
 
-    it(`${docTypeId} select`, () => {
+    it(`${docTypeId} select`, (done) => {
         DocDataObject.selectDoc(docTypeId.toUpperCase(), [globalDocId, 1], (err, data) => {
             expect(err).toBeNull();
             expect(data.row.id).toBeDefined();
             expect(data.row.id).toBe(globalDocId);
+            done();
         });
     });
 
-    it(`${docTypeId} test for select (grid)`, () => {
+    it(`${docTypeId} test for select (grid)`, (done) => {
         let results = {},
             user = {
                 asutusId: 1,
@@ -61,10 +64,11 @@ describe('dok. type ARV tests', function () {
         DocDataObject['docsGrid'].requery(docTypeId.toUpperCase(), (err, data) => {
             expect(err).toBeNull();
             expect(data.length).toBeGreaterThan(0);
+            done();
         }, results, null, null, user);
     });
 
-    it(`${docTypeId} bpm test`, () => {
+    it.skip(`${docTypeId} bpm test`, () => {
         let taskParams = {
             params: {
                 tasks: [],
@@ -84,15 +88,19 @@ describe('dok. type ARV tests', function () {
         });
     })
 
-    it(`${docTypeId} test for deleteTask`, () => {
+    it(`${docTypeId} test for deleteTask`, (done) => {
         let sql = doc.deleteDoc;
-
+        expect(sql).toBeDefined();
+//        expect.hasAssertions();
         DocDataObject.executeSqlQuery(sql, [1, globalDocId], (err, data) => {
+            console.log('received globalDocId, data',globalDocId,  data);
+
             expect(err).toBeNull();
             expect(data).toBeDefined();
-            expect(data[0].result).toBe(1);
+            expect(data.rows[0].error_code).toBeNull();
+            expect(data.rows[0].result).toBe(1);
+            done();
         });
-
     });
 
     it(`${docTypeId} Dokprop test select`, () => {

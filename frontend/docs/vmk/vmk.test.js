@@ -14,7 +14,7 @@ describe('doc test, VMK', () => {
 
     let dataRow = require('./../../../test/fixture/doc-vmk-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/vorder'),
+        model = require('./../../../models/raamatupidamine/vorder'),
         data = {
             row: dataRow,
             bpm: model.bpm,

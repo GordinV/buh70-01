@@ -2,7 +2,7 @@
 
 describe('model dok. type SORDER tests', function () {
     let globalDocId = 0; // для сохранения ид документа
-    const doc = require('../models/sorder'),
+    const doc = require('../models/raamatupidamine/sorder'),
         docTypeId = 'sorder',
         DocDataObject = require('../models/documents');
 
@@ -36,25 +36,27 @@ describe('model dok. type SORDER tests', function () {
         expect(warning).toBeNull();
     });
 
-    it(`${docTypeId} unit save test`, () => {
+    it(`${docTypeId} unit save test`, (done) => {
         DocDataObject.saveDoc(docTypeId.toUpperCase(), [docData, 1, 1], (err, data) => {
-            console.log('data:', data);
             expect(err).toBeNull();
             expect(data).toBeDefined();
             expect(data['rows'].length).toBeGreaterThan(0);
             expect(data['rows'][0].id).toBeGreaterThan(0);
+            globalDocId = data['rows'][0].id;
+            done();
         });
     });
 
-    it(`${docTypeId} select`, () => {
+    it(`${docTypeId} select`, (done) => {
         DocDataObject.selectDoc(docTypeId.toUpperCase(), [globalDocId, 1], (err, data) => {
             expect(err).toBeNull();
             expect(data.row.id).toBeDefined();
             expect(data.row.id).toBe(globalDocId);
+            done();
         });
     });
 
-    it(`${docTypeId} test for select (grid)`, () => {
+    it(`${docTypeId} test for select (grid)`, (done) => {
         let results = {},
             user = {
                 asutusId: 1,
@@ -69,13 +71,13 @@ describe('model dok. type SORDER tests', function () {
             let newDoc = data.filter(row => {
                 if (row.id === globalDocId) return row;
             });
-
             expect(newDoc.length).toBeGreaterThan(0);
+            done();
         }, results, null, null, user);
 
     });
 
-    it(`${docTypeId} bpm test`, () => {
+    it.skip(`${docTypeId} bpm test`, () => {
         let taskParams = {
             params: {
                 tasks: [],
@@ -95,13 +97,15 @@ describe('model dok. type SORDER tests', function () {
         });
     })
 
-    it(`${docTypeId} test for deleteTask`, () => {
+    it(`${docTypeId} test for deleteTask`, (done) => {
         let sql = doc.deleteDoc;
 
         DocDataObject.executeSqlQuery(sql, [1, globalDocId], (err, data) => {
             expect(err).toBeNull();
             expect(data).toBeDefined();
-            expect(data[0].result).toBe(1);
+            expect(data.rows[0].error_code).toBeNull();
+            expect(data.rows[0].result).toBe(1);
+            done();
         });
 
     });

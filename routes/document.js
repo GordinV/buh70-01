@@ -22,7 +22,7 @@ exports.get = function(req, res, params) {
             bpm:[]
         };
 //        localStorage = require('../middleware/local_storage')(req);
-
+//@todo заменить
     switch (docTypeId) {
         case 'ARV':
             docComponent = require('../frontend/docs/arve/arve.jsx');
@@ -39,7 +39,6 @@ exports.get = function(req, res, params) {
             docComponent = require('../frontend/docs/sorder/sorder.jsx');
             moduleSource = "/javascripts/sorder.js";
             docName = 'Kassa sissetuliku order';
-
             break;
         case 'VORDER':
             docComponent = require('../frontend/docs/vorder/vorder.jsx');
@@ -55,6 +54,16 @@ exports.get = function(req, res, params) {
             docComponent = require('../frontend/docs/vmk/vmk.jsx');
             docName = 'Väljamakse korraldus';
             moduleSource = "/javascripts/vmk.js";
+            break;
+        case 'ASUTUSED':
+            docComponent = require('../frontend/docs/asutused/asutused.jsx');
+            docName = 'Asutused';
+            moduleSource = "/javascripts/asutused.js";
+            break;
+        case 'KONTOD':
+            docComponent = require('../frontend/docs/kontod/kontod.jsx');
+            docName = 'Kontod';
+            moduleSource = "/javascripts/kontod.js";
             break;
         default:
             docComponent = require('../middleware/returnDocComponent')(docTypeId); // вернет компонент по типу тип документа
@@ -124,6 +133,7 @@ exports.get = function(req, res, params) {
         }, results);
 
     } catch(err) {
+        console.error(err);
         res.render('error', {message: 'Error in document', status:500} );
 
     }

@@ -2,7 +2,7 @@
  * Справочник доступныйх профилей контировки для типа документа.
  */
 module.exports = {
-    select: `select d.id, d.selg as name, l.nimetus as dok, d.details 
+    selectAsLibs: `select d.id, d.selg as name, l.nimetus as dok, d.details 
          from libs.library l 
          left outer join libs.dokprop d on l.id = d.parentId 
          where l.library = 'DOK'

@@ -36,23 +36,16 @@ exports.post = function(req, res) {
     switch(action) {
         case 'delete':
             params = [user.userId, docId];
-            let Doc = require('../models/' + docTypeId),
-                sql = Doc.deleteDoc;
 
             try {
                 // тут вызов метода сохранение
-                // выборка сохраненных данных
-                DocDataObject.executeSqlQueryPromise(sql, params)
+                DocDataObject.deleteDocPromise(docTypeId, params)
                     .then((data) => {
-                        if (data[0].result == 1) {
-                            res.send({result:'Ok'});
-                        } else {
-                            res.send({result:'Error', message:data[0].error_message});
-                        }
+                        res.send(data)
                     }),
                     ((err) => {
                         console.error('viga:', err);
-                        res.send({result: 'Error', message:'fatal error'});
+                        res.send({result: 'Error'});
                     });
             } catch (err) {
                 console.error('error:', err); // @todo Обработка ошибок
@@ -65,7 +58,6 @@ exports.post = function(req, res) {
             try {
                 // тут вызов метода сохранение
                 // выборка сохраненных данных
-                console.log('save:', params);
                 DocDataObject.saveDocPromise(docTypeId, params)
                     .then((data) => {
                         res.send(data)
@@ -113,7 +105,38 @@ exports.post = function(req, res) {
              }
              */
             try {
-                DocDataObject.selectDocPromise(docTypeId, params)
+                DocDataObject.selectDocPromise(docTypeId, params, action)
+                    .then((data) => {
+                        res.send(data)
+                    }),
+                    ((err) => {
+                        console.error('viga:', err);
+                        res.send({result: 'Error'});
+                    });
+            } catch(err) {
+                console.error('error:', err); // @todo Обработка ошибок
+                res.send({result:'Error'});
+            }
+            break;
+        case 'selectAsLibs':
+            //@todo Убрать повоторяющийся код
+            params = [];
+            if (data.params.length > 0) {
+                params = data.params;
+            }
+
+            // ищем данные в кеше
+            /*
+             localStorage.libs = req.session.libs || []; // отдадим сессию
+             var results = localStorage.getLib(docTypeId);
+             console.log('данные из кеша:' + JSON.stringify(results));
+             if (results) {
+             res.send(data[0]);
+             }
+             */
+            try {
+                console.log('api doc docTypeId', docTypeId);
+                DocDataObject.selectDocPromise(docTypeId, params, action)
                     .then((data) => {
                         res.send(data)
                     }),

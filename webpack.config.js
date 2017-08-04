@@ -25,6 +25,8 @@ module.exports = {
         vmk: './frontend/vmk.js',
         docs: './frontend/docs.js',
         doc:  './frontend/doc.js',
+        asutused:  './frontend/asutused.js',
+        kontod:  './frontend/kontod.js',
     },
     output: {
         path: __dirname + '/public/javascripts',
@@ -54,7 +56,7 @@ module.exports = {
         new webpack.DefinePlugin({NODE_ENV:JSON.stringify(NODE_ENV)}),
         new webpack.optimize.CommonsChunkPlugin({
             name:"common",
-            chunks: ['docs', 'doc', 'arv', 'journal','sorder', 'vorder','smk', 'vmk'], // список модулей для выявления общих модулей
+            chunks: ['docs', 'doc', 'arv', 'journal','sorder', 'vorder','smk', 'vmk', 'asutused', 'kontod'], // список модулей для выявления общих модулей
             minChunks: 3
         })
 ],

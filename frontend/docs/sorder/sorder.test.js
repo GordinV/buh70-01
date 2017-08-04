@@ -14,7 +14,7 @@ describe('doc test, Sorder', () => {
 
     let dataRow = require('./../../../test/fixture/doc-sorder-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/sorder'),
+        model = require('./../../../models/raamatupidamine/sorder'),
         data = {
             row: dataRow,
             bpm: model.bpm,

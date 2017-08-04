@@ -2,9 +2,9 @@
 
 let now = new Date();
 
-const start = require('./BP/start'),
-    generateJournal = require('./BP/generateJournal'),
-    endProcess = require('./BP/endProcess');
+const start = require('./../BP/start'),
+    generateJournal = require('./../BP/generateJournal'),
+    endProcess = require('./../BP/endProcess');
 
 
 const Vmk = {

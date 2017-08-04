@@ -44,6 +44,7 @@ exports.get = function (req, res) {
         if (!parameter) {
             parameter = 'DOK';
         }
+        parameter = 'DOK';
 
         DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere, user);
         //       DocDataObject[componentName].requery(null, callback, results);

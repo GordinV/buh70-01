@@ -14,7 +14,7 @@ describe('doc test, SMK', () => {
 
     let dataRow = require('./../../../test/fixture/doc-smk-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/smk'),
+        model = require('./../../../models/raamatupidamine/smk'),
         data = {
             row: dataRow,
             bpm: model.bpm,
@@ -95,6 +95,20 @@ describe('doc test, SMK', () => {
         expect(doc.refs['project']).toBeDefined();
 
     });
+
+    it('test toolbar btnEdit', (done) => {
+        let docToolbar = doc.refs['doc-toolbar'];
+        expect(docToolbar.btnEditClick).toBeDefined();
+        if (!doc.state.edited) {
+            docToolbar.btnEditClick();
+            setTimeout(() => {
+                expect(doc.state.edited).toBeTruthy();
+                done();
+            }, 1000);
+        }
+        done();
+    });
+
 
     it('select grid row test', () => {
 
@@ -177,22 +191,11 @@ describe('doc test, SMK', () => {
         });
     });
 
-    it('test toolbar btnEdit', () => {
-        let docToolbar = doc.refs['doc-toolbar'];
-        expect(docToolbar.btnEditClick).toBeDefined();
-        if (!doc.state.edited) {
-            docToolbar.btnEditClick();
-            setTimeout(() => {
-                expect(doc.state.edited).toBeTruthy();
-                done();
-            }, 1000);
-        }
-    });
 
     it('doc-toolbar btnCancel test', (done) => {
         let docToolbar = doc.refs['doc-toolbar'];
         expect(docToolbar.btnCancelClick).toBeDefined();
-
+        expect(doc.state.edited).toBeTruthy();
         docToolbar.btnCancelClick();
 
         setTimeout(() => {

@@ -14,7 +14,7 @@ describe('doc test, Journal', () => {
 
     let dataRow = require('./../../../test/fixture/doc-journal-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/journal'),
+        model = require('./../../../models/raamatupidamine/journal'),
         data = {
             row: dataRow,
             bpm: model.bpm,

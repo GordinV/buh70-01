@@ -13,7 +13,7 @@ declare
 	journal1_id integer;
 	userName text;
 	doc_id integer = data->>'id';	
-	doc_type_kood text = data->>'doc_type_id';
+	doc_type_kood text = 'JOURNAL'/*data->>'doc_type_id'*/;
 	doc_type_id integer = (select id from libs.library where kood = doc_type_kood and library = 'DOK' limit 1);
 	doc_details json = data->>'details';
 	doc_data json = data->>'data';
@@ -45,8 +45,8 @@ if doc_id is null or doc_id = 0 then
 	select row_to_json(row) into new_history from (select now() as created, userName as user) row;
 		
 	
-	insert into docs.doc (doc_type_id, history ) 
-		values (doc_type_id, '[]'::jsonb || new_history) 
+	insert into docs.doc (doc_type_id, history, rekvid ) 
+		values (doc_type_id, '[]'::jsonb || new_history, user_rekvid) 
 		returning id into doc_id;
 
 	insert into docs.journal (parentid, rekvid, userid, kpv, asutusid, dok, selg, muud)

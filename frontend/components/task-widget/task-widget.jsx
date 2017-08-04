@@ -79,10 +79,13 @@ class TaskWidget extends React.PureComponent {
 }
 
 TaskWidget.PropTypes = {
-    taskList: React.PropTypes.array.isRequired,
+    taskList: React.PropTypes.array,
     handleButtonTask: React.PropTypes.func.isRequired,
     handleSelectTask: React.PropTypes.func.isRequired
 }
 
 
+TaskWidget.defaultProps = {
+    taskList: []
+}
 module.exports = TaskWidget;

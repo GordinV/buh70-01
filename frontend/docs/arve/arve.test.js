@@ -14,7 +14,7 @@ describe('doc test, Arve', () => {
 
     let dataRow = require('./../../../test/fixture/doc-common-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/arv'),
+        model = require('./../../../models/raamatupidamine/arv'),
         data = {
             row: dataRow,
             bpm: model.bpm,

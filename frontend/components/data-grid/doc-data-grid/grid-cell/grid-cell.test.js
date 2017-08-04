@@ -12,7 +12,7 @@ describe('component test, grid-cell', () => {
 //        style = require('./doc-data-grid-styles');
 
 
-    let model = require('./../../../../../models/arv'),
+    let model = require('./../../../../../models/raamatupidamine/arv'),
         data = {
             gridConfig: model.returnData.gridConfig
         },

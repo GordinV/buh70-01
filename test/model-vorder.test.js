@@ -2,7 +2,7 @@
 
 describe('model dok. type VORDER tests', function () {
     let globalDocId = 0; // для сохранения ид документа
-    const doc = require('../models/vorder'),
+    const doc = require('../models/raamatupidamine/vorder'),
         docTypeId = 'vorder',
         DocDataObject = require('../models/documents');
 
@@ -35,17 +35,18 @@ describe('model dok. type VORDER tests', function () {
 
     });
 
-    it('VORDER unit save test', () => {
-
+    it('VORDER unit save test', (done) => {
         DocDataObject.saveDoc(docTypeId.toUpperCase(), [docData, 1, 1], (err, data) => {
             expect(err).toBeNull();
             expect(data).toBeDefined();
             expect(data['rows'].length).toBeGreaterThan(0);
             expect(data['rows'][0].id).toBeGreaterThan(0);
+            globalDocId = data['rows'][0].id;
+            done();
         });
     });
 
-    it('VORDER test for select (grid)', () => {
+    it('VORDER test for select (grid)', (done) => {
         let results = {},
             user = {
                 asutusId: 1,
@@ -55,18 +56,20 @@ describe('model dok. type VORDER tests', function () {
         DocDataObject['docsGrid'].requery(docTypeId.toUpperCase(), (err, data) => {
             expect(err).toBeNull();
             expect(data.length).toBeGreaterThan(0);
+            done();
         }, results, null, null, user);
     });
 
-    it('VORDER test for select', () => {
+    it('VORDER test for select', (done) => {
         DocDataObject.selectDoc(docTypeId.toUpperCase(), [globalDocId, 1], (err, data)=> {
             expect(err).toBeNull();
             expect(data.row.id).toBeDefined();
             expect(data.row.id).toBe(globalDocId);
+            done();
         });
     });
 
-    it(`${docTypeId} bpm test`, () => {
+    it.skip(`${docTypeId} bpm test`, () => {
         let taskParams = {
             params: {
                 tasks: [],
@@ -86,13 +89,16 @@ describe('model dok. type VORDER tests', function () {
         });
     })
 
-    it('VORDER test for deleteTask', ()=> {
+    it('VORDER test for deleteTask', (done)=> {
         let sql = doc.deleteDoc;
 
         DocDataObject.executeSqlQuery(sql, [1, globalDocId], (err, data) => {
             expect(err).toBeNull();
             expect(data).toBeDefined();
-            expect(data[0].result).toBe(1);
+            expect(data.rows[0].error_code).toBeNull();
+            expect(data.rows[0].result).toBe(1);
+
+            done();
         });
 
     })

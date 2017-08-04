@@ -70,7 +70,7 @@
     "gulp-react": "^3.1.0",
     "jade": "^1.11.0",
     "jade-html-loader": "0.0.3",
-    "jest": "^16.0.2",
+    "jest": "^20.0.0",
     "jsdom": "^5.3.0",
     "jsx-loader": "^0.13.2",
     "mocha": "^3.1.2",

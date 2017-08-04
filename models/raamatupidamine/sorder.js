@@ -2,41 +2,43 @@
 
 let now = new Date();
 
-const Smk = {
+const start = require('./../BP/start'),
+    generateJournal = require('./../BP/generateJournal'),
+    endProcess = require('./../BP/endProcess');
+
+const Sorder = {
     select: [
         {
             sql: `select d.id,  d.docs_ids, (created::date || 'T' || created::time)::text as created, (lastupdate::date || 'T' || lastupdate::time)::text as lastupdate, d.bpm, 
                 trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, 
                 trim(s.nimetus) as status, 
-                k.number as number,  to_char(k.maksepaev,'YYYY-MM-DD') as maksepaev, k.viitenr,
-                k.aaid as aa_id, trim(aa.nimetus) as pank, 
-                k.rekvId, to_char(k.kpv,'YYYY-MM-DD') as kpv, k.selg, k.muud, k.opt, 
-                k.arvid, ('Number:' || arv.number::text || ' Kuupäev:' || arv.kpv::text || ' Jääk:' || arv.jaak::text) as arvnr ,
-                (select sum(summa) from docs.mk1 where parentid = k.id) as summa
+                k.number as number, k.summa, 
+                k.kassaid as kassa_id, trim(aa.nimetus) as kassa, 
+                k.rekvId, to_char(k.kpv,'YYYY-MM-DD') as kpv, k.asutusid,  trim(k.dokument) as dokument, k.alus, k.muud, k.nimi, k.aadress, k.tyyp, 
+                asutus.regkood, trim(asutus.nimetus) as asutus, 
+                k.arvid, ('Number:' || arv.number::text || ' Kuupäev:' || arv.kpv::text || ' Jääk:' || arv.jaak::text) as arvnr 
                 from docs.doc d 
                 inner join libs.library l on l.id = d.doc_type_id 
-                inner join docs.mk k on k.parentId = d.id 
+                inner join docs.korder1 k on k.parentId = d.id 
                 left outer join libs.library s on s.library = 'STATUS' and s.kood = d.status::text 
-                left outer join ou.aa as aa on k.aaid = aa.Id 
+                left outer join libs.asutus as asutus on asutus.id = k.asutusId  
+                left outer join ou.aa as aa on k.kassaid = aa.Id 
                 left outer join docs.arv as arv on k.arvid = arv.Id 
                 inner join ou.userid u on u.id = $2::integer 
                 where d.id = $1`,
-            sqlAsNew: `select $1::integer as id, $2::integer as userid, 
-                (now()::date || 'T' || now()::time)::text as created, 
-                (now()::date || 'T' || now()::time)::text as lastupdate, null as bpm,
+            sqlAsNew: `select $1::integer as id, $2::integer as userid, (now()::date || 'T' || now()::time)::text as created, (now()::date || 'T' || now()::time)::text as lastupdate, null as bpm,
                 trim(l.nimetus) as doc, trim(l.kood) as doc_type_id, 
                 trim(s.nimetus) as status, 
-                (select max(number) from docs.korder1 where tyyp = 1 )::integer + 1  as number, 
-                to_char(now(),'YYYY-MM-DD') as maksepaev,  
-                aa.id as aa_id, trim(aa.name) as pank, 
-                null as rekvId,  to_char(now(),'YYYY-MM-DD') as kpv, null as viitenr,
-                null as selg, null as muud, 0 as  tyyp, null as regkood, null as asutus, 
-                null as arvid, null as arvnr, 0 as summa
+                (select max(number) from docs.korder1 where tyyp = 1 )::integer + 1  as number,  0 as summa, 
+                aa.id as kassa_id, trim(aa.name) as kassa, 
+                null as rekvId,  to_char(now(),'YYYY-MM-DD') as kpv, 
+                null as asutusid, null as dokument, null as alus, null as muud, null as nimi, null as aadress,1 as  tyyp, 0 as summa,  null as regkood, null as asutus, 
+                null as arvid, null as arvnr 
                 from libs.library l,   
+                ou.userid u,
                 libs.library s, 
-                (select id, trim(nimetus) as name from ou.aa where pank = 1 order by default_ limit 1) as aa ,
-                (select * from ou.userid u where u.id = $2::integer) as u                
-                where l.library = 'DOK' and l.kood = 'SMK'
+                (select id, trim(nimetus) as name from ou.aa where kassa = 1 order by default_ limit 1) as aa 
+                where l.library = 'DOK' and l.kood = 'SORDER'
                 and u.id = $2::integer 
                 and s.library = 'STATUS' and s.kood = '0'`,
             query: null,
@@ -45,13 +47,10 @@ const Smk = {
             data: []
         },
         {
-            sql: `select k1.id, $2::integer as userid, trim(n.kood) as kood, trim(n.nimetus) as nimetus, 
-                trim(a.nimetus) as asutus,
-                k1.* 
-                from docs.mk1 as k1 
-                inner join docs.mk k on k.id = k1.parentId 
+            sql: `select k1.id, $2::integer as userid, trim(n.kood) as kood, trim(n.nimetus) as nimetus, trim(n.uhik) as uhik, k1.* 
+                from docs.korder2 as k1 
+                inner join docs.korder1 k on k.id = k1.parentId 
                 inner join libs.nomenklatuur n on n.id = k1.nomid 
-                inner join libs.asutus a on a.id = k1.asutusid 
                 inner join ou.userid u on u.id = $2::integer 
                 where k.parentid = $1`,
             query: null,
@@ -76,29 +75,26 @@ const Smk = {
     grid: {
         gridConfiguration: [
             {id: "id", name: "id", width: "25px"},
-            {id: "kpv", name: "Kuupäev", width: "100px"},
+            {id: "kpv", name: "Kuupaev", width: "100px"},
             {id: "number", name: "Number", width: "100px"},
-            {id: "asutus", name: "Maksja", width: "200px"},
-            {id: "aa", name: "Arveldus arve", width: "100px"},
-            {id: "viitenr", name: "Viite number", width: "100px"},
-            {id: "maksepaev", name: "Maksepäev", width: "100px"},
+            {id: "nimi", name: "Nimi", width: "200px"},
+            {id: "dokument", name: "Dokument", width: "200px"},
+            {id: "summa", name: "Summa", width: "100px"},
             {id: "created", name: "Lisatud", width: "150px"},
             {id: "lastupdate", name: "Viimane parandus", width: "150px"},
             {id: "status", name: "Status", width: "100px"}
         ],
-        sqlString: `select d.id, to_char(k.kpv,'DD-MM-YYYY') as kpv, trim(k.number) as number, 
-             trim(a.nimetus) as asutus, k1.aa, k1.summa, k.viitenr,
-             to_char(k.maksepaev,'DD-MM-YYYY') as maksepaev,
-             to_char(d.created,'DD.MM.YYYY HH:MM') as created, to_char(d.lastupdate,'DD.MM.YYYY HH:MM') as lastupdate , 
-             s.nimetus as status 
-             from docs.doc d 
-             inner join docs.mk k on d.id = k.parentid 
-             inner join docs.mk1 k1 on k.id = k1.parentid 
-             inner join libs.asutus a on a.id = k1.asutusid
-             inner join libs.library s on s.kood = d.status::text 
-             where k.opt = 0
-                and d.rekvId = $1
-                and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
+        sqlString: `select d.id, to_char(k.kpv,'DD-MM-YYYY') as kpv, trim(k.number) as number, trim(k.nimi) as nimi, 
+        trim(k.dokument) as dokument, 
+         to_char(d.created,'DD.MM.YYYY HH:MM') as created, to_char(d.lastupdate,'DD.MM.YYYY HH:MM') as lastupdate , 
+         k.summa,
+         s.nimetus as status 
+         from docs.doc d 
+         inner join docs.korder1 k on d.id = k.parentid 
+         inner join libs.library s on s.kood = d.status::text 
+         where k.tyyp = 1
+            and d.rekvId = $1
+            and coalesce(docs.usersRigths(d.id, 'select', $2),true)`,     // $1 всегда ид учреждения $2 - всегда ид пользователя
         params: ''
     },
     returnData: {
@@ -107,23 +103,23 @@ const Smk = {
         gridConfig: [
             {id: 'id', name: 'id', width: '0px', show: false, type: 'text', readOnly: true},
             {id: 'nimetus', name: 'Nimetus', width: '100px', show: true, type: 'text', readOnly: false},
-            {id: 'asutus', name: 'Maksja', width: '200px', show: true, type: 'text', readOnly: false},
-            {id: 'aa', name: 'Arveldus arve', width: '150px', show: true, type: 'text', readOnly: false},
             {id: 'summa', name: 'Summa', width: '100px', show: true, type: 'number', readOnly: false},
             {id: 'konto', name: 'Korr.konto', width: '100px', show: true, type: 'text', readOnly: false},
             {id: 'tunnus', name: 'Tunnus', width: '100px', show: true, type: 'text', readOnly: false},
             {id: 'proj', name: 'Projekt', width: '100px', show: true, type: 'text', readOnly: false}
         ]
     },
-    saveDoc: `select docs.sp_salvesta_mk($1, $2, $3) as id`,
-    deleteDoc: `select error_code, result, error_message from docs.sp_delete_mk($1, $2)`, // $1 - userId, $2 - docId
+    saveDoc: `select docs.sp_salvesta_korder($1, $2, $3) as id`,
+    deleteDoc: `select error_code, result, error_message from docs.sp_delete_korder($1, $2)`, // $1 - userId, $2 - docId
     requiredFields: [
         {
             name: 'kpv',
             type: 'D',
             min: now.setFullYear(now.getFullYear() - 1),
             max: now.setFullYear(now.getFullYear() + 1)
-        }
+        },
+        {name: 'asutusid', type: 'N', min: null, max: null},
+        {name: 'summa', type: 'N', min: -9999999, max: 999999}
     ],
     bpm: [
         {
@@ -169,32 +165,18 @@ const Smk = {
         }
 
         let taskFunction = eval(executeTask[0]);
-        return taskFunction(docId, userId);
+        return taskFunction(docId, userId, Sorder);
     },
     register: {command: `update docs.doc set status = 1 where id = $1`, type: "sql"},
-    generateJournal: {command: `select docs.gen_lausend_mk($1, $2)`, type: "sql"},
+    generateJournal: {command: `select docs.gen_lausend_sorder($1, $2)`, type: "sql"},
     endProcess: {command: `update docs.doc set status = 2 where id = $1`, type: "sql"},
 
 
 };
 
-module.exports = Smk;
+module.exports = Sorder;
 
-const start =(docId, userId)=> {
-    // реализует старт БП документа
-    const DOC_STATUS = 1, // устанавливаем активный статус для документа
-        DocDataObject = require('./documents'),
-        SQL_UPDATE = 'update docs.doc set status = $1, bpm = $2, history = $4 where id = $3',
-        SQL_SELECT_DOC = Smk.select[0].sql;
-
-    let  bpm = setBpmStatuses(0, userId), // выставим актуальный статус для следующего процесса
-        history = {user: userId, updated: Date.now()};
-
-    // выполнить запрос и вернуть промис
-    return DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]);
-
-};
-
+/*
 const setBpmStatuses = (actualStepIndex, userId)=>  {
 // собираем данные на на статус документа, правим данные БП документа
     // 1. установить на actualStep = false
@@ -204,7 +186,7 @@ const setBpmStatuses = (actualStepIndex, userId)=>  {
 
 
     try {
-        var bpm =  Smk.bpm, // нельзя использовать let из - за использования try {}
+        var bpm =  Sorder.bpm, // нельзя использовать let из - за использования try {}
             nextStep = bpm[actualStepIndex].nextStep,
             executors = bpm[actualStepIndex].actors || [];
 
@@ -239,15 +221,29 @@ const setBpmStatuses = (actualStepIndex, userId)=>  {
 
 };
 
+const start =(docId, userId)=> {
+    // реализует старт БП документа
+    const DOC_STATUS = 1, // устанавливаем активный статус для документа
+        DocDataObject = require('./documents'),
+        SQL_UPDATE = 'update docs.doc set status = $1, bpm = $2, history = $4 where id = $3',
+        SQL_SELECT_DOC = Sorder.select[0].sql;
+
+    let  bpm = setBpmStatuses(0, userId), // выставим актуальный статус для следующего процесса
+        history = {user: userId, updated: Date.now()};
+
+    // выполнить запрос и вернуть промис
+    return DocDataObject.executeSqlQueryPromise(SQL_UPDATE, [DOC_STATUS, JSON.stringify(bpm), docId, JSON.stringify(history)]);
+
+};
+*/
 
 /*
-
 // generateJournal
 const generateJournal = (docId, userId)=> {
     // реализует контировка
 
     const ACTUAL_STEP_STATUS = 1, // актуальный шаг БП
-        SQL_GENERATE_LAUSEND = 'select docs.gen_lausend_arv((select id from docs.arv where parentid = $1), $2) as journal_id',
+        SQL_GENERATE_LAUSEND = 'select docs.gen_lausend_sorder((select id from docs.korder1 where parentid = $1), $2) as journal_id',
         SQL_UPDATE_DOCUMENT_BPM = 'update docs.doc set bpm = $2, history = $3  where id = $1',
         DocDataObject = require('./documents');
 
@@ -261,4 +257,20 @@ const generateJournal = (docId, userId)=> {
         DocDataObject.executeSqlQueryPromise(SQL_UPDATE_DOCUMENT_BPM, [docId, JSON.stringify(bpm), JSON.stringify(history)])
     ]);
 };
+
+const endProcess = (docId, userId)=> {
+    // реализует завершение БП документа
+
+    const   ACTUAL_TASK_STEP = 2, // устанавливаем активный статус для документа
+        DOC_STATUS = 2, // закрыт
+        SQL = 'update docs.doc set bpm = $2, history = $3, status = $4 where id = $1',
+        DocDataObject = require('./documents');
+
+    let bpm = setBpmStatuses(ACTUAL_TASK_STEP, userId), // выставим актуальный статус для следующего процесса
+        history = {user: userId, updated: Date.now()},
+        params = [docId, JSON.stringify(bpm), JSON.stringify(history), DOC_STATUS];
+
+    return DocDataObject.executeSqlQueryPromise(SQL, params);
+};
 */
+

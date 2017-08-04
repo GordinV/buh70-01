@@ -1,8 +1,11 @@
 'use strict';
 
 const getRekvIdFromSession = () => {
-    return   global.rekvId; //@todo доделать, убрать из глобальной видимости
+    return global.rekvId; //@todo доделать, убрать из глобальной видимости
 }
+
+const getModule = require('./../libs/getModule');
+
 
 const Doc = {
 
@@ -22,29 +25,30 @@ const Doc = {
             var pg = require('pg'),
                 config = require('../config/config'),
                 db = new pg.Client(config.pg.connection);
-            try {
-                db.connect((err) => {
-                    if (err) {
-                        console.error('could not connect to postgres', err);
-                        rejected(err);
-                    }
+            db.connect((err) => {
+                if (err) {
+                    console.error('could not connect to postgres', err);
+                    return rejected(err);
+                }
+                try {
 
                     db.query(sqlString, sqlParams, ((err, result) => {
                         if (err) {
                             console.error('sql error:', (err));
-                            rejected(err);
+                            return rejected(err);
                         }
-                        ;
+
                         db.end();
 
-                        let results = result ? result.rows: [];
+                        let results = result ? result.rows : [];
                         resolved(results);
                     }));
-                });
-            } catch (err) {
-                console.error('sql error:', (err));
-                rejected(err);
-            }
+                } catch (err) {
+                    console.error('sql error:', (err));
+                    return rejected(err);
+                }
+
+            });
         })
     },
 
@@ -97,28 +101,31 @@ const Doc = {
     },
 
     executeSqlQuery: function (sqlString, sqlParams, callback) {
+
         // выполнит запрос, вернет callback и данные
         var db = this.connectDb();
 
-        try {
-            db.connect((err) => {
-                if (err) {
-                    console.error('could not connect to postgres', err);
-                    callback(err, null);
-                }
+        db.connect(err => {
+            if (err) {
+                console.error('could not connect to postgres', err);
+                return callback(err, null);
+            }
+        });
 
-                db.query(sqlString, sqlParams, (err, result) => {
-                    if (err) {
-                        console.error('sql error:', err);
-                    }
-                    db.end();
-                    callback(err, result);
-                });
+        try {
+            db.query(sqlString, sqlParams, (err, result) => {
+                if (err) {
+                    console.error('sql error:', err);
+                    return callback(err, null);
+                }
+                db.end();
+                return callback(err, result);
             });
         } catch (err) {
             console.error(err);
-            callback(err);
+            return callback(err);
         }
+
     },
 
     executeSqlQueries: function (sqls, params, returnData, callback) {
@@ -143,7 +150,7 @@ const Doc = {
                 dataRow.query = db.query(sqlParameter, params); // ставим в очередь
             } catch (err) {
                 console.error('catched db error:', err);
-                callback(err, []);
+                return callback(err, []);
 
             }
 
@@ -154,7 +161,7 @@ const Doc = {
 
         db.on('error', (err) => {
             console.error('db error:', err);
-            callback(err, []);
+            return callback(err, []);
         });
 
         db.on('drain', () => {
@@ -174,7 +181,7 @@ const Doc = {
             db.connect(); // выполнить запрос
         } catch (err) {
             console.error('SQL execution error:', err);
-            callback(err);
+            return callback(err);
         }
 
     },
@@ -182,7 +189,7 @@ const Doc = {
     selectDoc: function (docTypeId, params, callback) {
         // вернет данные модели
 
-        let doc = require('./' + docTypeId),
+        let doc = getModule(docTypeId, null, __dirname),
             sql = doc.select,
             docBpm = [], // БП документа
             returnData = doc.returnData;
@@ -198,34 +205,45 @@ const Doc = {
 
                     if (err) {
                         console.error('got error', err);
+                        return callback(err, null);
                     }
                     callback(err, data, docBpm);
                 });
 
             } catch (err) {
                 console.error('catched error', err);
-                callback(err);
+                return callback(err);
 
             }
         } else {
             try {
                 Doc.executeSqlQuery(sql, params, (err, data) => {
+                    if (err) {
+                        return callback(err);
+                    }
                     callback(err, data.rows, docBpm);
                 });
 
             } catch (err) {
                 console.error('error catched', err);
-                callback(err);
+                return callback(err);
             }
         }
     },
 
-    selectDocPromise: (docTypeId, params) => {
+    selectDocPromise: (docTypeId, params, sqlSelect) => {
         // обертка в промис функции selectDoc
-        const doc = require('../models/' + docTypeId),
-            sql = doc.select;
+        console.log('selectDocPromise',docTypeId, __dirname );
+        let doc = getModule(docTypeId, null, __dirname);
 
-        var docBpm = [], // БП документа
+        let sql;
+        if (sqlSelect) {
+            sql = doc[sqlSelect];
+        } else {
+            sql = doc['select'];
+        }
+
+        let docBpm = [], // БП документа
             returnData = doc.returnData;
 
         if (doc.bpm) {
@@ -242,31 +260,63 @@ const Doc = {
 
     saveDoc: function (docTypeId, params, callback) {
         // вызов метода сохранения документа
-        var doc = require('./' + docTypeId),
-            sql = doc.saveDoc;
+
+        let doc = getModule(docTypeId, null, __dirname);
+
+        let sql = doc.saveDoc;
 
         try {
             Doc.executeSqlQuery(sql, params, callback);
-        } catch(err) {
+        } catch (err) {
             console.error('error', err);
-            callback(err, null);
+            return callback(err, null);
 
         }
 
     },
 
     saveDocPromise: (docTypeId, params) => {
+
+        let doc = getModule(docTypeId, null, __dirname);
+
         // промисификация для функции saveDoc
-        let doc = require('./' + docTypeId),
-            sql = doc.saveDoc
+        let sql = doc.saveDoc
+
+        return Doc.executeSqlQueryPromise(sql, params);
+    },
+
+    deleteDoc: function (docTypeId, params, callback) {
+        // вызов метода удаления документа
+
+        let doc = getModule(docTypeId, null, __dirname);
+
+        let sql = doc.deleteDoc;
+
+        try {
+            Doc.executeSqlQuery(sql, params, callback);
+        } catch (err) {
+            console.error('error', err);
+            return callback(err, null);
+
+        }
+
+    },
+
+    deleteDocPromise: (docTypeId, params) => {
+
+        let doc = getModule(docTypeId, null, __dirname);
+
+        // промисификация для функции deleteDoc
+        let sql = doc.deleteDoc
 
         return Doc.executeSqlQueryPromise(sql, params);
     },
 
     executeTask: function (docTypeId, params, callback) {
         // запустит переданные методы в моделе
-        var doc = require('./' + docTypeId),
-            tasks = params.params.tasks,
+        let doc = getModule(docTypeId, null, __dirname);
+
+        let tasks = params.params.tasks,
             docId = params.params.docId,
             userId = params.userId;
 
@@ -275,8 +325,9 @@ const Doc = {
     },
 
     executeAutomateTask: function (docTypeId, params) {
-        let doc = require('./' + docTypeId),
-            tasks = params.params.tasks,
+        let doc = getModule(docTypeId, null, __dirname);
+
+        let tasks = params.params.tasks,
             docId = params.params.docId,
             userId = params.userId,
             bpm = doc.bpm,            // 1. получаем список задач (массив)
@@ -303,11 +354,9 @@ const Doc = {
         tasks.forEach((task) => {
             chain = chain
                 .then(() => {
-                    //                   console.log('then task', task);
                     return executePromise(task);
                 })
                 .then((result) => {
-                    //                   console.log('then resuts:', results);
                     results.push(result);
                 });
         });
@@ -315,48 +364,41 @@ const Doc = {
         // 3. п последовательно вызываем цкпочку
 
         let executePromise = ((task) => {
-//            console.log('task:', task, docId, userId);
             return eval('doc.executeTask([task],docId, userId)');
         })
 
         // в конце — выводим результаты
         chain.then(() => {
-//            console.log('results:', results);
             return results;
         });
-
-//        return doc.executeTask(tasks, docId, userId);
-//        callback(null,'Ok');
 
     },
 
     executeTaskPromise: function (docTypeId, params) {
         // обертка над методом executeTask
 
-//        console.log('executeTaskPromise 1', docTypeId, params);
-        let doc = require('./' + docTypeId),
-            tasks = params.params.tasks,
+        let doc = getModule(docTypeId, null,__dirname);
+
+        let tasks = params.params.tasks,
             docId = params.params.docId,
             userId = params.userId;
-
-//            console.log('task:', tasks, docId, userId);
 
         return doc.executeTask(tasks, docId, userId);
     },
 
     config: function () {
-        var config = require('./docs_grid_config.js');
+        let config = require('./docs_grid_config.js');
         return config;
     },
     // грид документов
     docsGrid: {
         getGridQuery: function (docType) {
-                let config = require(`./${docType.toLowerCase()}`);
-                return config['grid'].sqlString
+            let config = getModule(docType, null,__dirname);
+            return config['grid'].sqlString
         },
         getGridConfiguration: function (docType) {
-                let config = require(`./${docType.toLowerCase()}`);
-                return config['grid'].gridConfiguration;
+            let config = getModule(docType,null,__dirname);
+            return config['grid'].gridConfiguration;
         },
         getGridParams: function (docType) {
             var config = require('./docs_grid_config.js');
@@ -379,7 +421,6 @@ const Doc = {
                 // выборка из документов
                 docTypeId = 'DOK'
             }
-
             gridConfig = this.getGridConfiguration(docTypeId);
             sqlSelect = 'select * from (' + this.getGridQuery(docTypeId) + ') as qry ' + sqlWhere + sqlSortBy;
             //sqlParams = this.getGridParams(docTypeId);
@@ -389,28 +430,38 @@ const Doc = {
 
                 if (err) {
                     console.error('sqlError sqlSelect sqlParams', err, sqlSelect, sqlParams);
-                    callback(err, null);
-                } else {
-                    results.docsGrid = {
-                        data: [{
-                            id: docTypeId,
-                            columns: gridConfig,
-                            data: data.rows
-                        }]
-                    }
-//                    console.log('data:', data);
-                    callback(err, data.rows);
-
+                    return callback(err, null);
                 }
+
+                results.docsGrid = {
+                    data: [{
+                        id: docTypeId,
+                        columns: gridConfig,
+                        data: data.rows
+                    }]
+                }
+                callback(err, data.rows);
+
             });
         },
 
     }, // объект docsGrid
     docsList: {
-        sqlString: `select l.id, trim(l.nimetus)::text as name, ltrim(rtrim(kood))::text as kood 
-            from libs.library l 
-            where ($1 = 0 or l.rekvid = $1) and l.library = $2 
-            order by l.kood`,
+        sqlString: `select module::text as id, '0' as parentId, trim(both '"' from module::text) as kood, trim(both '"' from module::text) as name, null::text as props, true as is_node
+                        from (select distinct  jsonb_array_elements((properties::jsonb -> 'module')) as module
+                                from libs.library l 
+                                where ($1 = 0 or l.rekvid = $1) 
+                                and l.library = $2) modules
+                    union all            
+                    select l.id::text , modules.module::text as parentId, ltrim(rtrim(kood))::text as kood, trim(l.nimetus)::text as name, 
+                        properties::text as props, false as is_node
+                        from libs.library l 
+                        left outer join (select distinct  jsonb_array_elements((properties::jsonb -> 'module')) as module
+                                from libs.library l 
+                                where ($1 = 0 or l.rekvid = $1) 
+                                and l.library = $2
+                                ) modules on (properties::jsonb -> 'module')::jsonb @> modules.module
+                        where ($1 = 0 or l.rekvid = $1) and l.library = $2`,
         params: [getRekvIdFromSession(), 'DOK'],
         data: [],
         requery: function (parameter, callback, results) {
@@ -420,10 +471,23 @@ const Doc = {
                     results.docsList = {
                         data: []
                     }
+                    return callback(err);
                 }
                 results.docsList = {
                     data: data.rows
                 }
+
+                // will register all documents
+                data.rows.forEach(doc => {
+                    let params;
+                    if (doc.props) {
+                        params = JSON.parse(doc.props)
+                    }
+                    // will register all docs
+                    if (!doc.is_node) {
+                        getModule(doc.kood, params, __dirname);
+                    }
+                })
                 callback(err, data.rows);
 
             });
@@ -434,4 +498,5 @@ const Doc = {
 };
 
 module.exports = Doc;
+
 

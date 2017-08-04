@@ -2,7 +2,7 @@
 
 describe('model dok. type SMK tests', ()=> {
     let globalDocId = 0; // для сохранения ид документа
-    const doc = require('../models/smk'),
+    const doc = require('../models/raamatupidamine/smk'),
         docTypeId = 'smk',
         DocDataObject = require('../models/documents');
 
@@ -33,25 +33,27 @@ describe('model dok. type SMK tests', ()=> {
         expect(warning).toBeNull();
     });
 
-    it(`${docTypeId} unit save test`, () => {
+    it(`${docTypeId} unit save test`, (done) => {
         DocDataObject.saveDoc(docTypeId.toUpperCase(), [docData, 1, 1], (err, data) => {
-            console.log('data:', data);
             expect(err).toBeNull();
             expect(data).toBeDefined();
             expect(data['rows'].length).toBeGreaterThan(0);
             expect(data['rows'][0].id).toBeGreaterThan(0);
+            globalDocId = data['rows'][0].id;
+            done();
         });
     });
 
-    it(`${docTypeId} select`, () => {
+    it(`${docTypeId} select`, (done) => {
         DocDataObject.selectDoc(docTypeId.toUpperCase(), [globalDocId, 1], (err, data) => {
             expect(err).toBeNull();
             expect(data.row.id).toBeDefined();
             expect(data.row.id).toBe(globalDocId);
+            done();
         });
     });
 
-    it(`${docTypeId} test for select (grid)`, () => {
+    it(`${docTypeId} test for select (grid)`, (done) => {
         let results = {},
             user = {
                 asutusId: 1,
@@ -68,6 +70,7 @@ describe('model dok. type SMK tests', ()=> {
             });
 
             expect(newDoc.length).toBeGreaterThan(0);
+            done();
         }, results, null, null, user);
 
     });
@@ -92,14 +95,29 @@ describe('model dok. type SMK tests', ()=> {
         });
     })
 
-    it(`${docTypeId} test for deleteTask`, () => {
+    it(`${docTypeId} test for deleteTask with wrong docId`, (done) => {
+        let sql = doc.deleteDoc;
+
+        DocDataObject.executeSqlQuery(sql, [1, 0], (err, data) => {
+            expect(err).toBeNull();
+            expect(data).toBeDefined();
+            expect(data.rows[0].error_code).not.toBeNull();
+            done();
+        });
+
+    });
+
+    it(`${docTypeId} test for deleteTask`, (done) => {
         let sql = doc.deleteDoc;
 
         DocDataObject.executeSqlQuery(sql, [1, globalDocId], (err, data) => {
             expect(err).toBeNull();
             expect(data).toBeDefined();
-            expect(data[0].result).toBe(1);
+            expect(data.rows[0].result).toBe(1);
+            done();
         });
+
+        done();
 
     });
 

@@ -13,12 +13,12 @@ declare
 	korder1_id integer;
 	userName text;
 	doc_id integer = data->>'id';	
-	doc_type_kood text = data->>'doc_type_id';
-	doc_type_id integer = (select id from libs.library where kood = doc_type_kood and library = 'DOK' limit 1);
-	doc_details json = data->>'details';
 	doc_data json = data->>'data';
-	doc_number text = coalesce(doc_data->>'number','1');
 	doc_tyyp text = coalesce(doc_data->>'tyyp','1'); -- 1 -> sorder, 2 -> vorder
+	doc_type_kood text = case when doc_tyyp = '1' then 'SORDER' else 'VORDER' end/*data->>'doc_type_id'*/;
+	doc_type_id integer = (select id from libs.library where ltrim(rtrim(upper(kood))) = ltrim(rtrim(upper(doc_type_kood))) and library = 'DOK' limit 1);
+	doc_details json = data->>'details';
+	doc_number text = coalesce(doc_data->>'number','1');
 	doc_kpv date = doc_data->>'kpv';
 	doc_asutusid integer = doc_data->>'asutusid';
 	doc_kassa_id integer = doc_data->>'kassa_id';
@@ -64,8 +64,8 @@ if doc_id is null or doc_id = 0 then
 	select row_to_json(row) into new_history from (select now() as created, userName as user) row;
 		
 	
-	insert into docs.doc (doc_type_id, history ) 
-		values (doc_type_id, '[]'::jsonb || new_history) 
+	insert into docs.doc (doc_type_id, history, rekvid ) 
+		values (doc_type_id, '[]'::jsonb || new_history, user_rekvid) 
 		returning id into doc_id;
 
 	insert into docs.korder1 (parentid, rekvid, userid, kpv, asutusid, tyyp, kassaId, number, dokument, nimi, aadress, alus, muud, summa, arvid)

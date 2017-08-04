@@ -313,7 +313,7 @@ function reloadDocument(docId) {
 function loadLibs(libraryName, libParams) {
     try {
 
-        requery('select', JSON.stringify({doc_type_id: libraryName, id: 0, params: libParams}), function (err, data) {
+        requery('selectAsLibs', JSON.stringify({doc_type_id: libraryName, id: 0, params: libParams}), function (err, data) {
             if (err) throw err;
 
             var newLibs = docStore.libs.map(function (item) {
@@ -362,7 +362,7 @@ function requery(action, parameters, callback) {
         }.bind(this),
         error: function (xhr, status, err) {
             console.error('/error', status, err.toString());
-            callback(err, null);
+            return callback(err, null);
         }.bind(this)
     });
 

@@ -63,7 +63,7 @@ class DocToolBar extends React.PureComponent {
                            disabled={toolbarParams['btnCancel'].disabled}/>
                 <BtnPrint ref='btnPrint' onClick={this.btnPrintClick} show={toolbarParams['btnPrint'].show}
                           disabled={toolbarParams['btnPrint'].disabled}/>
-                {this.props.bpm ? <TaskWidget ref='taskWidget'
+                {this.props.bpm.length ? <TaskWidget ref='taskWidget'
                                               taskList={this.props.bpm}
                                               handleSelectTask={this.handleSelectTask}
                                               handleButtonTask={this.handleButtonTask}
