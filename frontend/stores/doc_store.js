@@ -160,7 +160,7 @@ var docStore = flux.createStore({
                 // если контрагент отсутсвует, то и параметр контрагента также обнулим
                 value.arvid = value.asutusid ? value.arvid : null;
                 // зададим параметры для справочника счетов
-                flux.doAction('setLibsFilter', 'arvedSisse', [value.asutusid, value.arvid]);
+                //flux.doAction('setLibsFilter', 'arvedSisse', [value.asutusid, value.arvid]);
             }
         },
         bpmChange: function (updater, value) {

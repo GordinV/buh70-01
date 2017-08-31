@@ -58,6 +58,7 @@ exports.post = function(req, res) {
             try {
                 // тут вызов метода сохранение
                 // выборка сохраненных данных
+                console.log('saving', docTypeId, params);
                 DocDataObject.saveDocPromise(docTypeId, params)
                     .then((data) => {
                         res.send(data)
@@ -135,7 +136,7 @@ exports.post = function(req, res) {
              }
              */
             try {
-                console.log('api doc docTypeId', docTypeId);
+
                 DocDataObject.selectDocPromise(docTypeId, params, action)
                     .then((data) => {
                         res.send(data)

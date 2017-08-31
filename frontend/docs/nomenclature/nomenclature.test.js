@@ -6,14 +6,14 @@ const flux = require('fluxify');
 let docStore = require('../../stores/doc_store.js');
 
 
-describe('doc test, Kontod', () => {
+describe('doc test,Nomenclature', () => {
     // проверяем на наличие компонента и его пропсы и стейты
     // проверяем изменение стейтов после клика
-    const Kontod = require('./kontod.jsx');
+    const Nomenclature = require('./nomenclature.jsx');
 //    const style = require('./input-text-styles');
 
     let dataRow = require('./../../../test/fixture/kontod-fixture'),
-        model = require('./../../../models/libs/libraries/kontod'),
+        model = require('./../../../models/libs/libraries/nomenclature'),
         data = {
             row: dataRow,
         }
@@ -21,7 +21,7 @@ describe('doc test, Kontod', () => {
 
     let onChangeHandler = jest.fn();
 
-    let doc = ReactTestUtils.renderIntoDocument(<Kontod data={data}/>);
+    let doc = ReactTestUtils.renderIntoDocument(<Nomenclature data={data}/>);
 
     it('should be defined', () => {
         expect(doc).toBeDefined();
@@ -34,8 +34,14 @@ describe('doc test, Kontod', () => {
         expect(doc.refs['input-kood']).toBeDefined();
         expect(doc.refs['input-nimetus']).toBeDefined();
         expect(doc.refs['textarea-muud']).toBeDefined();
-        expect(doc.refs['select-tyyp']).toBeDefined();
-        expect(doc.refs['input-valid']).toBeDefined();
+        expect(doc.refs['select-dok']).toBeDefined();
+        expect(doc.refs['input-hind']).toBeDefined();
+        expect(doc.refs['select-valuuta']).toBeDefined();
+        expect(doc.refs['input-kuurs']).toBeDefined();
+        expect(doc.refs['select_konto_db']).toBeDefined();
+        expect(doc.refs['select_konto_kr']).toBeDefined();
+        expect(doc.refs['select_projekt']).toBeDefined();
+        expect(doc.refs['select_tunnus']).toBeDefined();
     });
 
     it('test doc-toolbar-events', (done) => {

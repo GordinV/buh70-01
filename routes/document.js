@@ -17,12 +17,13 @@ exports.get = function(req, res, params) {
         docName = 'Document',
         moduleSource = "/javascripts/doc.js", // линк с указанием модуля, передадим параметром
         docInitData = {
-            docTypeId: docTypeId,
+            docTypeId: docTypeId.toUpperCase(),
             data: [],
             bpm:[]
         };
 //        localStorage = require('../middleware/local_storage')(req);
 //@todo заменить
+
     switch (docTypeId) {
         case 'ARV':
             docComponent = require('../frontend/docs/arve/arve.jsx');
@@ -64,6 +65,26 @@ exports.get = function(req, res, params) {
             docComponent = require('../frontend/docs/kontod/kontod.jsx');
             docName = 'Kontod';
             moduleSource = "/javascripts/kontod.js";
+            break;
+        case 'NOMENCLATURE':
+            docComponent = require('../frontend/docs/nomenclature/nomenclature.jsx');
+            docName = 'Nomenclature';
+            moduleSource = "/javascripts/nomenclature.js";
+            break;
+        case 'DOCUMENT':
+            docComponent = require('../frontend/docs/document/document.jsx');
+            docName = 'Document';
+            moduleSource = "/javascripts/documentLib.js";
+            break;
+        case 'PROJECT':
+            docComponent = require('../frontend/docs/project/project.jsx');
+            docName = 'Projekt';
+            moduleSource = "/javascripts/project.js";
+            break;
+        case 'TUNNUS':
+            docComponent = require('../frontend/docs/tunnus/tunnus.jsx');
+            docName = 'Tunnus';
+            moduleSource = "/javascripts/tunnus.js";
             break;
         default:
             docComponent = require('../middleware/returnDocComponent')(docTypeId); // вернет компонент по типу тип документа

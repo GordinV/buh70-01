@@ -9,13 +9,13 @@ module.exports = (docTypeId, params, modelPath) => {
 
     let moduleInstance = moduleLocator.get(docTypeId);
 
-
     if (!moduleInstance) {
         // will return the instance of the model
         let folder,
             doc = docTypeId.toLowerCase();
 
         folder = path.join(modelPath, config[doc]);
+
         //module exist, we can register it
         moduleLocator.register(docTypeId, require(folder));
         moduleInstance = moduleLocator.get(docTypeId)

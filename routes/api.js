@@ -63,7 +63,6 @@ exports.post = function (req, res) {
 
             // выполняем запрос
             let componentName = component.name;
-
             DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere, user);
         }, (err) => {
             if (err) {

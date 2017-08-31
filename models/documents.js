@@ -281,7 +281,7 @@ const Doc = {
 
         // промисификация для функции saveDoc
         let sql = doc.saveDoc
-
+        console.log('saveDocPromise', sql);
         return Doc.executeSqlQueryPromise(sql, params);
     },
 
@@ -429,7 +429,7 @@ const Doc = {
             Doc.executeSqlQuery(sqlSelect, sqlParams, (err, data) => {
 
                 if (err) {
-                    console.error('sqlError sqlSelect sqlParams', err, sqlSelect, sqlParams);
+                    console.error('grid, sqlError sqlSelect sqlParams', err, sqlSelect, sqlParams);
                     return callback(err, null);
                 }
 
@@ -465,9 +465,12 @@ const Doc = {
         params: [getRekvIdFromSession(), 'DOK'],
         data: [],
         requery: function (parameter, callback, results) {
+            let sql = this.sqlString,
+                params = this.params;
+
             Doc.executeSqlQuery(this.sqlString, this.params, function (err, data) {
                 if (err) {
-                    console.error('sql error:', err);
+                    console.error('docsList, sql error:', err, sql, params);
                     results.docsList = {
                         data: []
                     }

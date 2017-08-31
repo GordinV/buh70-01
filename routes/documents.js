@@ -8,7 +8,6 @@ exports.get = function (req, res) {
     // рендер грида на сервере при первой загрузке странице
     const Register = require('../frontend/docs/doc-register/doc-register.jsx'),
         DocDataObject = require('../models/documents');
-
     let docs = [],
         lastIndex = 0,
         lastParams = [],
@@ -22,10 +21,12 @@ exports.get = function (req, res) {
         docs = req.session.docs;
         lastIndex = docs.length - 1;
         lastParams = docs[lastIndex];
-        parameter = lastParams['parameter'];
+        if (lastParams) {
+            parameter = lastParams['parameter'];
+        }
     }
 
-
+    let lastDocId = lastParams ? lastParams['docId']:  0;
 
     let results = [], // {}
         user = require('../middleware/userData')(req),  // check for userid in session
@@ -34,7 +35,7 @@ exports.get = function (req, res) {
         docId,
         components = [
             {name: 'docsList', data: [], value: parameter},
-            {name: 'docsGrid', data: [], value: parameter, lastDocId: lastParams['docId'] || 0}
+            {name: 'docsGrid', data: [], value: parameter, lastDocId: lastDocId}
         ];
 
     async.forEach(components, (component, callback) => {
@@ -44,7 +45,6 @@ exports.get = function (req, res) {
         if (!parameter) {
             parameter = 'DOK';
         }
-        parameter = 'DOK';
 
         DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere, user);
         //       DocDataObject[componentName].requery(null, callback, results);

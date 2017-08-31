@@ -1,16 +1,20 @@
 module.exports = {
-    selectAsLibs: `select id, trim(kood) as kood, trim(nimetus) as name from libs.library where library = 'TUNNUS' order by kood`,
+    selectAsLibs: "select id, trim(kood) as kood, trim(nimetus) as name from libs.library where library = 'DOK' order by kood",
     select: [{
-        sql: `select l.*, $2::integer as userid, 'TUNNUS' as doc_type_id
+        sql: `select l.*, $2::integer as userid, 'DOCUMENT' as doc_type_id,
+                (l.properties::jsonb ->>'type')::text as type,
+                (l.properties::jsonb ->>'module')::text as module
                 from libs.library l 
                 where l.id = $1`,
-        sqlAsNew: `select  $1::integer as id , $2::integer as userid, 'TUNNUS' as doc_type_id,
+        sqlAsNew: `select  $1::integer as id , $2::integer as userid, 'DOCUMENT' as doc_type_id,
             null::text as  kood,
             null::integer as rekvid,
             null::text as nimetus,
-            'TUNNUS'::text as library,
+            'DOK'::text as library,
             null::text as muud,
-            null::text as properties`,
+            '{"type":"library", "module":["Libraries"]}' as properties,
+            null::text as type,
+            null::text as module`,
         query: null,
         multiple: false,
         alias: 'row',
@@ -34,9 +38,10 @@ module.exports = {
         ],
         sqlString: `select id, kood, nimetus,  $2::integer as userId
             from libs.library l
-            where l.library = 'TUNNUS'
+            where l.library = 'DOK'
             and (l.rekvId = $1 or l.rekvid is null)`,     //  $1 всегда ид учреждения $2 - всегда ид пользователя
         params: ''
     },
+
 
 }

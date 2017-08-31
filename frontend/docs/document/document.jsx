@@ -5,26 +5,22 @@ const React = require('react'),
 const
     Form = require('../../components/form/form.jsx'),
     InputText = require('../../components/input-text/input-text.jsx'),
-    InputDate = require('../../components/input-date/input-date.jsx'),
     Select = require('../../components/select/select.jsx'),
     TextArea = require('../../components/text-area/text-area.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
-    styles = require('./kontod-styles');
+    styles = require('./document-styles'),
+    TYPIES = [{id:1, kood: 'document', name: 'document'}, {id: 2, kood: 'library', name: 'library'}],
+    MODULES=[{id:1, kood:'Raamatupidamine', name: 'Raamatupidamine'},{id:2, kood:'Libraries', name:'Libraries'}];
+
 
 // Create a store
 const docStore = require('../../stores/doc_store.js');
 
-const now = new Date(),
-    KONTO_TYYP = [
-        {id: 1, kood: "SD", name: "SD"},
-        {id: 2, kood: "SK", name: "SK"},
-        {id: 3, kood: "D", name: "D"},
-        {id: 4, kood: "K", name: "K"}
-    ];
+const now = new Date();
 
-class Kontod extends React.PureComponent {
+class Document extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
@@ -79,8 +75,7 @@ class Kontod extends React.PureComponent {
             if (newValue) {
                 // делаем копии
                 flux.doAction('backupChange', {
-                    row: Object.assign({}, flux.stores.docStore.data),
-                    details: Object.assign([], flux.stores.docStore.details)
+                    row: Object.assign({}, flux.stores.docStore.data)
                 });
 
             }
@@ -90,6 +85,38 @@ class Kontod extends React.PureComponent {
             }
         });
 
+/*
+        // грузим справочники
+        LIBRARIES.forEach(lib => {
+            flux.doAction("loadLibs", lib);
+        });
+
+        docStore.on('change:libs', (newValue, previousValue) => {
+            let isChanged = false,
+                libs = newValue,
+                libsData = this.state.libs;
+
+            if (newValue.length > 0) {
+
+                libs.forEach(lib => {
+                    if (lib.id === 'dokProps') {
+                        // оставим только данные этого документа
+
+                    }
+                    if (this.state.libs[lib.id] && lib.data.length > 0) {
+                        libsData[lib.id] = lib.data;
+                        isChanged = true;
+                    }
+                });
+            }
+
+            if (isChanged) {
+                self.setState({libs: libsData});
+            }
+        });
+
+*/
+
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -98,7 +125,6 @@ class Kontod extends React.PureComponent {
     }
 
     render() {
-
         let isEditeMode = this.state.edited,
             toolbarParams = this.prepaireToolBarParameters(isEditeMode),
             validationMessage = this.validation();
@@ -134,26 +160,33 @@ class Kontod extends React.PureComponent {
                                    value={this.state.docData.nimetus}
                                    onChange={this.handleInputChange}/>
                     </div>
+
                     <div style={styles.docRow}>
-                        <Select title="Konto tüüp"
-                                name='tyyp'
-                                data={KONTO_TYYP}
-                                value={this.state.docData.tyyp}
-                                defaultValue={this.state.docData.konto_tyyp}
-                                ref="select-tyyp"
+                        <Select title="Tüüp:"
+                                name='type'
+                                data={TYPIES}
+                                collId='kood'
+                                value={this.state.docData.type}
+                                defaultValue={this.state.docData.type}
+                                ref="select-type"
                                 btnDelete={isEditeMode}
                                 onChange={this.handleInputChange}
                                 readOnly={!isEditeMode}/>
                     </div>
+{/*
                     <div style={styles.docRow}>
-                        <InputDate title='Kehtiv kuni:'
-                                   name='valid'
-                                   value={this.state.docData.valid}
-                                   ref='input-valid'
-                                   readOnly={!isEditeMode}
-                                   onChange={this.handleInputChange}/>
+                        <Select title="Moduul:"
+                                name='module'
+                                data={MODULES}
+                                collId='kood'
+                                value={this.state.docData.module}
+                                defaultValue={this.state.docData.module}
+                                ref="select-module"
+                                btnDelete={isEditeMode}
+                                onChange={this.handleInputChange}
+                                readOnly={!isEditeMode}/>
                     </div>
-
+*/}
                     <div style={styles.docRow}>
                                 <TextArea title="Muud"
                                           name='muud'
@@ -173,7 +206,7 @@ class Kontod extends React.PureComponent {
         switch (event) {
             case 'CANCEL':
                 let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row, gridData: backup.details, warning: ''});
+                this.setState({docData: backup.row,  warning: ''});
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
@@ -220,7 +253,7 @@ class Kontod extends React.PureComponent {
 }
 
 
-Kontod.PropTypes = {
+Document.PropTypes = {
     docData: React.PropTypes.object.isRequired,
     edited: React.PropTypes.bool,
     showMessageBox: React.PropTypes.string,
@@ -238,6 +271,6 @@ Kontod.PropTypes = {
  */
 
 
-module.exports = Kontod;
+module.exports = Document;
 
 

@@ -11,11 +11,10 @@ module.exports = {
     dokprops: '/libs/libraries/dokprops',
     users: '/libs/libraries/users',
     nomenclature: '/libs/libraries/nomenclature',
+    document: '/libs/libraries/document',
     aa: '/libs/libraries/aa',
     arvedsisse: '/libs/libraries/arvedsisse',
     tunnus: '/libs/libraries/tunnus',
     project: '/libs/libraries/project',
     kassa: '/libs/libraries/kassa'
-
-
 }
