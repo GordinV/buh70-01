@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify'),
     ToolbarContainer = require('./../toolbar-container/toolbar-container.jsx'),
@@ -140,10 +142,10 @@ class DocToolBar extends React.PureComponent {
 }
 
 DocToolBar.PropTypes = {
-    bpm: React.PropTypes.array,
-    edited: React.PropTypes.bool,
-    docStatus: React.PropTypes.number,
-    validator: React.PropTypes.func
+    bpm: PropTypes.array,
+    edited: PropTypes.bool,
+    docStatus: PropTypes.number,
+    validator: PropTypes.func
 }
 
 DocToolBar.defaultProps = {

@@ -1,12 +1,14 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     styles = require('../button-register-styles'),
     Button = require('../button-register.jsx'),
     ICON = 'save';
 
 
-class ButtonRegisterPrint extends React.PureComponent{
+class ButtonRegisterSave extends React.PureComponent{
 // кнопка создания документа в регистрах
     constructor(props) {
         super(props);
@@ -35,15 +37,15 @@ class ButtonRegisterPrint extends React.PureComponent{
     }
 };
 
-ButtonRegisterPrint.propTypes = {
-    onClick: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool
+ButtonRegisterSave.propTypes = {
+    onClick: PropTypes.func.isRequired,
+    disabled: PropTypes.bool
 }
 
 
-ButtonRegisterPrint.defaultProps = {
+ButtonRegisterSave.defaultProps = {
     disabled: false,
     show: true
 };
 
-module.exports = ButtonRegisterPrint;
+module.exports = ButtonRegisterSave;

@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     styles = require('./data-grid-styles'),
     keydown = require('react-keydown'),
@@ -46,10 +48,12 @@ class DataGrid extends React.PureComponent {
         this.setState({gridColumns: nextProps.gridColumns, gridData: nextProps.gridData})
     }
 
+/*
     shouldComponentUpdate(nextProps, nextState) {
         // @todo добавить проверку на изменение состояния
         return true;
     }
+*/
 
     render() {
         let className = 'th';
@@ -249,13 +253,13 @@ class DataGrid extends React.PureComponent {
 }
 
 DataGrid.propTypes = {
-    gridColumns: React.PropTypes.array.isRequired,
-    gridData: React.PropTypes.array.isRequired,
-    onChangeAction: React.PropTypes.string,
-    onClick: React.PropTypes.func,
-    onDblClick: React.PropTypes.func,
-    onHeaderClick: React.PropTypes.func,
-    activeRow: React.PropTypes.number
+    gridColumns: PropTypes.array.isRequired,
+    gridData: PropTypes.array.isRequired,
+    onChangeAction: PropTypes.string,
+    onClick: PropTypes.func,
+    onDblClick: PropTypes.func,
+    onHeaderClick: PropTypes.func,
+    activeRow: PropTypes.number
 }
 
 

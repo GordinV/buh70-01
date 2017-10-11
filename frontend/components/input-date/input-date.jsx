@@ -1,4 +1,7 @@
 'use strict';
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     styles = require('./input-date-styles');
 
@@ -81,17 +84,17 @@ class InputDate extends React.PureComponent {
 }
 
 InputDate.PropTypes = {
-    name: React.PropTypes.string.isRequired,
-    value: React.PropTypes.objectOf(Date),
-    min: React.PropTypes.objectOf(Date),
-    max: React.PropTypes.objectOf(Date),
-    readOnly: React.PropTypes.bool,
-    disabled: React.PropTypes.bool,
-    valid: React.PropTypes.bool,
-    pattern: React.PropTypes.string,
-    width: React.PropTypes.string,
-    title: React.PropTypes.string,
-    placeholder: React.PropTypes.string
+    name: PropTypes.string.isRequired,
+    value: PropTypes.objectOf(Date),
+    min: PropTypes.objectOf(Date),
+    max: PropTypes.objectOf(Date),
+    readOnly: PropTypes.bool,
+    disabled: PropTypes.bool,
+    valid: PropTypes.bool,
+    pattern: PropTypes.string,
+    width: PropTypes.string,
+    title: PropTypes.string,
+    placeholder: PropTypes.string
 
 }
 

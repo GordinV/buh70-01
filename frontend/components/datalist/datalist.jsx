@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     styles = require('./datalist-styles');
 
@@ -71,8 +73,8 @@ class DataList extends React.PureComponent {
 }
 
 DataList.propTypes = {
-    value: React.PropTypes.string,
-    data: React.PropTypes.array
+    value: PropTypes.string,
+    data: PropTypes.array
 };
 
 DataList.defaultProps = {

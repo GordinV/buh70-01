@@ -5,39 +5,39 @@ import PropTypes from 'prop-types';
 const React = require('react'),
     styles = require('../button-register-styles'),
     Button = require('../button-register.jsx'),
-    ICON = 'filter';
+    ICON = 'start';
 
-
-class ButtonRegisterFilter extends React.PureComponent {
+class ButtonRegisterStart extends React.PureComponent{
 // кнопка создания документа в регистрах
     constructor(props) {
         super(props);
     }
 
     handleClick(e) {
-        return this.props.onClick();
+        return this.props.onClick('start');
     }
 
     render() {
         return <Button
-            ref="btnFilter"
-            value = 'Filter'
+            value = ''
+            ref="btnStart"
+            style={styles.button}
             show={this.props.show}
             disabled={this.props.disabled}
             onClick={(e) => this.handleClick(e)}>
-            <image ref = 'image' src={styles.icons[ICON]}/>
+            <image ref="image" src={styles.icons[ICON]}/>
         </Button>
     }
-}
-;
+};
 
-ButtonRegisterFilter.propTypes = {
+ButtonRegisterStart.propTypes = {
     onClick: PropTypes.func.isRequired
 }
 
 
-ButtonRegisterFilter.defaultProps = {
+ButtonRegisterStart.defaultProps = {
     disabled: false,
     show: true
 };
-module.exports = ButtonRegisterFilter;
+
+module.exports = ButtonRegisterStart;

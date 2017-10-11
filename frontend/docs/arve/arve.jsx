@@ -1,4 +1,7 @@
 'use strict';
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify');
 
@@ -9,7 +12,7 @@ const
     InputNumber = require('../../components/input-number/input-number.jsx'),
     DocCommon = require('../../components/doc-common/doc-common.jsx'),
     Select = require('../../components/select/select.jsx'),
-    SelectData = require('../../components/select-data/select-data.jsx'),
+//    SelectData = require('../../components/select-data/select-data.jsx'),
     TextArea = require('../../components/text-area/text-area.jsx'),
     DataGrid = require('../../components/data-grid/data-grid.jsx'),
     GridButtonAdd = require('../../components/button-register/button-register-add/button-register-add.jsx'),
@@ -190,134 +193,136 @@ class Arve extends React.PureComponent {
             libs = flux.stores.docStore.libs;
 
         return (
-            <Form pages={this.pages}
-                  ref="form"
-                  handlePageClick={this.handlePageClick}
-                  disabled={isEditeMode}>
-                <ToolbarContainer ref='toolbar-container'>
-                    <div className='doc-toolbar-warning'>
-                        {validationMessage ? <span>{validationMessage}</span> : null }
-                    </div>
-                    <div>
-                        <DocToolBar bpm={bpm}
-                                    ref='doc-toolbar'
-                                    edited={isEditeMode}
-                                    docStatus={this.state.docData.doc_status}
-                                    validator={this.validation}
-                                    eventHandler={this.handleToolbarEvents}/>
-                    </div>
-                </ToolbarContainer>
-                <div style={styles.doc}>
-                    <div style={styles.docRow}>
-                        <DocCommon
-                            ref='doc-common'
-                            data={this.state.docData}
-                            readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <div style={styles.docColumn}>
-                            <InputText ref="input-number"
-                                       title='Number'
-                                       name='number'
-                                       value={this.state.docData.number}
-                                       readOnly={!isEditeMode}
-                                       onChange={this.handleInputChange}/>
-                            <InputDate title='Kuupäev '
-                                       name='kpv' value={this.state.docData.kpv}
-                                       ref='input-kpv'
-                                       readOnly={!isEditeMode}
-                                       onChange={this.handleInputChange}/>
-                            <InputDate title='Tähtaeg '
-                                       name='tahtaeg'
-                                       value={this.state.docData.tahtaeg}
-                                       ref="input-tahtaeg"
-                                       readOnly={!isEditeMode}
-                                       onChange={this.handleInputChange}/>
-                            <Select title="Asutus"
-                                    name='asutusid'
-                                    libs="asutused"
-                                    data={this.state.libs['asutused']}
-                                    value={this.state.docData.asutusid}
-                                    defaultValue={this.state.docData.asutus}
-                                    ref="select-asutusid"
-                                    btnDelete={isEditeMode}
-                                    onChange={this.handleInputChange}
-                                    readOnly={!isEditeMode}/>
-{/*
-                            <SelectData title="Asutus widget"
+            <div>
+                <Form pages={this.pages}
+                      ref="form"
+                      handlePageClick={this.handlePageClick}
+                      disabled={isEditeMode}>
+                    <ToolbarContainer ref='toolbar-container'>
+                        <div className='doc-toolbar-warning'>
+                            {validationMessage ? <span>{validationMessage}</span> : null }
+                        </div>
+                        <div>
+                            <DocToolBar bpm={bpm}
+                                        ref='doc-toolbar'
+                                        edited={isEditeMode}
+                                        docStatus={this.state.docData.doc_status}
+                                        validator={this.validation}
+                                        eventHandler={this.handleToolbarEvents}/>
+                        </div>
+                    </ToolbarContainer>
+                    <div style={styles.doc}>
+                        <div style={styles.docRow}>
+                            <DocCommon
+                                ref='doc-common'
+                                data={this.state.docData}
+                                readOnly={!isEditeMode}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <div style={styles.docColumn}>
+                                <InputText ref="input-number"
+                                           title='Number'
+                                           name='number'
+                                           value={this.state.docData.number}
+                                           readOnly={!isEditeMode}
+                                           onChange={this.handleInputChange}/>
+                                <InputDate title='Kuupäev '
+                                           name='kpv' value={this.state.docData.kpv}
+                                           ref='input-kpv'
+                                           readOnly={!isEditeMode}
+                                           onChange={this.handleInputChange}/>
+                                <InputDate title='Tähtaeg '
+                                           name='tahtaeg'
+                                           value={this.state.docData.tahtaeg}
+                                           ref="input-tahtaeg"
+                                           readOnly={!isEditeMode}
+                                           onChange={this.handleInputChange}/>
+                                <Select title="Asutus"
                                         name='asutusid'
+                                        libs="asutused"
+                                        data={this.state.libs['asutused']}
                                         value={this.state.docData.asutusid}
                                         defaultValue={this.state.docData.asutus}
-                                        collName="asutus"
-                                        ref="selectData-asutusid"
+                                        ref="select-asutusid"
+                                        btnDelete={isEditeMode}
                                         onChange={this.handleInputChange}
                                         readOnly={!isEditeMode}/>
-*/}
-                            <InputText title='Lisa '
-                                       name='lisa'
-                                       value={this.state.docData.lisa}
-                                       ref='input-lisa'
-                                       readOnly={!isEditeMode}
-                                       onChange={this.handleInputChange}/>
+                                {/*
+                                 <SelectData title="Asutus widget"
+                                 name='asutusid'
+                                 value={this.state.docData.asutusid}
+                                 defaultValue={this.state.docData.asutus}
+                                 collName="asutus"
+                                 ref="selectData-asutusid"
+                                 onChange={this.handleInputChange}
+                                 readOnly={!isEditeMode}/>
+                                 */}
+                                <InputText title='Lisa '
+                                           name='lisa'
+                                           value={this.state.docData.lisa}
+                                           ref='input-lisa'
+                                           readOnly={!isEditeMode}
+                                           onChange={this.handleInputChange}/>
+                            </div>
+                            <div style={styles.docColumn}>
+                                <DokProp title="Konteerimine: "
+                                         name='doklausid'
+                                         libs="dokProps"
+                                         value={this.state.docData.doklausid}
+                                         defaultValue={this.state.docData.dokprop}
+                                         ref="dokprop-doklausid"
+                                         readOnly={!isEditeMode}/>
+                            </div>
                         </div>
-                        <div style={styles.docColumn}>
-                            <DokProp title="Konteerimine: "
-                                     name='doklausid'
-                                     libs="dokProps"
-                                     value={this.state.docData.doklausid}
-                                     defaultValue={this.state.docData.dokprop}
-                                     ref="dokprop-doklausid"
-                                     readOnly={!isEditeMode}/>
-                        </div>
-                    </div>
-                    <div style={styles.docRow}>
+                        <div style={styles.docRow}>
                         <TextArea title="Märkused"
                                   name='muud'
                                   ref="textarea-muud"
                                   onChange={this.handleInputChange}
                                   value={this.state.docData.muud}
                                   readOnly={!isEditeMode}/>
-                    </div>
+                        </div>
 
-                    {isEditeMode ?
+                        {isEditeMode ?
+                            <div style={styles.docRow}>
+                                <ToolbarContainer
+                                    ref='grid-toolbar-container'
+                                    position={'left'}>
+                                    <GridButtonAdd onClick={this.handleGridBtnClick} ref="grid-button-add"/>
+                                    <GridButtonEdit onClick={this.handleGridBtnClick} ref="grid-button-edit"/>
+                                    <GridButtonDelete onClick={this.handleGridBtnClick} ref="grid-button-delete"/>
+                                </ToolbarContainer>
+                            </div> : null}
+
                         <div style={styles.docRow}>
-                            <ToolbarContainer
-                                ref='grid-toolbar-container'
-                                position={'left'}>
-                                <GridButtonAdd onClick={this.handleGridBtnClick} ref="grid-button-add"/>
-                                <GridButtonEdit onClick={this.handleGridBtnClick} ref="grid-button-edit"/>
-                                <GridButtonDelete onClick={this.handleGridBtnClick} ref="grid-button-delete"/>
-                            </ToolbarContainer>
-                        </div> : null}
-
-                    <div style={styles.docRow}>
-                        <DataGrid source='details'
-                                  gridData={this.state.gridData}
-                                  gridColumns={this.state.gridConfig}
-                                  handleGridRow={this.handleGridRow}
-                                  readOnly={!isEditeMode}
-                                  ref="data-grid"/>
+                            <DataGrid source='details'
+                                      gridData={this.state.gridData}
+                                      gridColumns={this.state.gridConfig}
+                                      handleGridRow={this.handleGridRow}
+                                      readOnly={!isEditeMode}
+                                      ref="data-grid"/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <InputText title="Summa "
+                                       name='summa'
+                                       ref="input-summa"
+                                       value={this.state.docData.summa} disabled='true'
+                                       onChange={this.handleInputChange}
+                                       pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
+                            <InputText title="Käibemaks "
+                                       name='kbm'
+                                       ref="input-kbm"
+                                       disabled='true'
+                                       value={this.state.docData.kbm}
+                                       onChange={this.handleInputChange}
+                                       pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
+                        </div>
+                        {this.state.gridRowEdit ?
+                            this.createGridRow()
+                            : null}
                     </div>
-                    <div style={styles.docRow}>
-                        <InputText title="Summa "
-                                   name='summa'
-                                   ref="input-summa"
-                                   value={this.state.docData.summa} disabled='true'
-                                   onChange={this.handleInputChange}
-                                   pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
-                        <InputText title="Käibemaks "
-                                   name='kbm'
-                                   ref="input-kbm"
-                                   disabled='true'
-                                   value={this.state.docData.kbm}
-                                   onChange={this.handleInputChange}
-                                   pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
-                    </div>
-                    {this.state.gridRowEdit ?
-                        this.createGridRow()
-                        : null}
-                </div>
-            </Form >
+                </Form >
+            </div>
         );
     }
 
@@ -416,12 +421,12 @@ class Arve extends React.PureComponent {
 
         data[inputName] = inputValue;
         this.setState({docData: data});
-/*
-        let data = flux.stores.docStore.data;
-        data[inputName] = inputValue;
-        // задать новое значение поля
-        flux.doAction('dataChange', data);
-*/
+        /*
+         let data = flux.stores.docStore.data;
+         data[inputName] = inputValue;
+         // задать новое значение поля
+         flux.doAction('dataChange', data);
+         */
 
     }
 
@@ -695,19 +700,19 @@ class Arve extends React.PureComponent {
 
 
 Arve.PropTypes = {
-    docData: React.PropTypes.object.isRequired,
-    bpm: React.PropTypes.array,
-    edited: React.PropTypes.bool,
-    showMessageBox: React.PropTypes.string,
-    gridData: React.PropTypes.array,
-    relations: React.PropTypes.array,
-    gridConfig: React.PropTypes.array,
-    gridRowEdit: React.PropTypes.bool,
-    gridRowEvent: React.PropTypes.string,
-    gridRowData: React.PropTypes.object,
-    libs: React.PropTypes.object,
-    checked: React.PropTypes.bool,
-    warning: React.PropTypes.string
+    docData: PropTypes.object.isRequired,
+    bpm: PropTypes.array,
+    edited: PropTypes.bool,
+    showMessageBox: PropTypes.string,
+    gridData: PropTypes.array,
+    relations: PropTypes.array,
+    gridConfig: PropTypes.array,
+    gridRowEdit: PropTypes.bool,
+    gridRowEvent: PropTypes.string,
+    gridRowData: PropTypes.object,
+    libs: PropTypes.object,
+    checked: PropTypes.bool,
+    warning: PropTypes.string
 
 }
 

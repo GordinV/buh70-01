@@ -1,6 +1,7 @@
 require('./../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
-const ReactTestUtils = require('react-addons-test-utils');
+import ReactTestUtils from 'react-dom/test-utils';
+
 const React = require('react');
 const ReactDOM = require('react-dom');
 const ReactDOMServer = require('react-dom/server');

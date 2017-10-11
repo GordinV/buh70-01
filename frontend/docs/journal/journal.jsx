@@ -1,4 +1,7 @@
 'use strict';
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify');
 
@@ -565,19 +568,19 @@ class Journal extends React.PureComponent {
 }
 
 Journal.PropTypes = {
-    docData: React.PropTypes.object.isRequired,
-    bpm: React.PropTypes.array,
-    edited: React.PropTypes.bool,
-    showMessageBox: React.PropTypes.string,
-    gridData: React.PropTypes.array,
-    relations: React.PropTypes.array,
-    gridConfig: React.PropTypes.array,
-    gridRowEdit: React.PropTypes.bool,
-    gridRowEvent: React.PropTypes.string,
-    gridRowData: React.PropTypes.object,
-    libs: React.PropTypes.object,
-    checked: React.PropTypes.bool,
-    warning: React.PropTypes.string
+    docData: PropTypes.object.isRequired,
+    bpm: PropTypes.array,
+    edited: PropTypes.bool,
+    showMessageBox: PropTypes.string,
+    gridData: PropTypes.array,
+    relations: PropTypes.array,
+    gridConfig: PropTypes.array,
+    gridRowEdit: PropTypes.bool,
+    gridRowEvent: PropTypes.string,
+    gridRowData: PropTypes.object,
+    libs: PropTypes.object,
+    checked: PropTypes.bool,
+    warning: PropTypes.string
 
 }
 

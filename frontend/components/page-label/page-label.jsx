@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify'),
     styles = require('./page-label-styles');
@@ -50,10 +52,10 @@ class PageLabel extends React.PureComponent {
 
 
 PageLabel.PropTypes = {
-    handlePageClick: React.PropTypes.func,
-    page: React.PropTypes.object.isRequired,
-    disabled: React.PropTypes.bool,
-    active: React.PropTypes.bool
+    handlePageClick: PropTypes.func,
+    page: PropTypes.object.isRequired,
+    disabled: PropTypes.bool,
+    active: PropTypes.bool
 };
 
 

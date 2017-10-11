@@ -2,6 +2,9 @@
 const React = require('react'),
     flux = require('fluxify');
 
+import PropTypes from 'prop-types';
+
+
 const Form = require('../../components/form/form.jsx'),
     InputText = require('../../components/input-text/input-text.jsx'),
     InputDate = require('../../components/input-date/input-date.jsx'),
@@ -598,18 +601,18 @@ class Sorder extends React.PureComponent {
 };
 
 Sorder.PropTypes = {
-    docData: React.PropTypes.object.isRequired,
-    bpm: React.PropTypes.array,
-    edited: React.PropTypes.bool,
-    gridData: React.PropTypes.array,
-    relations: React.PropTypes.array,
-    gridConfig: React.PropTypes.array,
-    gridRowEdit: React.PropTypes.bool,
-    gridRowEvent: React.PropTypes.string,
-    gridRowData: React.PropTypes.object,
-    libs: React.PropTypes.object,
-    checked: React.PropTypes.bool,
-    warning: React.PropTypes.string
+    docData: PropTypes.object.isRequired,
+    bpm: PropTypes.array,
+    edited: PropTypes.bool,
+    gridData: PropTypes.array,
+    relations: PropTypes.array,
+    gridConfig: PropTypes.array,
+    gridRowEdit: PropTypes.bool,
+    gridRowEvent: PropTypes.string,
+    gridRowData: PropTypes.object,
+    libs: PropTypes.object,
+    checked: PropTypes.bool,
+    warning: PropTypes.string
 
 }
 

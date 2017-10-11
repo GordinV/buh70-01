@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const styles = require('./toolbar-container-styles'),
     React = require('react');
 
@@ -11,7 +13,9 @@ class ToolBarContainer extends  React.Component{
     render() {
         let style = Object.assign({},styles.toolBarContainerStyle, styles[this.props.position] );
         return (
-            <div id = "toolBarContainer" style = {style}>
+            <div id = "toolBarContainer"
+                 ref="toolBarContainer"
+                 style = {style}>
                     {this.props.children}
             </div>
         );
@@ -19,7 +23,7 @@ class ToolBarContainer extends  React.Component{
 }
 
 ToolBarContainer.propTypes = {
-    position: React.PropTypes.string
+    position: PropTypes.string
 }
 
 

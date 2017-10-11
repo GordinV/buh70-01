@@ -1,8 +1,9 @@
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify'),
     InputText = require('./../input-text/input-text.jsx'),
-    InputDateTime = require('./../doc-input-datetime.jsx'),
-    DocList = require('./../doc-input-list.jsx'),
     styles = require('./doc-common-styles');
 
 class DocCommon extends React.PureComponent {
@@ -74,8 +75,8 @@ class DocCommon extends React.PureComponent {
 }
 
 DocCommon.PropTypes = {
-    readOnly: React.PropTypes.bool,
-    data: React.PropTypes.object.isRequired
+    readOnly: PropTypes.bool,
+    data: PropTypes.object.isRequired
 }
 
 DocCommon.defaultProps = {

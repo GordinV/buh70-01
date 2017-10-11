@@ -1,19 +1,20 @@
 
-const ReactTestUtils = require('react-addons-test-utils');
+import ReactTestUtils from 'react-dom/test-utils';
+
 const React = require('react');
 
 describe('component test, toolbarContainer', () => {
     const ToolbarContainer = require('./toolbar-container.jsx');
     const style = require('./toolbar-container-styles');
 
-    let shallowRenderer = ReactTestUtils.createRenderer();
+    let component = ReactTestUtils.renderIntoDocument(<ToolbarContainer style = {style.toolBarContainerStyle}> <span></span></ToolbarContainer>);
 
-    shallowRenderer.render(<ToolbarContainer style = {style.toolBarContainerStyle}> <span></span></ToolbarContainer>);
+    it('should be defined', () => {
+        expect(component).toBeDefined();
+    });
 
-    let result = shallowRenderer.getRenderOutput();
-
-    it('should have shallow rendering toolbarContainer, type == "div', () => {
-        expect(result.type).toBe('div');
+    it('should exists all components', ()=> {
+        expect(component.refs['toolBarContainer']).toBeDefined();
     });
 
 });

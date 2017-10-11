@@ -1,3 +1,6 @@
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify'),
     PageLabel = require('../page-label/page-label.jsx'),
@@ -46,9 +49,9 @@ class Form extends React.PureComponent {
 
 
 Form.PropTypes = {
-    pages: React.PropTypes.object.isRequired,
-    handlePageClick: React.PropTypes.func,
-    disabled: React.PropTypes.bool
+    pages: PropTypes.object.isRequired,
+    handlePageClick: PropTypes.func,
+    disabled: PropTypes.bool
 }
 
 

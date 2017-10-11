@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     styles = require('../button-register-styles'),
     Button = require('../button-register.jsx'),
@@ -36,8 +38,8 @@ class ButtonRegisterCancel extends React.PureComponent{
 };
 
 ButtonRegisterCancel.propTypes = {
-    onClick: React.PropTypes.func.isRequired,
-    disabled: React.PropTypes.bool
+    onClick: PropTypes.func.isRequired,
+    disabled: PropTypes.bool
 }
 
 

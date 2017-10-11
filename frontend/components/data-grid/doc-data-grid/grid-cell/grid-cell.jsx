@@ -1,3 +1,6 @@
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify');
 
@@ -40,8 +43,8 @@ class GridCell extends React.PureComponent {
 
 
 GridCell.PropTypes = {
-    id: React.PropTypes.number,
-    readOnly: React.PropTypes.bool
+    id: PropTypes.number,
+    readOnly: PropTypes.bool
 }
 
 GridCell.defaultProps = {

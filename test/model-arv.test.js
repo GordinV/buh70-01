@@ -102,6 +102,8 @@ describe('dok. type ARV tests', function () {
             done();
         });
     });
+    //@todo вынести в тест либов
+/*
 
     it(`${docTypeId} Dokprop test select`, () => {
         DocDataObject.selectDoc('dokProps', [docTypeId.toUpperCase(), 1], (err, data) => {
@@ -110,6 +112,7 @@ describe('dok. type ARV tests', function () {
         });
 
     });
+*/
 
 
     /*

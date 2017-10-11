@@ -1,4 +1,7 @@
 'use strict';
+
+import PropTypes from 'prop-types';
+
 var React = require('react'),
     flux = require('fluxify');
 

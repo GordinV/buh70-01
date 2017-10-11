@@ -1,7 +1,8 @@
 require('./../../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
-const ReactTestUtils = require('react-addons-test-utils'),
-    React = require('react'),
+import ReactTestUtils from 'react-dom/test-utils';
+
+const React = require('react'),
     GridFilter = require('./grid-filter.jsx'),
     style = require('./grid-filter-styles'),
     model = require('./../../../../models/docs_grid_config'),

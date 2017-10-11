@@ -1,3 +1,6 @@
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify'),
     GridButtonAdd = require('../../button-register/button-register-add/button-register-add.jsx'),
@@ -211,8 +214,8 @@ class DataGrid extends React.PureComponent {
 }
 
 DataGrid.PropTypes = {
-    gridColumns: React.PropTypes.array.isRequired,
-    gridData: React.PropTypes.array.isRequired
+    gridColumns: PropTypes.array.isRequired,
+    gridData: PropTypes.array.isRequired
 }
 
 DataGrid.defaultProps = {

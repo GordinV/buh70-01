@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     styles = require('./tree-styles.js');
 
@@ -39,11 +41,11 @@ class Tree extends React.PureComponent {
         if (!isNode && !isNaN(selectedId)) {
             // не ноа, а документ
             let data = this.props.data.filter((row, index) => {
-                if (row.id == selectedId) {
+                    if (row.id == selectedId) {
 //                    selectedIndex = index;
-                    return row;
-                }
-            }),
+                        return row;
+                    }
+                }),
                 value = data[0][this.props.bindDataField];
 
             this.setState({
@@ -75,13 +77,19 @@ class Tree extends React.PureComponent {
         let data = this.getChildren(parentId),
             value = this.state.value;
 
-        return (<ul style={styles.ul}>
+        return (<ul style={styles.ul} ref='tree-ul'>
             {data.map((subRow, index) => {
-                let style = Object.assign({}, styles.li, value == subRow[this.props.bindDataField] && !subRow.is_node ? styles.focused:{});
+                let style = Object.assign({}, styles.li, value == subRow[this.props.bindDataField] && !subRow.is_node ? styles.focused : {}),
+                    refId = 'li-' + index;
+
                 return (
-                <li style={style} onClick={this.handleLiClick.bind(this, index, subRow.id, subRow.is_node)}>
-                    {subRow.name} {this.getTree(subRow.id)}
-                </li>)})
+                    <li style={style}
+                        onClick={this.handleLiClick.bind(this, index, subRow.id, subRow.is_node)}
+                        key={refId}
+                        ref={refId}>
+                        {subRow.name} {this.getTree(subRow.id)}
+                    </li>)
+            })
             }
 
         </ul>)
@@ -90,9 +98,9 @@ class Tree extends React.PureComponent {
 }
 
 Tree.propTypes = {
-    value: React.PropTypes.string,
-    data: React.PropTypes.array,
-    bindDataField: React.PropTypes.string.isRequired
+    value: PropTypes.string,
+    data: PropTypes.array,
+    bindDataField: PropTypes.string.isRequired
 };
 
 Tree.defaultProps = {

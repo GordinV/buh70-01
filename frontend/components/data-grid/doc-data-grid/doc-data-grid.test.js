@@ -1,7 +1,8 @@
 global.__base = 'c:/avpsoft/buh70/';
 global.__components = 'frontend/components/';
 
-const ReactTestUtils = require('react-addons-test-utils');
+import ReactTestUtils from 'react-dom/test-utils';
+
 const React = require('react');
 const flux = require('fluxify');
 let docStore = require('../../../stores/doc_store.js');
@@ -15,7 +16,7 @@ describe('component test, doc-data-grid', () => {
 
     let dataRow = require(__base + 'test/fixture/doc-common-fixture'),
         libs = require(__base +  'test/fixture/datalist-fixture'),
-        model = require(__base +  '/models/arv'),
+        model = require(__base +  '/models/raamatupidamine/arv'),
         data = {
             details: dataRow.details,
             gridConfig: model.returnData.gridConfig

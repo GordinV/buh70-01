@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     styles = require('./grid-filter-styles');
 
@@ -72,8 +74,8 @@ class GridFilter extends React.PureComponent {
 }
 
 GridFilter.propTypes = {
-    gridConfig: React.PropTypes.array.isRequired,
-    data: React.PropTypes.array.isRequired
+    gridConfig: PropTypes.array.isRequired,
+    data: PropTypes.array.isRequired
 }
 
 module.exports = GridFilter;

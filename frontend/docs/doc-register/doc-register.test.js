@@ -1,7 +1,8 @@
 require('./../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
-const ReactTestUtils = require('react-addons-test-utils'),
-    React = require('react'),
+import ReactTestUtils from 'react-dom/test-utils';
+
+const    React = require('react'),
     Register = require('./doc-register.jsx'),
     style = require('./doc-register-styles'),
     listData = require('./../../../test/fixture/datalist-fixture'),
@@ -29,6 +30,7 @@ describe('doc test, register', () => {
         let components = [
             'parentDiv',
             'docContainer',
+            'toolbar-menu',
             'toolbarContainer',
             'list-sidebar',
             'grid-sidebar',
@@ -54,7 +56,7 @@ describe('doc test, register', () => {
     });
 
     it ('test of list component in Register', () => {
-        let List = component.refs['dataList'],
+        let List = component.refs['treeList'],
             data = [{data: listData}];
         expect(List).toBeDefined();
         expect(List.state.value).toBe('code1'); // value: 'code1'

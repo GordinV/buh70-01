@@ -1,6 +1,9 @@
 'use strict';
-var React = require('react'),
-    flux = require('fluxify');
+
+import PropTypes from 'prop-types';
+
+import React from 'react';
+import flux from 'fluxify';
 
 const Form = require('../../components/form/form.jsx'),
     InputText = require('../../components/input-text/input-text.jsx'),

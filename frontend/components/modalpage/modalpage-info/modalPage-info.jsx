@@ -1,4 +1,7 @@
 'use strict';
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     ModalPage = require('../modalPage.jsx'),
     styles = require('../modalpage-info/modalpage-info-styles');
@@ -34,8 +37,8 @@ class ModalPageInfo extends React.PureComponent {
 }
 
 ModalPageInfo.propTypes = {
-    systemMessage: React.PropTypes.string,
-    modalPageBtnClick: React.PropTypes.func
+    systemMessage: PropTypes.string,
+    modalPageBtnClick: PropTypes.func
 }
 
 module.exports = ModalPageInfo;

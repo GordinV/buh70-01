@@ -1,6 +1,6 @@
 require('./../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
-const ReactTestUtils = require('react-addons-test-utils');
+import ReactTestUtils from 'react-dom/test-utils';
 const React = require('react');
 const flux = require('fluxify');
 let docsStore = require('../../stores/docs_store.js');
@@ -92,7 +92,8 @@ describe('component test, data-grid', () => {
             style = header.style;
 
         expect(style).toBeDefined();
-        expect(style.width).toBe('50px');
+        expect(style.width).toBe('10%');
+
 
         let displayProp = style.display;
         expect(displayProp).toBeDefined();
@@ -103,7 +104,8 @@ describe('component test, data-grid', () => {
         displayProp = style.display;
 
         expect(displayProp).toBeDefined();
-        expect(displayProp).toBe('');
+        expect(displayProp).toBe('table-cell');
+
 
     });
 

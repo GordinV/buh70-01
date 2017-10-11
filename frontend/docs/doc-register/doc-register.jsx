@@ -1,6 +1,8 @@
 'use strict';
 // грузим компоненты
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify'),
     DataGrid = require('./../../components/data-grid/data-grid.jsx'),
@@ -9,6 +11,7 @@ const React = require('react'),
     BtnDelete = require('./../../components/button-register/button-register-delete/button-register-delete.jsx'),
     BtnPrint = require('./../../components/button-register/button-register-print/button-register-print.jsx'),
     BtnFilter = require('./../../components/button-register/button-register-filter/button-register-filter.jsx'),
+    BtnStart = require('./../../components/button-register/button-register-start/button-register-start.jsx'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     ModalPageDelete = require('./../../components/modalpage/modalpage-delete/modalPage-delete.jsx'),
     ModalPageInfo = require('./../../components/modalpage/modalpage-info/modalPage-info.jsx'),
@@ -98,6 +101,10 @@ class Register extends React.PureComponent {
             gridData = prepairedGridData[0].data[0].data;
         }
         return (<div ref="parentDiv">
+                <ToolbarContainer ref='toolbar-menu' position="left">
+                    <BtnStart/>
+                </ToolbarContainer>
+
                 <span>Filter: {filterString}</span>
                 <div ref="docContainer" style={styles.container}>
                     <ToolbarContainer ref = 'toolbarContainer'>
@@ -388,7 +395,7 @@ class Register extends React.PureComponent {
 }
 
 Register.PropTypes = {
-    components: React.PropTypes.object.isRequired
+    components: PropTypes.object.isRequired
 }
 
 module.exports = Register;

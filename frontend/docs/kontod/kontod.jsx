@@ -1,4 +1,7 @@
 'use strict';
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify');
 
@@ -221,11 +224,11 @@ class Kontod extends React.PureComponent {
 
 
 Kontod.PropTypes = {
-    docData: React.PropTypes.object.isRequired,
-    edited: React.PropTypes.bool,
-    showMessageBox: React.PropTypes.string,
-    checked: React.PropTypes.bool,
-    warning: React.PropTypes.string
+    docData: PropTypes.object.isRequired,
+    edited: PropTypes.bool,
+    showMessageBox: PropTypes.string,
+    checked: PropTypes.bool,
+    warning: PropTypes.string
 
 }
 

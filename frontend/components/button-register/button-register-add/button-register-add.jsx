@@ -1,7 +1,9 @@
 'use strict';
 
-const React = require('react'),
-    styles = require('../button-register-styles'),
+import React from 'react';
+import PropTypes from 'prop-types';
+
+const styles = require('../button-register-styles'),
     Button = require('../button-register.jsx'),
     ICON = 'add';
 
@@ -29,8 +31,9 @@ class ButtonRegisterAdd extends React.PureComponent{
     }
 };
 
+
 ButtonRegisterAdd.propTypes = {
-    onClick: React.PropTypes.func.isRequired
+    onClick: PropTypes.func.isRequired
 }
 
 

@@ -2,7 +2,7 @@
 
 const flux = require('fluxify');
 
-var docStore = flux.createStore({
+const docStore = flux.createStore({
     id: 'docStore',
     initialState: {
         gridCellEdited: 0, // отслеживаем в гриде редактируемую ячейку

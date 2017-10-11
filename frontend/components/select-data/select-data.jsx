@@ -1,7 +1,11 @@
 'use strict';
 //@todo закончить после справочников
+
+import PropTypes from 'prop-types';
+
+
 const React = require('react'),
-    flux=require('fluxify'),
+//    flux=require('fluxify'),
     styles = require('./select-data-styles'),
     DataGrid = require('../../components/data-grid/data-grid.jsx'),
     Button = require('../../components/button-register/button-register.jsx'),
@@ -40,20 +44,21 @@ class SelectData extends React.PureComponent {
 
     componentDidMount() {
         // запрос
-        flux.stores.docStore.requery('select',{})
+//        flux.stores.docStore.requery('select',{})
         this.testConfiguration();
     }
 
+/*
     shouldComponentUpdate(nextProps, nextState) {
         // @todo добавить проверку на изменение состояния
         return true;
     }
+*/
 
     render() {
         let isEditeMode = !this.state.readOnly,
             btnStyle = Object.assign({}, styles.button, {display: isEditeMode ? 'inline' : 'none'})
 
-        console.log('render ', this.state.fieldValue);
         return (
             <div style={styles.wrapper}>
                 <InputText ref="input"
@@ -161,84 +166,17 @@ class SelectData extends React.PureComponent {
     }
 
 
-    /*
-     componentDidMount() {
-     if (this.props.collId && this.props.collId !== 'id') {
-     // ищем ИД по значению поля
-     this.findFieldValue(this.state.data, this.props.collId, this.props.value);
-     }
-     }
-     */
-
-    /*
-     onChange(e) {
-     let fieldValue = e.target.value;
-
-     if (fieldValue == '') {
-     fieldValue = null;
-     }
-
-     if (this.props.collId) {
-     // найдем по ид значение поля в collId
-     fieldValue = this.getValueById(this.props.collId, fieldValue);
-     }
-     // сохраним ид как value
-     this.setState({value: e.target.value, fieldValue: fieldValue});
-
-     if (this.props.onChange) {
-     // смотрим к чему привязан селект и отдаим его наверх
-     this.props.onChange(this.props.name, fieldValue); // в случае если задан обработчик на верхнем уровне, отдадим обработку туда
-     }
-
-     }
-     */
-
-/*
-
-    requery(action, parameters, callback) {
-        // метод обеспечит получение данных от сервера
-        if (!window.jQuery) {
-            return;
-        }
-
-        const URL = '/api/doc';
-        $.ajax({
-            url: URL,
-            type: "POST",
-            dataType: 'json',
-            data: {
-                action: action,
-                data: parameters
-            },
-            cache: false,
-            success: function (data) {
-                // должны получить объект
-                try {
-                    callback(null, data);
-                } catch (e) {
-                    console.error('Requery error:', e)
-                }
-
-            }.bind(this),
-            error: function (xhr, status, err) {
-                console.error('/error', status, err.toString());
-                callback(err, null);
-            }.bind(this)
-        });
-
-    }
-*/
 
 }
 
 SelectData.PropTypes = {
-    readOnly: React.PropTypes.bool,
-    disabled: React.PropTypes.bool,
-    collId: React.PropTypes.string,
-    title: React.PropTypes.string,
-    placeholder: React.PropTypes.string,
-    name: React.PropTypes.string.isRequired,
-    show: React.PropTypes.bool
+    readOnly: PropTypes.bool,
+    disabled: PropTypes.bool,
+    collId: PropTypes.string,
+    title: PropTypes.string,
+    placeholder: PropTypes.string,
+    name: PropTypes.string.isRequired,
+    show: PropTypes.bool
 }
 
 SelectData.defaultProps = {

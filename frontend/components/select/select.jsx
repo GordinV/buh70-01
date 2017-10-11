@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     flux = require('fluxify'),
     styles = require('./select-styles');
@@ -175,14 +177,14 @@ class Select extends React.PureComponent {
 }
 
 Select.PropTypes = {
-    data: React.PropTypes.array,
-    readOnly: React.PropTypes.bool,
-    disabled: React.PropTypes.bool,
-    btnDelete: React.PropTypes.bool,
-    libs:React.PropTypes.string,
-    collId: React.PropTypes.string,
-    title: React.PropTypes.string,
-    placeholder: React.PropTypes.string
+    data: PropTypes.array,
+    readOnly: PropTypes.bool,
+    disabled: PropTypes.bool,
+    btnDelete: PropTypes.bool,
+    libs: PropTypes.string,
+    collId: PropTypes.string,
+    title: PropTypes.string,
+    placeholder: PropTypes.string
 }
 
 Select.defaultProps = {

@@ -1,56 +1,55 @@
 require('./../../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
+
 import ReactTestUtils from 'react-dom/test-utils';
 
-//const ReactTestUtils = require('react-dom/test-utils');
 const React = require('react'),
     fs = require('fs'),
-    path = require('path');
+    path=require('path');
 
+let  btnClickResult = null;
 
-let btnClickResult = null;
-
-const btnClick = () => {
+const btnClick = ()=> {
     btnClickResult = 'Ok';
 }
 
-//const button = component.refs['button'];
 
-describe.only('component test, button', () => {
+describe.only('component test, button start', () => {
 
-    const Button = require('./button-register-delete.jsx'),
+    const Button = require('./button-register-start.jsx'),
         style = require('../button-register-styles');
 
     let component = ReactTestUtils.renderIntoDocument(<Button
-        value="Delete"
+        value=""
+        show={false}
+        disabled={true}
         onClick={btnClick}>
     </Button>);
 
-    let buttonDelete = component.refs['btnDelete'];
-    let button = buttonDelete.refs['button'];
+    let buttonStart = component.refs['btnStart'];
+    let button = buttonStart.refs['button'];
 
-    it('should be define', () => {
+    it ('should be define', () => {
         expect(component).toBeDefined();
     });
 
     it('should have property show, disabled (default', () => {
-        expect(buttonDelete.props.show).toBe(true);
-        expect(buttonDelete.props.disabled).toBe(false);
+        expect(buttonStart.props.show).toBe(false);
+        expect(buttonStart.props.disabled).toBe(true);
     });
 
-    it('should exist children image', () => {
+    it ('should exist children image', () => {
         let image = component.refs['image'];
         expect(image).toBeDefined();
     });
 
-    it('should exist image file', () => {
+    it ('should exist image file', () => {
         let image = component.refs['image'],
             publicPath = path.join(__dirname, '../../../../public/'),
-            src = path.join(publicPath, style.icons.delete);
+            src = path.join(publicPath, style.icons.start);
 
 
         let imageFile = fs.statSync(src);
         expect(imageFile.isFile()).toBe(true);
 
     });
-
 });

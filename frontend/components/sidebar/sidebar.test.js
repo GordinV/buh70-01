@@ -1,10 +1,10 @@
 
 require('./../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
-const ReactTestUtils = require('react-addons-test-utils');
+import ReactTestUtils from 'react-dom/test-utils';
+
 const React = require('react');
 const ReactDOM = require('react-dom');
-const ReactDOMServer = require('react-dom/server');
 
 let  btnClickResult = null;
 
@@ -17,32 +17,14 @@ describe('component test, sidebar', () => {
     const Sidebar = require('./sidebar.jsx');
     const style = require('./sidebar-styles');
 
-/*
-    let shallowRenderer = ReactTestUtils.createRenderer();
-
-    shallowRenderer.render(<Sidebar width="30%" toolbar={true}/>);
-
-    var result = shallowRenderer.getRenderOutput();
-
     let component = ReactTestUtils.renderIntoDocument(<Sidebar width="30%" toolbar={true}/>);
-*/
-    let shallowRenderer = ReactTestUtils.createRenderer();
 
-    shallowRenderer.render(<Sidebar width="30%" toolbar={true}/>);
-
-    var result = shallowRenderer.getRenderOutput();
-
-    let component = ReactTestUtils.renderIntoDocument(<Sidebar width="30%" toolbar={true}/>);
     const button = ReactTestUtils.findRenderedDOMComponentWithTag(
         component, 'input'
     );
-    it('should have shallow rendering sidebar, type == "div', () => {
-        expect(result.type).toBe('div');
-    });
 
-
-    it ('should have childrens (2)(<div> <input/></div>)', ()=> {
-        expect(result.props.children.length).toBe(2);
+    it('should be define', () => {
+        expect(component).toBeDefined();
     });
 
     it ('should have in children button ', ()=> {

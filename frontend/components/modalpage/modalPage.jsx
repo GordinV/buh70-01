@@ -1,4 +1,7 @@
 'use strict';
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     Button = require('../button-register/button-register.jsx'),
     buttonStyles = require('../button-register/button-register-styles'),
@@ -84,10 +87,10 @@ class ModalPage extends React.PureComponent {
 }
 
 ModalPage.propTypes = {
-    modalPageName: React.PropTypes.string.isRequired,
-    modalPageBtnClick: React.PropTypes.func.isRequired,
-    show: React.PropTypes.bool,
-    position: React.PropTypes.oneOf(['center', 'flex-start', 'flex-end']),
+    modalPageName: PropTypes.string.isRequired,
+    modalPageBtnClick: PropTypes.func.isRequired,
+    show: PropTypes.bool,
+    position: PropTypes.oneOf(['center', 'flex-start', 'flex-end']),
 }
 
 

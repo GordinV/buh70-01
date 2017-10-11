@@ -12,7 +12,9 @@ module.exports = {
         ok:'/images/icons/ok.png',
         cancel:'/images/icons/cancel.png',
         save:'/images/icons/save.png',
-        execute:'/images/icons/execute.png'
+        execute:'/images/icons/execute.png',
+        start:'/images/icons/start.png',
+
     }
 }
 

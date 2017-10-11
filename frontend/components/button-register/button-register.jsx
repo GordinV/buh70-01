@@ -1,7 +1,9 @@
 'use strict';
 
-const React = require('react'),
-    styles = require('./button-register-styles');
+import React from 'react';
+import PropTypes from 'prop-types';
+
+const styles = require('./button-register-styles');
 
 
 class Button extends React.PureComponent {
@@ -35,11 +37,13 @@ class Button extends React.PureComponent {
 }
 ;
 
+
 Button.propTypes = {
-    onClick: React.PropTypes.func.isRequired,
-    value: React.PropTypes.string.isRequired,
-    style: React.PropTypes.object
+    onClick: PropTypes.func.isRequired,
+    value: PropTypes.string.isRequired,
+    style: PropTypes.object
 }
+
 
 
 Button.defaultProps = {

@@ -1,5 +1,7 @@
 'use strict';
 
+import PropTypes from 'prop-types';
+
 const sideBarStyles = require('./sidebar-styles'),
     React = require('react');
 
@@ -63,8 +65,8 @@ class SideBarContainer extends React.Component {
 
 
 SideBarContainer.propTypes = {
-    toolbar: React.PropTypes.bool,
-    width: React.PropTypes.string
+    toolbar: PropTypes.bool,
+    width: PropTypes.string
 };
 
 SideBarContainer.defaultProps = {

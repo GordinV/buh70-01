@@ -1,7 +1,8 @@
 require('./../../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
-const ReactTestUtils = require('react-addons-test-utils'),
-    React = require('react'),
+import ReactTestUtils from 'react-dom/test-utils';
+
+const React = require('react'),
     fs = require('fs'),
     path=require('path');
 
@@ -10,6 +11,7 @@ let  btnClickResult = null;
 const btnClick = ()=> {
     btnClickResult = 'Ok';
 }
+
 
 /*
  let shallowRenderer = ReactTestUtils.createRenderer();

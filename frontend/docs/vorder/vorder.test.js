@@ -1,6 +1,7 @@
 require('./../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
-const ReactTestUtils = require('react-addons-test-utils');
+import ReactTestUtils from 'react-dom/test-utils';
+
 const React = require('react');
 const flux = require('fluxify');
 let docStore = require('../../stores/doc_store.js');
@@ -161,6 +162,7 @@ describe('doc test, Vorder', () => {
         expect(libs).toEqual({ asutused: [],
             kontod: [],
             dokProps: [],
+            kassa:[],
             tunnus: [],
             project: [],
             nomenclature: [] });

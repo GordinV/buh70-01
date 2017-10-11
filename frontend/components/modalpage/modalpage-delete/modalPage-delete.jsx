@@ -1,4 +1,7 @@
 'use strict';
+
+import PropTypes from 'prop-types';
+
 const React = require('react'),
     ModalPage = require('../modalPage.jsx'),
     styles = require('../modalpage-delete/modalpage-delete-styles');
@@ -31,7 +34,7 @@ class ModalPageDelete extends React.PureComponent {
 }
 
 ModalPageDelete.propTypes = {
-    modalPageBtnClick: React.PropTypes.func.isRequired
+    modalPageBtnClick: PropTypes.func.isRequired
 }
 
 module.exports = ModalPageDelete;
