@@ -1,7 +1,7 @@
 'use strict';
 //@todo закончить после справочников
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 
 const React = require('react'),
@@ -169,7 +169,7 @@ class SelectData extends React.PureComponent {
 
 }
 
-SelectData.PropTypes = {
+SelectData.propTypes = {
     readOnly: PropTypes.bool,
     disabled: PropTypes.bool,
     collId: PropTypes.string,

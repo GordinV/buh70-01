@@ -1,5 +1,5 @@
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify'),
@@ -48,8 +48,8 @@ class Form extends React.PureComponent {
 ;
 
 
-Form.PropTypes = {
-    pages: PropTypes.object.isRequired,
+Form.propTypes = {
+    pages: PropTypes.array.isRequired,
     handlePageClick: PropTypes.func,
     disabled: PropTypes.bool
 }

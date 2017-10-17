@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     Button = require('../button-register/button-register-execute/button-register-execute.jsx'),
@@ -81,7 +81,7 @@ class TaskWidget extends React.PureComponent {
 
 }
 
-TaskWidget.PropTypes = {
+TaskWidget.propTypes = {
     taskList: PropTypes.array,
     handleButtonTask: PropTypes.func.isRequired,
     handleSelectTask: PropTypes.func.isRequired

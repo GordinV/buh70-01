@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     styles = require('../button-register-styles'),
@@ -32,7 +32,7 @@ class ButtonRegisterCancel extends React.PureComponent{
             show={this.props.show}
             disabled={this.state.disabled}
             onClick={(e)=> this.handleClick(e)}>
-            <image ref='image' src={styles.icons[ICON]}/>
+            <img ref='image' src={styles.icons[ICON]}/>
         </Button>
     }
 };

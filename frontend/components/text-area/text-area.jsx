@@ -1,14 +1,16 @@
 const React = require('react'),
     styles = require('./text-area-styles');
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 
 class Input extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            value: this.props.value, readOnly: true, disabled: this.props.disabled || true
+            value: props.value || '' ,
+            readOnly: true,
+            disabled: props.disabled || true
         };
 
         this.onChange = this.onChange.bind(this);
@@ -60,7 +62,7 @@ class Input extends React.PureComponent {
 }
 ;
 
-Input.PropTypes = {
+Input.propTypes = {
     name: PropTypes.string.isRequired,
     value: PropTypes.string,
     readOnly: PropTypes.bool,

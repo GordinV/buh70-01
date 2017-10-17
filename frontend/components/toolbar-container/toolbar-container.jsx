@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const styles = require('./toolbar-container-styles'),
     React = require('react');

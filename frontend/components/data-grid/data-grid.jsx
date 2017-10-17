@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     styles = require('./data-grid-styles'),
@@ -245,13 +245,13 @@ class DataGrid extends React.PureComponent {
                 key={headerIndex}
                 onClick={this.handleGridHeaderClick.bind(this, column.id)}>
                 <span>{column.name}</span>
-                {isHidden ? <image ref="imageAsc" style={imageStyleAsc} src={styles.icons['asc']}/> : null}
-                {isHidden ? <image ref="imageDesc" style={imageStyleDesc} src={styles.icons['desc']}/> : null}
+                {isHidden ? <img ref="imageAsc" style={imageStyleAsc} src={styles.icons['asc']}/> : null}
+                {isHidden ? <img ref="imageDesc" style={imageStyleDesc} src={styles.icons['desc']}/> : null}
             </th>)
         }, this);
     }
 }
-
+/*
 DataGrid.propTypes = {
     gridColumns: PropTypes.array.isRequired,
     gridData: PropTypes.array.isRequired,
@@ -261,7 +261,7 @@ DataGrid.propTypes = {
     onHeaderClick: PropTypes.func,
     activeRow: PropTypes.number
 }
-
+*/
 
 DataGrid.defaultProps = {
     gridColumns: [],

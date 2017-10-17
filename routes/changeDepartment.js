@@ -1,10 +1,12 @@
-exports.get = function(req, res) {
+'use strict';
+
+exports.get = (req, res) => {
 
 // will offer departments, if exists
 // 1. render template with departments
 // 2. get departments list
 
-    var departmentId = null,
+    let departmentId = null,
         async = require('async'),
         userid = require('../models/userid'),
         user = require('middleware/userData')(req);
@@ -12,47 +14,48 @@ exports.get = function(req, res) {
     if (req.params.id) {
         departmentId = req.params.id;
         async.series([
-            function(callback) {
+            (callback) => {
                 // loading new user's data
-                var login = req.session.user.login.trim();
-                console.log('departId:' + departmentId + login);
+                let login = req.session.user.login.trim();
 
-                userid.getUserId(login, departmentId, function (err, kasutaja) {
-                    if (err) return next(err);
+                userid.getUserId(login, departmentId, (err, kasutaja) => {
+                    if (err) return callback(err, null);
+                    //errorMessage = null;
 
-                    errorMessage = null;
-
-                    req.session.user = {
-                        id: kasutaja.id,
-                        login: kasutaja.kasutaja,
-                        userName: kasutaja.ametnik,
-                        userAsutus: kasutaja.asutus,
-                        userAsutusId:kasutaja.rekvid,
-                        userLastLogin: kasutaja.last_login,
-                        userAccessList: kasutaja.allowed_access,
-                        userLibraryList: kasutaja.allowed_libs
-                    };
+                    if (kasutaja) {
+                        // has access, updating user data
+                        req.session.user = {
+                            id: kasutaja.id,
+                            login: kasutaja.kasutaja,
+                            userName: kasutaja.ametnik,
+                            userAsutus: kasutaja.asutus,
+                            userAsutusId: kasutaja.rekvid,
+                            userLastLogin: kasutaja.last_login,
+                            userAccessList: kasutaja.allowed_access,
+                            userLibraryList: kasutaja.allowed_libs
+                        };
+                    }
                     callback(err, kasutaja);
                 });
             },
-            function(callback) {
+            (callback) => {
                 // saving last login
-                userid.updateUseridLastLogin(req.session.user.id, function(err, result) {
-                    if (err) return next(err);
-                    callback(null);
+                userid.updateUseridLastLogin(req.session.user.id, (err, result) => {
+                    if (err) return callback(err, null);
+                    callback(null, null);
                 });
             },
-        ], function(err) {
-                if (err) return next(err);
+        ],  (err) => {
+            if (err) {
+                res.render('error', {"message": err.message});
+                return null;
+            };
             // redirect to main page
-            console.log('redirect to main page');
             user = require('middleware/userData')(req);
-            res.redirect('/');
-            console.log('redirect to main page finished');
+            res.redirect('/documents');
         });
     } else {
         // return dep. list
-        res.render('changeDepartment', {"user":user, departmentId:departmentId});
+        res.render('changeDepartment', {"user": user, departmentId: departmentId});
     }
-    console.log('changeDep' + user.asutus);
 };

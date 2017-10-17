@@ -1,5 +1,5 @@
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify'),
@@ -213,7 +213,7 @@ class DataGrid extends React.PureComponent {
     }
 }
 
-DataGrid.PropTypes = {
+DataGrid.propTypes = {
     gridColumns: PropTypes.array.isRequired,
     gridData: PropTypes.array.isRequired
 }

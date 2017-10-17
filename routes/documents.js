@@ -1,6 +1,9 @@
 'use strict';
-const React = require('react'),
-    ReactServer = require('react-dom/server'),
+
+
+const React = require('react');
+
+const ReactServer = require('react-dom/server'),
     async = require('async');
 
 
@@ -67,16 +70,18 @@ exports.get = function (req, res) {
 
         const Component = React.createElement(
             Register,
-            {id: 'grid', components: components}, 'Тут будут компоненты');
+            {id: 'grid', components: components, userData: user}, 'Тут будут компоненты');
 
         try {
             let html = ReactServer.renderToString(Component);
 
             // передатим в хранилище данные
             let storeInitialData = JSON.stringify(components);
+            let userData = JSON.stringify(user);
 
             res.render('documents', {
                 "user": user,
+                "userData": userData,
                 "store": storeInitialData
                 , react: html
             });

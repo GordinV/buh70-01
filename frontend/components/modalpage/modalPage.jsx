@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     Button = require('../button-register/button-register.jsx'),
@@ -63,7 +63,7 @@ class ModalPage extends React.PureComponent {
                                 height={('height' in styles.modalPageButtons)? styles.modalPageButtons.height: null}
                                 onClick={this.handleBtnClick.bind(this, 'Ok')}
                                 id='btnOk'>
-                                <image ref="image" src={buttonStyles.icons['ok']}/>
+                                <img ref="image" src={buttonStyles.icons['ok']}/>
                             </Button> : null
                         }
                         <div style={styles.buttonsSeparator}></div>
@@ -76,7 +76,7 @@ class ModalPage extends React.PureComponent {
                                 onClick={this.handleBtnClick.bind(this, 'Cancel')}
                                 className='modalPageButtons'
                                 id='btnCancel'>
-                                <image ref="image" src={buttonStyles.icons['cancel']}/>
+                                <img ref="image" src={buttonStyles.icons['cancel']}/>
                             </Button> : null
                         }
                     </div>
@@ -85,14 +85,14 @@ class ModalPage extends React.PureComponent {
         )
     }
 }
-
+/*
 ModalPage.propTypes = {
     modalPageName: PropTypes.string.isRequired,
     modalPageBtnClick: PropTypes.func.isRequired,
     show: PropTypes.bool,
     position: PropTypes.oneOf(['center', 'flex-start', 'flex-end']),
 }
-
+*/
 
 ModalPage.defaultProps = {
     modalPageName: 'defaulName',

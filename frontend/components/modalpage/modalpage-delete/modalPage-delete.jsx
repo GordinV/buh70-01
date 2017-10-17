@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     ModalPage = require('../modalPage.jsx'),
@@ -26,15 +26,15 @@ class ModalPageDelete extends React.PureComponent {
             show={this.state.show}
             modalPageName='Delete document'>
             <div ref="container">
-                <image ref="image" src={styles.icon}/>
+                <img ref="image" src={styles.icon}/>
                 <span ref="message"> Удалить документ ? </span>
             </div>
         </ModalPage>
     }
 }
-
+/*
 ModalPageDelete.propTypes = {
     modalPageBtnClick: PropTypes.func.isRequired
 }
-
+*/
 module.exports = ModalPageDelete;

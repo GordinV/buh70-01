@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify');
@@ -20,6 +20,7 @@ const
     relatedDocuments = require('../../mixin/relatedDocuments.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
+    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     styles = require('./journal-styles.js');
@@ -45,6 +46,7 @@ class Journal extends React.PureComponent {
             gridRowData: null,
             libs: this.createLibs(),
             checked: false,
+            userData: props.userData,
             warning: ''
         };
         this.pages = [{pageName: 'Journal'}];
@@ -155,11 +157,6 @@ class Journal extends React.PureComponent {
         }
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
-
     render() {
         let data = this.state.docData,
             bpm = this.state.bpm,
@@ -169,113 +166,124 @@ class Journal extends React.PureComponent {
             gridData = this.state.gridData,
             gridColumns = this.state.gridConfig;
 
-        return (
+        const btnParams = {
+            btnStart: {
+                show: true
+            }
+        }
 
-            <Form pages={this.pages}
-                  ref="form"
-                  handlePageClick={this.handlePageClick}
-                  disabled={isEditeMode}>
-                <ToolbarContainer ref='toolbar-container'>
-                    <div className='doc-toolbar-warning'>
-                        {validationMessage ? <span>{validationMessage}</span> : null }
-                    </div>
-                    <div>
-                        <DocToolBar bpm={bpm}
-                                    ref='doc-toolbar'
-                                    edited={isEditeMode}
-                                    docStatus={this.state.docData.doc_status}
-                                    validator={this.validation}
-                                    eventHandler={this.handleToolbarEvents}/>
-                    </div>
-                </ToolbarContainer>
-                <div style={styles.doc}>
-                    <div style={styles.docRow}>
-                        <DocCommon ref='doc-common'
-                                   data={data}
-                                   readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docColumn}>
-                        <InputText
-                            title='Number'
-                            name='number'
-                            value={data.number}
-                            disabled="true"
-                            onChange = {this.handleInput}
-                            ref="input-number"
-                            readOnly={true}/>
-                        <InputDate title='Kuupäev '
-                                   name='kpv'
-                                   value={data.kpv}
-                                   ref='input-kpv'
-                                   onChange = {this.handleInput}
-                                   readOnly={!isEditeMode}/>
-                        <Select title="Partner"
-                                name='asutusid'
-                                libs="asutused"
-                                data={this.state.libs['asutused']}
-                                value={data.asutusid}
-                                collId='id'
-                                defaultValue={data.asutus}
-                                onChange = {this.handleInput}
-                                ref="select-asutusid"
+        return (
+            <div>
+                <div>
+                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
+                </div>
+                <Form pages={this.pages}
+                      ref="form"
+                      handlePageClick={this.handlePageClick}
+                      disabled={isEditeMode}>
+
+                    <ToolbarContainer ref='toolbar-container'>
+                        <div className='doc-toolbar-warning'>
+                            {validationMessage ? <span>{validationMessage}</span> : null }
+                        </div>
+                        <div>
+                            <DocToolBar bpm={bpm}
+                                        ref='doc-toolbar'
+                                        edited={isEditeMode}
+                                        docStatus={this.state.docData.doc_status}
+                                        validator={this.validation}
+                                        eventHandler={this.handleToolbarEvents}/>
+                        </div>
+                    </ToolbarContainer>
+                    <div style={styles.doc}>
+                        <div style={styles.docRow}>
+                            <DocCommon ref='doc-common'
+                                       data={data}
+                                       readOnly={!isEditeMode}/>
+                        </div>
+                        <div style={styles.docColumn}>
+                            <InputText
+                                title='Number'
+                                name='number'
+                                value={data.number.toString()}
+                                disabled={true}
+                                onChange={this.handleInput}
+                                ref="input-number"
+                                readOnly={true}/>
+                            <InputDate title='Kuupäev '
+                                       name='kpv'
+                                       value={data.kpv}
+                                       ref='input-kpv'
+                                       onChange={this.handleInput}
+                                       readOnly={!isEditeMode}/>
+                            <Select title="Partner"
+                                    name='asutusid'
+                                    libs="asutused"
+                                    data={this.state.libs['asutused']}
+                                    value={data.asutusid}
+                                    collId='id'
+                                    defaultValue={data.asutus}
+                                    onChange={this.handleInput}
+                                    ref="select-asutusid"
+                                    readOnly={!isEditeMode}/>
+                            <InputText
+                                title='Dokument '
+                                name='dok'
+                                value={data.dok}
+                                ref='input-dok'
+                                onChange={this.handleInput}
                                 readOnly={!isEditeMode}/>
-                        <InputText
-                            title='Dokument '
-                            name='dok'
-                            value={data.dok}
-                            ref='input-dok'
-                            onChange = {this.handleInput}
-                            readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docRow}>
+                        </div>
+                        <div style={styles.docRow}>
                             <TextArea title="Selgitus"
                                       name='selg'
                                       ref="textarea-selg"
                                       value={data.selg}
-                                      onChange = {this.handleInput}
+                                      onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
-                    </div>
-                    {isEditeMode ?
+                        </div>
+                        {isEditeMode ?
+                            <div style={styles.docRow}>
+                                <ToolbarContainer
+                                    ref='grid-toolbar-container'
+                                    position={'left'}>
+                                    <GridButtonAdd onClick={this.handleGridBtnClick} ref="grid-button-add"/>
+                                    <GridButtonEdit onClick={this.handleGridBtnClick} ref="grid-button-edit"/>
+                                    <GridButtonDelete onClick={this.handleGridBtnClick} ref="grid-button-delete"/>
+                                </ToolbarContainer>
+                            </div> : null}
                         <div style={styles.docRow}>
-                            <ToolbarContainer
-                                ref='grid-toolbar-container'
-                                position={'left'}>
-                                <GridButtonAdd onClick={this.handleGridBtnClick} ref="grid-button-add"/>
-                                <GridButtonEdit onClick={this.handleGridBtnClick} ref="grid-button-edit"/>
-                                <GridButtonDelete onClick={this.handleGridBtnClick} ref="grid-button-delete"/>
-                            </ToolbarContainer>
-                        </div> : null}
-                    <div style={styles.docRow}>
-                        <DataGrid source='details'
-                                  gridData={gridData}
-                                  gridColumns={gridColumns}
-                                  handleGridRow={this.handleGridRow}
-                                  readOnly={!isEditeMode}
-                                  ref="data-grid"/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <InputNumber
-                            title="Summa: "
-                            name='summa'
-                            ref="input-summa"
-                            value={data.summa}
-                            disabled={true}
-                            pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
-                    </div>
-                    <div style={styles.docRow}>
+                            <DataGrid source='details'
+                                      gridData={gridData}
+                                      gridColumns={gridColumns}
+                                      handleGridRow={this.handleGridRow}
+                                      readOnly={!isEditeMode}
+                                      ref="data-grid"/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <InputNumber
+                                title="Summa: "
+                                name='summa'
+                                ref="input-summa"
+                                value={Number(data.summa)}
+                                disabled={true}
+                                pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
+                        </div>
+                        <div style={styles.docRow}>
                         <TextArea title="Märkused"
                                   name='muud'
                                   ref="textarea-muud"
                                   value={data.muud}
-                                  onChange = {this.handleInput}
+                                  onChange={this.handleInput}
                                   readOnly={!isEditeMode}/>
+                        </div>
+                        {this.state.gridRowEdit ?
+                            this.createGridRow()
+                            : null}
                     </div>
-                    {this.state.gridRowEdit ?
-                        this.createGridRow()
-                        : null}
-                </div>
 
-            </Form>
+                </Form>
+            </div>
         );
     }
 
@@ -349,18 +357,18 @@ class Journal extends React.PureComponent {
             row = this.state.gridRowData,
             validateMessage = this.state.warning,
             buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked,
-            modalObjects = ['btnOk','btnCancel'];
+            modalObjects = ['btnOk', 'btnCancel'];
 
         if (buttonOkReadOnly) {
             // уберем кнопку Ок
-            modalObjects.splice(0,1);
+            modalObjects.splice(0, 1);
         }
 
         if (!row) return <div/>;
 
         return (<div className='.modalPage'>
             <ModalPage
-                modalObjects = {modalObjects}
+                modalObjects={modalObjects}
                 ref="modalpage-grid-row"
                 show={true}
                 modalPageBtnClick={this.modalPageClick}
@@ -567,8 +575,8 @@ class Journal extends React.PureComponent {
 
 }
 
-Journal.PropTypes = {
-    docData: PropTypes.object.isRequired,
+Journal.propTypes = {
+    data: PropTypes.object.isRequired,
     bpm: PropTypes.array,
     edited: PropTypes.bool,
     showMessageBox: PropTypes.string,

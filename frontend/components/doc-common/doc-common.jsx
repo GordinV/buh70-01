@@ -1,5 +1,5 @@
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify'),
@@ -42,24 +42,26 @@ class DocCommon extends React.PureComponent {
                             <InputText ref="id"
                                        title='Id'
                                        name='id'
-                                       value={data.id}
-                                       disabled='true'
+                                       value={data.id.toString()}
+                                       disabled={true}
                                        width="75%"/>
                             <InputText ref="created"
                                        title='Created'
                                        name='created'
-                                       value={data.created}
-                                       disabled="true" width="75%"/>
+                                       value={data.created.toString()}
+                                       disabled={true}
+                                       width="75%"/>
                             <InputText ref="lastupdate"
                                        title='Updated'
                                        name='lastupdate'
-                                       value={data.lastupdate}
-                                       disabled="true" width="75%"/>
+                                       value={data.lastupdate.toString()}
+                                       disabled={true}
+                                       width="75%"/>
                             <InputText ref="status"
                                        title='Status'
                                        name='status'
                                        value={data.status}
-                                       disabled="true"
+                                       disabled={true}
                                        width="75%"/>
             </div>
         );
@@ -74,7 +76,7 @@ class DocCommon extends React.PureComponent {
     }
 }
 
-DocCommon.PropTypes = {
+DocCommon.propTypes = {
     readOnly: PropTypes.bool,
     data: PropTypes.object.isRequired
 }

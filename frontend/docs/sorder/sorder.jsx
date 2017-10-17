@@ -2,7 +2,7 @@
 const React = require('react'),
     flux = require('fluxify');
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 
 const Form = require('../../components/form/form.jsx'),
@@ -19,6 +19,7 @@ const Form = require('../../components/form/form.jsx'),
     DokProp = require('../../components/docprop/docprop.jsx'),
     relatedDocuments = require('../../mixin/relatedDocuments.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
+    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
@@ -45,6 +46,7 @@ class Sorder extends React.PureComponent {
             gridRowEdit: false,
             gridRowEvent: null,
             gridRowData: null,
+            userData: props.userData,
             libs: this.createLibs()
         }
 
@@ -77,7 +79,7 @@ class Sorder extends React.PureComponent {
 
     }
 
-    componentDidMount () {
+    componentDidMount() {
 
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
@@ -141,11 +143,6 @@ class Sorder extends React.PureComponent {
 
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
-
     render() {
         // формируем зависимости
         relatedDocuments(this);
@@ -156,155 +153,166 @@ class Sorder extends React.PureComponent {
             validationMessage = this.validation(),
             gridData = this.state.gridData,
             gridColumns = this.state.gridConfig;
+        const btnParams = {
+            btnStart: {
+                show: true
+            }
+        }
 
         return (
-            <Form pages={this.pages}
-                  ref="form"
-                  handlePageClick={this.handlePageClick}
-                  disabled={isEditeMode}>
-                <ToolbarContainer ref='toolbar-container'>
-                    <div style={styles.docToolbarWarning}>
-                        {validationMessage ? <span>{validationMessage}</span> : null }
-                    </div>
-                    <div>
-                        <DocToolBar bpm={bpm}
-                                    ref='doc-toolbar'
-                                    edited={isEditeMode}
-                                    docStatus={this.state.docData.doc_status}
-                                    validator={this.validation}
-                                    eventHandler={this.handleToolbarEvents}/>
-                    </div>
-                </ToolbarContainer>
+            <div>
+                <div>
+                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
+                </div>
 
-                <div style={styles.doc}>
-                    <div style={styles.docRow}>
-                        <DocCommon
-                            ref='doc-common'
-                            data={this.state.docData}
-                            readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <div style={styles.docColumn}>
-                            <InputText title='Number'
-                                       name='number'
-                                       value={data.number}
-                                       ref="input-number"
-                                       onChange = {this.handleInput}
-                                       readOnly={!isEditeMode}/>
-                            <InputDate title='Kuupäev '
-                                       name='kpv'
-                                       value={data.kpv}
-                                       ref='input-kpv'
-                                       onChange = {this.handleInput}
-                                       readOnly={!isEditeMode}/>
-                            <Select title="Kassa"
-                                    name='kassa_id'
-                                    libs="kassa"
-                                    value={data.kassa_id}
-                                    data={this.state.libs['kassa']}
-                                    defaultValue={data.kassa}
-                                    ref="select-kassaId"
-                                    onChange = {this.handleInput}
-                                    readOnly={!isEditeMode}/>
-                            <Select title="Partner"
-                                    name='asutusid'
-                                    data={this.state.libs['asutused']}
-                                    libs="asutused"
-                                    value={data.asutusid}
-                                    defaultValue={data.asutus}
-                                    ref="select-asutusId"
-                                    onChange = {this.handleInput}
-                                    readOnly={!isEditeMode}/>
-                            <InputText title="Arve nr."
-                                       name='arvnr'
-                                       value={data.arvnr}
-                                       ref="input-arvnr"
-                                       onChange = {this.handleInput}
-                                       readOnly={true}/>
-                            <InputText title='Dokument '
-                                       name='dokument'
-                                       value={data.dokument}
-                                       ref='input-dokument'
-                                       onChange = {this.handleInput}
-                                       readOnly={!isEditeMode}/>
+                <Form pages={this.pages}
+                      ref="form"
+                      handlePageClick={this.handlePageClick}
+                      disabled={isEditeMode}>
+                    <ToolbarContainer ref='toolbar-container'>
+                        <div style={styles.docToolbarWarning}>
+                            {validationMessage ? <span>{validationMessage}</span> : null }
                         </div>
-                        <div style={styles.docColumn}>
-                            <DokProp title="Konteerimine: "
-                                     name='doklausid'
-                                     libs="dokProps"
-                                     value={this.state.docData.doklausid}
-                                     defaultValue={this.state.docData.dokprop}
-                                     ref="dokprop"
-                                     onChange = {this.handleInput}
-                                     readOnly={!isEditeMode}/>
+                        <div>
+                            <DocToolBar bpm={bpm}
+                                        ref='doc-toolbar'
+                                        edited={isEditeMode}
+                                        docStatus={this.state.docData.doc_status}
+                                        validator={this.validation}
+                                        eventHandler={this.handleToolbarEvents}/>
                         </div>
-                    </div>
-                    <div style={styles.docRow}>
+                    </ToolbarContainer>
+
+                    <div style={styles.doc}>
+                        <div style={styles.docRow}>
+                            <DocCommon
+                                ref='doc-common'
+                                data={this.state.docData}
+                                readOnly={!isEditeMode}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <div style={styles.docColumn}>
+                                <InputText title='Number'
+                                           name='number'
+                                           value={data.number}
+                                           ref="input-number"
+                                           onChange={this.handleInput}
+                                           readOnly={!isEditeMode}/>
+                                <InputDate title='Kuupäev '
+                                           name='kpv'
+                                           value={data.kpv}
+                                           ref='input-kpv'
+                                           onChange={this.handleInput}
+                                           readOnly={!isEditeMode}/>
+                                <Select title="Kassa"
+                                        name='kassa_id'
+                                        libs="kassa"
+                                        value={data.kassa_id}
+                                        data={this.state.libs['kassa']}
+                                        defaultValue={data.kassa}
+                                        ref="select-kassaId"
+                                        onChange={this.handleInput}
+                                        readOnly={!isEditeMode}/>
+                                <Select title="Partner"
+                                        name='asutusid'
+                                        data={this.state.libs['asutused']}
+                                        libs="asutused"
+                                        value={data.asutusid}
+                                        defaultValue={data.asutus}
+                                        ref="select-asutusId"
+                                        onChange={this.handleInput}
+                                        readOnly={!isEditeMode}/>
+                                <InputText title="Arve nr."
+                                           name='arvnr'
+                                           value={data.arvnr}
+                                           ref="input-arvnr"
+                                           onChange={this.handleInput}
+                                           readOnly={true}/>
+                                <InputText title='Dokument '
+                                           name='dokument'
+                                           value={data.dokument}
+                                           ref='input-dokument'
+                                           onChange={this.handleInput}
+                                           readOnly={!isEditeMode}/>
+                            </div>
+                            <div style={styles.docColumn}>
+                                <DokProp title="Konteerimine: "
+                                         name='doklausid'
+                                         libs="dokProps"
+                                         value={this.state.docData.doklausid}
+                                         defaultValue={this.state.docData.dokprop}
+                                         ref="dokprop"
+                                         onChange={this.handleInput}
+                                         readOnly={!isEditeMode}/>
+                            </div>
+                        </div>
+                        <div style={styles.docRow}>
                             <TextArea title="Nimi"
                                       name='nimi'
                                       ref="textarea-nimi"
                                       value={data.nimi}
-                                      onChange = {this.handleInput}
+                                      onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docRow}>
+                        </div>
+                        <div style={styles.docRow}>
                             <TextArea title="Aadress"
                                       name='aadress'
                                       ref="textarea-aadress"
                                       value={data.aadress}
-                                      onChange = {this.handleInput}
+                                      onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docRow}>
+                        </div>
+                        <div style={styles.docRow}>
                             <TextArea title="Alus"
                                       name='alus'
                                       ref="textarea-alus"
                                       value={data.alus}
-                                      onChange = {this.handleInput}
+                                      onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
-                    </div>
-                    {isEditeMode ?
-                        <div style={styles.docRow}>
-                            <ToolbarContainer
-                                ref='grid-toolbar-container'
-                                position={'left'}>
-                                <GridButtonAdd onClick={this.handleGridBtnClick} ref="grid-button-add"/>
-                                <GridButtonEdit onClick={this.handleGridBtnClick} ref="grid-button-edit"/>
-                                <GridButtonDelete onClick={this.handleGridBtnClick} ref="grid-button-delete"/>
-                            </ToolbarContainer>
-                        </div> : null}
+                        </div>
+                        {isEditeMode ?
+                            <div style={styles.docRow}>
+                                <ToolbarContainer
+                                    ref='grid-toolbar-container'
+                                    position={'left'}>
+                                    <GridButtonAdd onClick={this.handleGridBtnClick} ref="grid-button-add"/>
+                                    <GridButtonEdit onClick={this.handleGridBtnClick} ref="grid-button-edit"/>
+                                    <GridButtonDelete onClick={this.handleGridBtnClick} ref="grid-button-delete"/>
+                                </ToolbarContainer>
+                            </div> : null}
 
-                    <div style={styles.docRow}>
-                        <DataGrid source='details'
-                                  gridData={gridData}
-                                  gridColumns={gridColumns}
-                                  handleGridRow={this.handleGridRow}
-                                  readOnly={!isEditeMode}
-                                  ref="data-grid"/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <InputText title="Summa: "
-                                   name='summa'
-                                   ref="input-summa"
-                                   value={data.summa}
-                                   disabled={true}
-                                   pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
-                    </div>
-                    <div style={styles.docRow}>
+                        <div style={styles.docRow}>
+                            <DataGrid source='details'
+                                      gridData={gridData}
+                                      gridColumns={gridColumns}
+                                      handleGridRow={this.handleGridRow}
+                                      readOnly={!isEditeMode}
+                                      ref="data-grid"/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <InputText title="Summa: "
+                                       name='summa'
+                                       ref="input-summa"
+                                       value={data.summa}
+                                       disabled={true}
+                                       pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
+                        </div>
+                        <div style={styles.docRow}>
                             <TextArea title="Märkused"
                                       name='muud'
                                       ref="textarea-muud"
                                       value={data.muud}
-                                      onChange = {this.handleInput}
+                                      onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
+                        </div>
+
+                        {this.state.gridRowEdit ?
+                            this.createGridRow()
+                            : null}
+
                     </div>
-
-                    {this.state.gridRowEdit ?
-                        this.createGridRow()
-                        : null}
-
-                </div>
-            </Form>
+                </Form>
+            </div>
         );
     }
 
@@ -598,10 +606,11 @@ class Sorder extends React.PureComponent {
         return libs;
     }
 
-};
+}
+;
 
-Sorder.PropTypes = {
-    docData: PropTypes.object.isRequired,
+Sorder.propTypes = {
+    data: PropTypes.object.isRequired,
     bpm: PropTypes.array,
     edited: PropTypes.bool,
     gridData: PropTypes.array,

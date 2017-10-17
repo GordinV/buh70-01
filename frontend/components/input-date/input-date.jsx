@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     styles = require('./input-date-styles');
@@ -10,8 +10,8 @@ class InputDate extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            value: this.props.value,
-            readOnly: this.props.readOnly
+            value: props.value || '',
+            readOnly: props.readOnly
         };
         this.onChange = this.onChange.bind(this);
     }
@@ -83,11 +83,11 @@ class InputDate extends React.PureComponent {
 
 }
 
-InputDate.PropTypes = {
+InputDate.propTypes = {
     name: PropTypes.string.isRequired,
-    value: PropTypes.objectOf(Date),
-    min: PropTypes.objectOf(Date),
-    max: PropTypes.objectOf(Date),
+    value: PropTypes.string,
+    min: PropTypes.string,
+    max: PropTypes.string,
     readOnly: PropTypes.bool,
     disabled: PropTypes.bool,
     valid: PropTypes.bool,

@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify'),
@@ -141,7 +141,7 @@ class DocToolBar extends React.PureComponent {
 
 }
 
-DocToolBar.PropTypes = {
+DocToolBar.propTypes = {
     bpm: PropTypes.array,
     edited: PropTypes.bool,
     docStatus: PropTypes.number,

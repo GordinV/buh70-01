@@ -14,6 +14,10 @@ module.exports = {
         save:'/images/icons/save.png',
         execute:'/images/icons/execute.png',
         start:'/images/icons/start.png',
+        login:'/images/icons/login.png',
+        account:'/images/icons/account.png',
+        rekv:'/images/icons/rekv.png',
+
 
     }
 }

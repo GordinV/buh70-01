@@ -72,7 +72,7 @@ module.exports = {
             {
                 test: /\.js$/,
                 //include: __dirname + '/frontend',
-                loader: 'babel',
+                loader: 'babel-loader',
                     query: {
                         compact: false,
                         plugins: ['transform-decorators-legacy', "transform-class-properties"],
@@ -80,7 +80,7 @@ module.exports = {
                 }
             },
 
-            { test: /\.jsx$/, loader: "jsx-loader?harmony"}
+            { test: /\.jsx$/, loader: "babel"}
 
         ]
     }

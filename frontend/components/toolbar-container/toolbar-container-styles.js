@@ -10,12 +10,10 @@ module.exports =  {
 
     right : {
         justifyContent: 'flex-end',
-        marginLeft: '5px'
     },
 
     left: {
         justifyContent: 'flex-start',
-        marginRight: '5px'
     }
 
 }

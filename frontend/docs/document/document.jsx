@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify');
@@ -88,44 +88,8 @@ class Document extends React.PureComponent {
             }
         });
 
-/*
-        // грузим справочники
-        LIBRARIES.forEach(lib => {
-            flux.doAction("loadLibs", lib);
-        });
-
-        docStore.on('change:libs', (newValue, previousValue) => {
-            let isChanged = false,
-                libs = newValue,
-                libsData = this.state.libs;
-
-            if (newValue.length > 0) {
-
-                libs.forEach(lib => {
-                    if (lib.id === 'dokProps') {
-                        // оставим только данные этого документа
-
-                    }
-                    if (this.state.libs[lib.id] && lib.data.length > 0) {
-                        libsData[lib.id] = lib.data;
-                        isChanged = true;
-                    }
-                });
-            }
-
-            if (isChanged) {
-                self.setState({libs: libsData});
-            }
-        });
-
-*/
-
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
 
     render() {
         let isEditeMode = this.state.edited,
@@ -256,8 +220,8 @@ class Document extends React.PureComponent {
 }
 
 
-Document.PropTypes = {
-    docData: PropTypes.object.isRequired,
+Document.propTypes = {
+    data: PropTypes.object.isRequired,
     edited: PropTypes.bool,
     showMessageBox: PropTypes.string,
     checked: PropTypes.bool,

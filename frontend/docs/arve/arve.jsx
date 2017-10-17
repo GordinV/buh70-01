@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify');
@@ -21,6 +21,7 @@ const
     DokProp = require('../../components/docprop/docprop.jsx'),
     relatedDocuments = require('../../mixin/relatedDocuments.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
+    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
@@ -50,8 +51,8 @@ class Arve extends React.PureComponent {
             gridRowData: null,
             libs: this.createLibs(),
             checked: false,
-            warning: ''
-
+            warning: '',
+            userData: props.userData
         }
 
         this.pages = [{pageName: 'Arve'}]
@@ -177,10 +178,12 @@ class Arve extends React.PureComponent {
 
     }
 
+/*
     shouldComponentUpdate(nextProps, nextState) {
         // @todo добавить проверку на изменение состояния
         return true;
     }
+*/
 
     render() {
         // формируем зависимости
@@ -192,8 +195,17 @@ class Arve extends React.PureComponent {
             validationMessage = this.validation(),
             libs = flux.stores.docStore.libs;
 
+        const btnParams = {
+            btnStart: {
+                show: true
+            }
+        }
+
         return (
             <div>
+                <div>
+                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
+                </div>
                 <Form pages={this.pages}
                       ref="form"
                       handlePageClick={this.handlePageClick}
@@ -306,13 +318,14 @@ class Arve extends React.PureComponent {
                             <InputText title="Summa "
                                        name='summa'
                                        ref="input-summa"
-                                       value={this.state.docData.summa} disabled='true'
+                                       value={this.state.docData.summa}
+                                       disabled={true}
                                        onChange={this.handleInputChange}
                                        pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
                             <InputText title="Käibemaks "
                                        name='kbm'
                                        ref="input-kbm"
-                                       disabled='true'
+                                       disabled={true}
                                        value={this.state.docData.kbm}
                                        onChange={this.handleInputChange}
                                        pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
@@ -694,13 +707,10 @@ class Arve extends React.PureComponent {
         })
         return libs;
     }
-
-
 }
 
-
-Arve.PropTypes = {
-    docData: PropTypes.object.isRequired,
+Arve.propTypes = {
+    data: PropTypes.object.isRequired,
     bpm: PropTypes.array,
     edited: PropTypes.bool,
     showMessageBox: PropTypes.string,

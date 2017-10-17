@@ -117,7 +117,11 @@ exports.get = function(req, res, params) {
                 return;
             }
 
-            docInitData.data = data;
+            docInitData = {
+                data:data,
+                userData: user
+            }
+
 
             if (data.row) {
                 if (bpm) {
@@ -130,17 +134,16 @@ exports.get = function(req, res, params) {
                 );
 
                 try {
-//                var html = ReactServer.renderToString(Component);
-
-
                     let html = ReactServer.renderToString(Component);
                     res.render(docTemplate, {
                         "user": user,
                         react:html,
                         src: moduleSource,
                         docName: docName,
-                        store: JSON.stringify(docInitData)
-                    });
+                        store: JSON.stringify(docInitData),
+                        userData: JSON.stringify(user)
+
+                });
                 } catch(e) {
                     console.error('error:', e);
                     res.render('error', {message: 'Error in document', status:500} );

@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     ModalPage = require('../modalPage.jsx'),
@@ -29,7 +29,7 @@ class ModalPageInfo extends React.PureComponent {
             modalPageName='Warning!'
             modalObjects={modalObjects}>
             <div ref="container">
-                <image ref="image" src={styles.icon}/>
+                <img ref="image" src={styles.icon}/>
                 <span> {systemMessage} </span>
             </div>
         </ModalPage>

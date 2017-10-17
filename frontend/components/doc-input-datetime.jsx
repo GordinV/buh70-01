@@ -1,8 +1,8 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+//import PropTypes from 'prop-types';
 
-import React from 'react';
+const React = require('react');;
 import flux from 'fluxify';
 
 class InputDateTime extends React.PureComponent {

@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 var React = require('react'),
     flux = require('fluxify');
@@ -20,6 +20,7 @@ const Form = require('../../components/form/form.jsx'),
     relatedDocuments = require('../../mixin/relatedDocuments.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
+    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     styles = require('./smk-style');
@@ -45,6 +46,7 @@ class Smk extends React.PureComponent {
             gridRowEdit: false,
             gridRowEvent: null,
             gridRowData: null,
+            userData: props.userData,
             libs: this.createLibs()
         }
 
@@ -139,12 +141,6 @@ class Smk extends React.PureComponent {
 
     }
 
-
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
-
     render () {
         // формируем зависимости
         relatedDocuments(this);
@@ -155,9 +151,19 @@ class Smk extends React.PureComponent {
             bpm = this.state.bpm,
             gridData = this.state.gridData,
             gridColumns = this.state.gridConfig;
+        const btnParams = {
+            btnStart: {
+                show: true
+            }
+        }
 
         return (
-            <Form pages={this.pages}
+            <div>
+                <div>
+                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
+                </div>
+
+                <Form pages={this.pages}
                   ref="form"
                   handlePageClick={this.handlePageClick}
                   disabled={isEditeMode}>
@@ -284,6 +290,7 @@ class Smk extends React.PureComponent {
 
                 </div>
             </Form>
+            </div>
         );
     }
 

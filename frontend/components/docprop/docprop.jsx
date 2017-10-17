@@ -1,16 +1,12 @@
 // виджет, объединяющий селект и текст. в тексте отражаютмя данные, связанные с селектом
 'use strict';
 
-import PropTypes from 'prop-types';
-import Select from '../select/select';
-import Text from '../text-area/text-area.jsx';
+const PropTypes = require('prop-types');
+const Select = require('../select/select.jsx');
+const Text = require ('../text-area/text-area.jsx');
 
 const React = require('react'),
     flux = require('fluxify');
-
-//    Select = require('../doc-input-select.jsx'),
-//    Text = require('../text-area/text-area.jsx');
-
 
     class SelectTextWidget extends React.PureComponent {
     constructor(props) {
@@ -88,7 +84,7 @@ const React = require('react'),
                       placeholder='DokProp'
                       value={this.state.description}
                       readOnly={true}
-                      disabled={'true'}
+                      disabled={true}
                 />
 
             </div>
@@ -96,11 +92,11 @@ const React = require('react'),
     }
 }
 
-SelectTextWidget.PropTypes = {
-    value: PropTypes.string,
+SelectTextWidget.propTypes = {
+    value: PropTypes.number,
     name: PropTypes.string.isRequired,
     title: PropTypes.string,
-    libs: PropTypes.array,
+    libs: PropTypes.string,
     defaultValue: PropTypes.string,
     readOnly: PropTypes.bool,
     placeholder: PropTypes.string

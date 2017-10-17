@@ -1,7 +1,7 @@
 'use strict';
 
-import React from 'react';
-import PropTypes from 'prop-types';
+const React = require('react');;
+const PropTypes = require('prop-types');
 
 const styles = require('./button-register-styles');
 

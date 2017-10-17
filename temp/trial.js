@@ -1,6 +1,6 @@
 
 'use strict';
-
+/*
 const getNodes = (data, node) => {
     // node = выбранный элемент (ид)
     let selectedNodes = [];
@@ -39,3 +39,21 @@ let data = [
 
 getNodes(data, 0);
 
+*/
+
+//Rx.Observable.from([10, 12, 15, 21]).delay(3000).do(console.log);
+/*
+const arr = [10, 12, 15, 21];
+arr.forEach((item, i) => setTimeout(function() {
+    console.log('Index: ' + i + ', element: ' + item);
+}, 3000));
+
+
+(function foo() {
+    'use strict';
+    console.log(bar());
+    function bar() { return 'bar'};
+})()
+ */
+
+console.log(typeof null)

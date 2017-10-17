@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify');
@@ -12,6 +12,7 @@ const
     TextArea = require('../../components/text-area/text-area.jsx'),
     InputNumber = require('../../components/input-number/input-number.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
+    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     styles = require('./nomenclature-styles'),
@@ -44,6 +45,7 @@ class Nomenclature extends React.PureComponent {
             showMessageBox: 'none',
             checked: false,
             libs: this.createLibs(),
+            userData: props.userData,
             warning: ''
 
         }
@@ -134,18 +136,24 @@ class Nomenclature extends React.PureComponent {
 
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
-
     render() {
         let isEditeMode = this.state.edited,
             toolbarParams = this.prepaireToolBarParameters(isEditeMode),
             validationMessage = this.validation();
 
+        const btnParams = {
+            btnStart: {
+                show: true
+            }
+        }
+
         return (
-            <Form pages={this.pages}
+            <div>
+                <div>
+                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
+                </div>
+
+                <Form pages={this.pages}
                   ref="form"
                   handlePageClick={this.handlePageClick}
                   disabled={isEditeMode}>
@@ -205,7 +213,7 @@ class Nomenclature extends React.PureComponent {
                             <InputNumber title="Hind: "
                                          name='hind'
                                          ref="input-hind"
-                                         value={this.state.docData.hind}
+                                         value={Number(this.state.docData.hind)}
                                          onChange={this.handleInputChange}/>
                         </div>
                         <div style={styles.docColumn}>
@@ -223,7 +231,7 @@ class Nomenclature extends React.PureComponent {
                                 <InputNumber title="Kuurs: "
                                              name='kuurs'
                                              ref="input-kuurs"
-                                             value={this.state.docData.kuurs}
+                                             value={Number(this.state.docData.kuurs)}
                                              onChange={this.handleInputChange}/>
                             </div>
                         </div>
@@ -285,6 +293,7 @@ class Nomenclature extends React.PureComponent {
                     </div>
                 </div>
             </Form >
+            </div>
         );
     }
 
@@ -352,8 +361,8 @@ class Nomenclature extends React.PureComponent {
 }
 
 
-Nomenclature.PropTypes = {
-    docData: PropTypes.object.isRequired,
+Nomenclature.propTypes = {
+    data: PropTypes.object.isRequired,
     edited: PropTypes.bool,
     showMessageBox: PropTypes.string,
     checked: PropTypes.bool,

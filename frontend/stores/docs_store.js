@@ -2,7 +2,7 @@
 const flux = require('fluxify'),
     ORDER_BY = [{column: 'id', direction: 'desc'}];
 
-var docsStore = flux.createStore({
+const docsStore = flux.createStore({
     id: 'docsStore',
     initialState: {
         docsGrid: 0,
@@ -11,7 +11,9 @@ var docsStore = flux.createStore({
         data: [],
         sortBy: ORDER_BY,
         sqlWhere: '',
-        systemMessage: null
+        systemMessage: null,
+        userData: {},
+        logedIn: false
     },
     actionCallbacks: {
         systemMessageChange: function (updater, value) {
@@ -71,6 +73,13 @@ var docsStore = flux.createStore({
         dataChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
             updater.set({data: value});
+        },
+        userDataChange: function (updater, userDara) {
+            updater.set({userData: userData});
+
+            let logedIn = userData ? true: false;
+            updater.set({logedIn: logedIn});
+
         },
 
     }

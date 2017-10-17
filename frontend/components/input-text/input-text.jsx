@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     styles = require('./input-text-styles');
@@ -7,7 +7,7 @@ class Input extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            value: props.value,
+            value: props.value || '',
             readOnly: props.readOnly,
             disabled: props.disabled,
             valid: props.valid
@@ -59,7 +59,7 @@ class Input extends React.PureComponent {
     }
 }
 
-Input.PropTypes = {
+Input.propTypes = {
     name: PropTypes.string.isRequired,
     value: PropTypes.string,
     readOnly: PropTypes.bool,
@@ -75,6 +75,7 @@ Input.defaultProps = {
     readOnly: false,
     disabled: false,
     valid: true,
+    value: '',
     title: ''
 }
 

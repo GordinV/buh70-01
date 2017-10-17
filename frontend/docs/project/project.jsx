@@ -1,6 +1,6 @@
 'use strict';
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 const React = require('react'),
     flux = require('fluxify');
@@ -11,6 +11,7 @@ const
     TextArea = require('../../components/text-area/text-area.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
+    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     styles = require('./project-styles');
 
@@ -27,6 +28,7 @@ class Project extends React.PureComponent {
             edited: this.props.data.row.id == 0,
             showMessageBox: 'none',
             checked: false,
+            userData: props.userData,
             warning: ''
 
         }
@@ -86,58 +88,64 @@ class Project extends React.PureComponent {
 
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
-
     render() {
         let isEditeMode = this.state.edited,
             toolbarParams = this.prepaireToolBarParameters(isEditeMode),
             validationMessage = this.validation();
+        const btnParams = {
+            btnStart: {
+                show: true
+            }
+        }
 
         return (
-            <Form pages={this.pages}
-                  ref="form"
-                  handlePageClick={this.handlePageClick}
-                  disabled={isEditeMode}>
-                <ToolbarContainer ref='toolbar-container'>
-                    <div className='doc-toolbar-warning'>
-                        {validationMessage ? <span>{validationMessage}</span> : null }
-                    </div>
-                    <div>
-                        <DocToolBar ref='doc-toolbar'
-                                    edited={isEditeMode}
-                                    validator={this.validation}
-                                    eventHandler={this.handleToolbarEvents}/>
-                    </div>
-                </ToolbarContainer>
-                <div style={styles.doc}>
-                    <div style={styles.docRow}>
-                        <InputText title="Kood "
-                                   name='kood'
-                                   ref="input-kood"
-                                   value={this.state.docData.kood}
-                                   onChange={this.handleInputChange}/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <InputText title="Nimetus "
-                                   name='nimetus'
-                                   ref="input-nimetus"
-                                   value={this.state.docData.nimetus}
-                                   onChange={this.handleInputChange}/>
-                    </div>
+            <div>
+                <div>
+                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
+                </div>
 
-                    <div style={styles.docRow}>
+                <Form pages={this.pages}
+                      ref="form"
+                      handlePageClick={this.handlePageClick}
+                      disabled={isEditeMode}>
+                    <ToolbarContainer ref='toolbar-container'>
+                        <div className='doc-toolbar-warning'>
+                            {validationMessage ? <span>{validationMessage}</span> : null }
+                        </div>
+                        <div>
+                            <DocToolBar ref='doc-toolbar'
+                                        edited={isEditeMode}
+                                        validator={this.validation}
+                                        eventHandler={this.handleToolbarEvents}/>
+                        </div>
+                    </ToolbarContainer>
+                    <div style={styles.doc}>
+                        <div style={styles.docRow}>
+                            <InputText title="Kood "
+                                       name='kood'
+                                       ref="input-kood"
+                                       value={this.state.docData.kood}
+                                       onChange={this.handleInputChange}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <InputText title="Nimetus "
+                                       name='nimetus'
+                                       ref="input-nimetus"
+                                       value={this.state.docData.nimetus}
+                                       onChange={this.handleInputChange}/>
+                        </div>
+
+                        <div style={styles.docRow}>
                                 <TextArea title="Muud"
                                           name='muud'
                                           ref="textarea-muud"
                                           onChange={this.handleInputChange}
                                           value={this.state.docData.muud}
                                           readOnly={!isEditeMode}/>
+                        </div>
                     </div>
-                </div>
-            </Form >
+                </Form >
+            </div>
         );
     }
 
@@ -147,7 +155,7 @@ class Project extends React.PureComponent {
         switch (event) {
             case 'CANCEL':
                 let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row,  warning: ''});
+                this.setState({docData: backup.row, warning: ''});
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
@@ -194,8 +202,8 @@ class Project extends React.PureComponent {
 }
 
 
-Project.PropTypes = {
-    docData: PropTypes.object.isRequired,
+Project.propTypes = {
+    data: PropTypes.object.isRequired,
     edited: PropTypes.bool,
     showMessageBox: PropTypes.string,
     checked: PropTypes.bool,

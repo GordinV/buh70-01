@@ -1,7 +1,7 @@
 const React = require('react'),
     styles = require('./input-number-styles');
 
-import PropTypes from 'prop-types';
+const PropTypes = require('prop-types');
 
 class Input extends React.PureComponent {
     constructor(props) {
@@ -66,9 +66,9 @@ class Input extends React.PureComponent {
     }
 }
 
-Input.PropTypes = {
+Input.propTypes = {
     name: PropTypes.string.isRequired,
-    value: PropTypes.string,
+    value: PropTypes.number,
     readOnly: PropTypes.bool,
     disabled: PropTypes.bool,
     valid: PropTypes.bool,

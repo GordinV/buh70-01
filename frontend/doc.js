@@ -1,31 +1,20 @@
+'use strict';
 
-var ReactDOM = require('react-dom');
-/*
-    React = require('react'),
-    flux = require('fluxify'),
-    docComponent = '';
-*/
+const ReactDOM = require('react-dom');
 
 // данные для хранилища
 localStorage['docStore'] = storeData;
 storeData = JSON.parse(storeData);
+userData = JSON.parse(userData);
 
 // создаем обработчик события на изменение даннх
-/*
-docStore.on('change:data', function(newValue, previousValue) {
-    if (newValue !== previousValue) {
-        // данные изменились, меняем состояние
-        self.setState({docData:docStore.data})
-    }
-})
-*/
 
 
 // запросим компонент документа по его типу
 const Doc = require('../middleware/returnDocComponent')(storeData.docTypeId);
 
-ReactDOM.render(
-    <Doc data={storeData.data} bpm = {storeData.bpm}/>
+ReactDOM.hydrate(
+    <Doc data={storeData.data} bpm = {storeData.bpm} userData={userData}/>
     , document.getElementById('doc')
 );
 
