@@ -15,8 +15,6 @@ describe('dok. type NOMENCLATURE tests', function () {
 
     it(`${docTypeId} select New`, (done) => {
         DocDataObject.selectDoc(docTypeId, [globalDocId, 1], (err, data) => {
-            console.log('select New', err, data);
-
             expect(err).toBeNull();
             expect(data).toBeDefined();
             docData['data'] = data.row;
@@ -39,15 +37,12 @@ describe('dok. type NOMENCLATURE tests', function () {
     });
 
     it(`${docTypeId} unit save test`, (done) => {
-        console.log('save test start');
         DocDataObject.saveDoc(docTypeId.toUpperCase(), [docData, 1, 1], (err, data) => {
-            console.log('saving:', err, data);
             expect(err).toBeNull();
             expect(data).toBeDefined();
             expect(data['rows'].length).toBeGreaterThan(0);
             expect(data['rows'][0].id).toBeGreaterThan(0);
             globalDocId = data['rows'][0].id;
-            console.log('saved:', globalDocId);
             done();
         });
     });
@@ -81,8 +76,6 @@ describe('dok. type NOMENCLATURE tests', function () {
         expect(sql).toBeDefined();
 //        expect.hasAssertions();
         DocDataObject.executeSqlQuery(sql, [1, globalDocId], (err, data) => {
-            console.log('received globalDocId, data', globalDocId, data);
-
             expect(err).toBeNull();
             expect(data).toBeDefined();
             expect(data.rows[0].error_code).toBeNull();

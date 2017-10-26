@@ -76,7 +76,6 @@ class DocToolBar extends React.PureComponent {
     }
 
     btnAddClick() {
-        console.log('btnAddClick called')
         // обработчик для кнопки Add
         // отправим извещение наверх
 //        this.props.onClick(this.name);

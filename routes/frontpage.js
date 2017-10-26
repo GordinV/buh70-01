@@ -1,5 +1,6 @@
-exports.get = function(req, res) {
+'use strict';
+exports.get = (req, res) => {
     // check for userid in session
-    var user = require('middleware/userData')(req);
+    const user = require('middleware/userData')(req);
     res.render('frontpage', {"user":user});
 };

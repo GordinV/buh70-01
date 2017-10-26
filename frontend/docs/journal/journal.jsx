@@ -20,7 +20,7 @@ const
     relatedDocuments = require('../../mixin/relatedDocuments.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
-    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
+    MenuToolBar = require('./../../mixin/menuToolBar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     styles = require('./journal-styles.js');
@@ -34,21 +34,21 @@ class Journal extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            docData: this.props.data.row,
-            bpm: this.props.bpm,
             edited: false,
             showMessageBox: 'none',
-            gridData: this.props.data.details,
-            relations: this.props.data.relations,
-            gridConfig: this.props.data.gridConfig,
             gridRowEdit: false,
             gridRowEvent: null,
-            gridRowData: null,
-            libs: this.createLibs(),
             checked: false,
-            userData: props.userData,
+            relations: this.props.data.relations,
             warning: ''
         };
+
+        this.docData = this.props.data.row;
+        this.gridData = this.props.data.details;
+        this.gridRowData = null;
+        this.libs = this.createLibs();
+
+
         this.pages = [{pageName: 'Journal'}];
         this.addRow = this.addRow.bind(this);
         this.editRow = this.editRow.bind(this);
@@ -65,22 +65,23 @@ class Journal extends React.PureComponent {
 
     }
 
+/*
     componentWillMount() {
         this.relatedDocuments();
     }
+*/
 
+    /**
+     * пишем исходные данные в хранилище, регистрируем обработчики событий
+     */
     componentDidMount() {
-        // пишем исходные данные в хранилище, регистрируем обработчики событий
-        let self = this,
-            data = this.state.docData,
-            details = this.state.gridData,
-            gridConfig = this.state.gridConfig;
+        let self = this;
 
         // сохраняем данные в хранилище
-        flux.doAction('dataChange', data);
-        flux.doAction('docIdChange', data.id);
-        flux.doAction('detailsChange', details); // данные грида
-        flux.doAction('gridConfigChange', gridConfig); // данные грида
+        flux.doAction('dataChange', this.docData);
+        flux.doAction('docIdChange', this.docData.id);
+        flux.doAction('detailsChange', this.gridData); // данные грида
+        flux.doAction('gridConfigChange', this.props.data.gridConfig); // данные грида
         flux.doAction('gridName', 'journal-grid-row'); // задаем имя компонента строки грида (для редактирования
 
 
@@ -100,15 +101,14 @@ class Journal extends React.PureComponent {
             }
         });
 
-        docStore.on('change:libs', (newValue, previousValue) => {
+        docStore.on('change:libs', (newValue) => {
             let isChanged = false,
-                libs = newValue,
-                libsData = this.state.libs;
+                libsData = this.libs;
 
             if (newValue.length > 0) {
 
-                libs.forEach(lib => {
-                    if (this.state.libs[lib.id] && lib.data.length > 0) {
+                newValue.forEach(lib => {
+                    if (this.libs[lib.id] && lib.data.length > 0) {
                         libsData[lib.id] = lib.data;
                         isChanged = true;
                     }
@@ -126,61 +126,36 @@ class Journal extends React.PureComponent {
             flux.doAction("loadLibs", lib);
         });
 
-        if (data.id == 0) {
+        if (this.docData.id == 0) {
             flux.doAction('editedChange', true);
             flux.doAction('savedChange', false);
         }
 
     }
 
-    relatedDocuments() {
-        // формируем зависимости
-        let relatedDocuments = this.state.relations;
-        if (relatedDocuments.length > 0) {
-            relatedDocuments.forEach((doc) => {
-                if (doc.id) {
-                    // проверим на уникальность списка документов
-                    let isExists = this.pages.find((page) => {
-                        if (!page.docId) {
-                            return false;
-                        } else {
-                            return page.docId == doc.id && page.docTypeId == doc.doc_type;
-                        }
-                    });
-
-                    if (!isExists) {
-                        // в массиве нет, добавим ссылку на документ
-                        this.pages.push({docTypeId: doc.doc_type, docId: doc.id, pageName: doc.name + ' id:' + doc.id})
-                    }
-                }
-            });
-        }
-    }
-
     render() {
-        let data = this.state.docData,
-            bpm = this.state.bpm,
-            isEditeMode = this.state.edited,
+        let bpm = this.props.bpm,
+            isEditMode = this.state.edited,
             validationMessage = this.validation(),
-            showMessageBox = this.state.showMessageBox, // будет управлять окном сообщений
-            gridData = this.state.gridData,
-            gridColumns = this.state.gridConfig;
+            gridData = this.gridData,
+            gridColumns = this.props.data.gridConfig;
+
+        // формируем зависимости
+        relatedDocuments(this);
 
         const btnParams = {
             btnStart: {
                 show: true
             }
-        }
+        };
 
         return (
             <div>
-                <div>
-                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
-                </div>
+                {MenuToolBar(btnParams, this.props.userData)}
                 <Form pages={this.pages}
                       ref="form"
                       handlePageClick={this.handlePageClick}
-                      disabled={isEditeMode}>
+                      disabled={isEditMode}>
 
                     <ToolbarContainer ref='toolbar-container'>
                         <div className='doc-toolbar-warning'>
@@ -189,8 +164,8 @@ class Journal extends React.PureComponent {
                         <div>
                             <DocToolBar bpm={bpm}
                                         ref='doc-toolbar'
-                                        edited={isEditeMode}
-                                        docStatus={this.state.docData.doc_status}
+                                        edited={isEditMode}
+                                        docStatus={this.docData.doc_status}
                                         validator={this.validation}
                                         eventHandler={this.handleToolbarEvents}/>
                         </div>
@@ -198,51 +173,51 @@ class Journal extends React.PureComponent {
                     <div style={styles.doc}>
                         <div style={styles.docRow}>
                             <DocCommon ref='doc-common'
-                                       data={data}
-                                       readOnly={!isEditeMode}/>
+                                       data={this.docData}
+                                       readOnly={!isEditMode}/>
                         </div>
                         <div style={styles.docColumn}>
                             <InputText
                                 title='Number'
                                 name='number'
-                                value={data.number.toString()}
+                                value={String(this.docData.number)}
                                 disabled={true}
                                 onChange={this.handleInput}
                                 ref="input-number"
                                 readOnly={true}/>
                             <InputDate title='Kuupäev '
                                        name='kpv'
-                                       value={data.kpv}
+                                       value={this.docData.kpv}
                                        ref='input-kpv'
                                        onChange={this.handleInput}
-                                       readOnly={!isEditeMode}/>
+                                       readOnly={!isEditMode}/>
                             <Select title="Partner"
                                     name='asutusid'
                                     libs="asutused"
-                                    data={this.state.libs['asutused']}
-                                    value={data.asutusid}
+                                    data={this.libs['asutused']}
+                                    value={this.docData.asutusid}
                                     collId='id'
-                                    defaultValue={data.asutus}
+                                    defaultValue={this.docData.asutus}
                                     onChange={this.handleInput}
                                     ref="select-asutusid"
-                                    readOnly={!isEditeMode}/>
+                                    readOnly={!isEditMode}/>
                             <InputText
                                 title='Dokument '
                                 name='dok'
-                                value={data.dok}
+                                value={this.docData.dok}
                                 ref='input-dok'
                                 onChange={this.handleInput}
-                                readOnly={!isEditeMode}/>
+                                readOnly={!isEditMode}/>
                         </div>
                         <div style={styles.docRow}>
                             <TextArea title="Selgitus"
                                       name='selg'
                                       ref="textarea-selg"
-                                      value={data.selg}
+                                      value={this.docData.selg}
                                       onChange={this.handleInput}
-                                      readOnly={!isEditeMode}/>
+                                      readOnly={!isEditMode}/>
                         </div>
-                        {isEditeMode ?
+                        {isEditMode ?
                             <div style={styles.docRow}>
                                 <ToolbarContainer
                                     ref='grid-toolbar-container'
@@ -257,7 +232,7 @@ class Journal extends React.PureComponent {
                                       gridData={gridData}
                                       gridColumns={gridColumns}
                                       handleGridRow={this.handleGridRow}
-                                      readOnly={!isEditeMode}
+                                      readOnly={!isEditMode}
                                       ref="data-grid"/>
                         </div>
                         <div style={styles.docRow}>
@@ -265,7 +240,7 @@ class Journal extends React.PureComponent {
                                 title="Summa: "
                                 name='summa'
                                 ref="input-summa"
-                                value={Number(data.summa)}
+                                value={Number(this.docData.summa)}
                                 disabled={true}
                                 pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
                         </div>
@@ -273,9 +248,9 @@ class Journal extends React.PureComponent {
                         <TextArea title="Märkused"
                                   name='muud'
                                   ref="textarea-muud"
-                                  value={data.muud}
+                                  value={this.docData.muud || ''}
                                   onChange={this.handleInput}
-                                  readOnly={!isEditeMode}/>
+                                  readOnly={!isEditMode}/>
                         </div>
                         {this.state.gridRowEdit ?
                             this.createGridRow()
@@ -290,35 +265,45 @@ class Journal extends React.PureComponent {
     validation() {
         if (!this.state.edited) return '';
 
-        let requiredFields = this.requiredFields,
-            warning = require('../../mixin/validateForm')(this, requiredFields);
-        return warning;
+        let requiredFields = this.requiredFields;
+
+        return require('../../mixin/validateForm')(this, requiredFields);
     }
 
+    /**
+     * Обработчик для инпутов
+      * @param name
+     * @param value
+     * @returns {boolean}
+     */
     handleInput(name, value) {
+        console.log('called input handler', name, value);
         // изменения допустимы только в режиме редактирования
         if (!this.state.edited) {
             console.error('not in edite mode');
             return false;
         }
 
-        let data = this.state.docData;
-
-        data[name] = value;
-        this.setState({docData: data});
+        this.docData[name] = value;
+        this.forceUpdate();
     }
 
+    /**
+     *  управление модальным окном
+     * @param gridEvent
+     */
     handleGridRow(gridEvent) {
-        // управление модальным окном
-        this.setState({gridRowEdit: true, gridRowEvent: gridEvent, gridRowData: data});
+        this.setState({gridRowEdit: true, gridRowEvent: gridEvent});
     }
 
+    /**
+     * отработаем Ok из модального окна
+     * @param btnEvent
+     * @param data
+     */
     modalPageClick(btnEvent, data) {
-        // отработаем Ok из модального окна
-        let gridData = this.state.gridData,
-            docData = this.state.docData,
-            gridColumns = this.state.gridConfig,
-            gridRow = this.state.gridRowData;
+        let gridData = this.gridData,
+            gridRow = this.gridRowData;
 
         if (btnEvent == 'Ok') {
 
@@ -341,20 +326,27 @@ class Journal extends React.PureComponent {
 
         }
 
-        docData = this.recalcDocSumma(docData);
-        this.setState({gridRowEdit: !!this.state.warning, gridData: gridData, docData: docData});
+        this.recalcDocSumma();
+        this.gridData = gridData;
+        this.setState({gridRowEdit: !!this.state.warning});
     }
 
+    /**
+     * Обработчик события клика на вкладку страницы
+     * @param page
+     */
     handlePageClick(page) {
         if (page.docId) {
-            let url = "/document/" + page.docTypeId + page.docId;
-            document.location.href = url;
+            document.location.href = "/document/" + page.docTypeId + page.docId;
         }
     }
 
+    /**
+     * Создаст и вернет компонент сроки грида
+     * @returns {XML}
+     */
     createGridRow() {
-        let style = styles.gridRow,
-            row = this.state.gridRowData,
+        let row = this.gridRowData,
             validateMessage = this.state.warning,
             buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked,
             modalObjects = ['btnOk', 'btnCancel'];
@@ -378,7 +370,7 @@ class Journal extends React.PureComponent {
                         <Select title="Deebet"
                                 name='deebet'
                                 libs="kontod"
-                                data={this.state.libs['kontod']}
+                                data={this.libs['kontod']}
                                 readOnly={false}
                                 value={row.deebet}
                                 ref='deebet'
@@ -388,7 +380,7 @@ class Journal extends React.PureComponent {
                     <div style={styles.docRow}>
                         <Select title="Kreedit"
                                 name='kreedit'
-                                data={this.state.libs['kontod']}
+                                data={this.libs['kontod']}
                                 readOnly={false}
                                 value={row.kreedit}
                                 ref='kreedit'
@@ -408,7 +400,7 @@ class Journal extends React.PureComponent {
                         <Select title="Tunnus"
                                 name='tunnus'
                                 libs="tunnus"
-                                data={this.state.libs['tunnus']}
+                                data={this.libs['tunnus']}
                                 readOnly={false}
                                 value={row.tunnus}
                                 ref='tunnus'
@@ -420,7 +412,7 @@ class Journal extends React.PureComponent {
                         <Select title="Project"
                                 name='proj'
                                 libs="project"
-                                data={this.state.libs['project']}
+                                data={this.libs['project']}
                                 readOnly={false}
                                 value={row.proj}
                                 ref='proj'
@@ -428,74 +420,73 @@ class Journal extends React.PureComponent {
                                 collId="kood"
                                 onChange={this.handleGridRowChange}/>
                     </div>
-
-
                 </div>
                 <div><span>{validateMessage}</span></div>
             </ModalPage>
         </div>);
     }
 
+    /**
+     * отслеживаем изменения данных на форме
+     * @param name
+     * @param value
+     */
     handleGridRowChange(name, value) {
-        // отслеживаем изменения данных на форме
-        let rowData = this.state.gridRowData;
+        this.gridRowData[name] = value;
+        this.forceUpdate();
 
-        rowData[name] = value;
-
-        this.setState({gridRowData: rowData});
         this.validateGridRow();
 
     }
 
+    /**
+     * Обработчик для строк грида
+     * @param name
+     * @param value
+     */
     handleGridRowInput(name, value) {
-        let rowData = this.state.gridRowData,
-            docData = this.state.docData;
-
         if (name == 'number') {
             //@todo hardcode, переписать с учетом типа поля из конфигурации грида
-            rowData[name] = Number(value);
+            this.gridRowData[name] = Number(value);
         } else {
-            rowData[name] = value;
+            this.gridRowData[name] = value;
         }
 
         // перерасчет итогов
-        docData = this.recalcDocSumma(docData);
-
-        this.setState({gridRowData: rowData, docData: docData});
+        this.recalcDocSumma();
+        this.forceUpdate();
         this.validateGridRow();
     }
 
+    /**
+     * удалит активную строку
+     */
     deleteRow() {
-        // удалит активную строку
-        let gridData = this.state.gridData,
-            gridActiveRow = this.refs['data-grid'].state.activeRow,
-            docData = this.state.docData;
-
-        gridData.splice(gridActiveRow, 1);
+        this.gridData.splice(this.refs['data-grid'].state.activeRow, 1);
 
         // перерасчет итогов
-        docData = this.recalcDocSumma(docData);
+        this.recalcDocSumma();
 
         // изменим состояние
-        this.setState({gridData: gridData, docData: docData});
+        this.forceUpdate();
     }
 
+    /**
+     * откроет активную строку для редактирования
+     */
     editRow() {
-        // откроет активную строку для редактирования
-        let gridData = this.state.gridData,
-            gridActiveRow = this.refs['data-grid'].state.activeRow,
-            gridRow = gridData[gridActiveRow];
+        this.gridRowData = this.gridData[this.refs['data-grid'].state.activeRow];
 
         // откроем модальное окно для редактирования
-        this.setState({gridRowEdit: true, gridRowEvent: 'edit', gridRowData: gridRow});
+        this.setState({gridRowEdit: true, gridRowEvent: 'edit'});
     }
 
+    /**
+     * добавит в состояние новую строку
+     */
     addRow() {
-        // добавит в состояние новую строку
-
-        let gridColumns = this.state.gridConfig,
-            gridData = this.state.gridData,
-            newRow = new Object();
+        let gridColumns = this.props.data.gridConfig,
+            newRow = {};
 
         for (let i = 0; i < gridColumns.length; i++) {
             let field = gridColumns[i].id;
@@ -504,12 +495,18 @@ class Journal extends React.PureComponent {
 
         newRow.id = 'NEW' + Math.random(); // генерим новое ид
 
+        this.gridRowData = newRow;
+
         // откроем модальное окно для редактирования
-        this.setState({gridRowEdit: true, gridRowEvent: 'add', gridRowData: newRow});
+        this.setState({gridRowEdit: true, gridRowEvent: 'add'});
 
     }
 
-    handleGridBtnClick(btnName, id) {
+    /**
+     * обработчик событий для панели инструментов грида
+     * @param btnName
+     */
+    handleGridBtnClick(btnName) {
         switch (btnName) {
             case 'add':
                 this.addRow();
@@ -523,56 +520,74 @@ class Journal extends React.PureComponent {
         }
     }
 
-    recalcDocSumma(docData) {
-        let gridData = this.state.gridData;
+    /**
+     * Перерасчет итоговых сумм
+     * @returns {*}
+     */
+    recalcDocSumma() {
+        let gridData = this.gridData;
 
-        docData['summa'] = 0;
+        this.docData['summa'] = 0;
 
         gridData.forEach(row => {
-            docData['summa'] += Number(row['summa']);
+            this.docData['summa'] += Number(row['summa']);
         });
-        return docData;
     }
 
+    /**
+     * will check values on the form and return string with warning
+     */
     validateGridRow() {
-        // will check values on the form and return string with warning
-        let warning = '',
-            gridRowData = this.state.gridRowData;
+        let warning = '';
+
         // только после проверки формы на валидность
-        if (!gridRowData['deebet']) warning = warning + ' Дебет';
-        if (!gridRowData['kreedit']) warning = warning + ' Кредит';
-        if (!gridRowData['summa']) warning = warning + ' Сумма';
+        if (!this.gridRowData['deebet']) warning = warning + ' Дебет';
+        if (!this.gridRowData['kreedit']) warning = warning + ' Кредит';
+        if (!this.gridRowData['summa']) warning = warning + ' Сумма';
 
         if (warning.length > 2) {
             // есть проблемы
             warning = 'Отсутсвуют данные:' + warning;
         }
+
         this.setState({checked: true, warning: warning});
     }
 
+    /**
+     * toolbar event handler
+     * @param event
+     */
     handleToolbarEvents(event) {
-        // toolbar event handler
 
         switch (event) {
             case 'CANCEL':
-                let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row, gridData: backup.details, warning: ''});
+
+                this.docData = flux.stores.docStore.backup.row; // восстановим данные
+                this.gridData = flux.stores.docStore.backup.details;
+
+                if (this.state.warning !== '') {
+                    this.setState({warning: ''});
+                } else {
+                    this.forceUpdate();
+                }
+
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
         }
     }
 
+    /**
+     * вернет объект библиотек документа
+     * @returns {{}}
+     */
     createLibs() {
-        // вернет объект библиотек документа
         let libs = {};
         LIBRARIES.forEach((lib) => {
             libs[lib] = [];
-        })
+        });
         return libs;
     }
-
-
 }
 
 Journal.propTypes = {
@@ -590,7 +605,6 @@ Journal.propTypes = {
     checked: PropTypes.bool,
     warning: PropTypes.string
 
-}
-
+};
 
 module.exports = Journal;

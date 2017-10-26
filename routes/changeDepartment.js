@@ -34,6 +34,8 @@ exports.get = (req, res) => {
                             userAccessList: kasutaja.allowed_access,
                             userLibraryList: kasutaja.allowed_libs
                         };
+                        global.rekvId = kasutaja.rekvid;
+
                     }
                     callback(err, kasutaja);
                 });

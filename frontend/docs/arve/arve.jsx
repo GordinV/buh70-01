@@ -53,9 +53,9 @@ class Arve extends React.PureComponent {
             checked: false,
             warning: '',
             userData: props.userData
-        }
+        };
 
-        this.pages = [{pageName: 'Arve'}]
+        this.pages = [{pageName: 'Arve'}];
         this.requiredFields = [
             {
                 name: 'kpv',
@@ -71,7 +71,7 @@ class Arve extends React.PureComponent {
             },
             {name: 'asutusid', type: 'N', min: null, max: null},
             {name: 'summa', type: 'N', min: -9999999, max: 999999}
-        ]
+        ];
         this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
         this.validation = this.validation.bind(this);
         this.modalPageClick = this.modalPageClick.bind(this);

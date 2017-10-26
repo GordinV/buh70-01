@@ -92,7 +92,7 @@ describe('doc test, Asutused', () => {
         expect(input.props.onChange).toBeDefined();
         doc.handleInputChange('regkood', '9999');
         // изменения вне режима редактирования не меняют состояния
-        expect(doc.state.docData['regkood']).toBe(regkood);
+        expect(doc.docData['regkood']).toBe(regkood);
         docToolbar.btnEditClick();
 
         // изменения должны примениться
@@ -101,7 +101,7 @@ describe('doc test, Asutused', () => {
 //            input.value = '9999';
 //            ReactTestUtils.Simulate.change(input);
             doc.handleInputChange('regkood', '9999');
-            expect(doc.state.docData['regkood']).toBe('9999');
+            expect(doc.docData['regkood']).toBe('9999');
             docToolbar.btnCancelClick();
             done();
         }, 1000);

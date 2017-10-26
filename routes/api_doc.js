@@ -2,8 +2,7 @@
 'use strict';
 
 exports.post = function(req, res) {
-    const React = require('react'),
-        ReactServer = require('react-dom/server');
+    const React = require('react');
 
      let user = require('../middleware/userData')(req),
          data = JSON.parse(req.body.data),
@@ -58,7 +57,6 @@ exports.post = function(req, res) {
             try {
                 // тут вызов метода сохранение
                 // выборка сохраненных данных
-                console.log('saving', docTypeId, params);
                 DocDataObject.saveDocPromise(docTypeId, params)
                     .then((data) => {
                         res.send(data)
@@ -226,13 +224,6 @@ exports.post = function(req, res) {
 
 }; //function post
 
-function returnData(data) {
-    data.id = data.id + 1;
-    data.summa = data.summa + 10;
-    return data;
-
-}
-
 
 if (!Date.prototype.toLocalISOString) {
     (function() {
@@ -255,16 +246,5 @@ if (!Date.prototype.toLocalISOString) {
         };
 
     }());
-}
-
-
-
-function getDateTime(dt) {
-    if (!dt) {
-        dt = new Date();
-    }
-
-    //dt.getTimezoneOffset();
-    return  dt.toLocalISOString();
 }
 

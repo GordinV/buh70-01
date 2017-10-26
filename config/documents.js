@@ -16,5 +16,6 @@ module.exports = {
     arvedsisse: '/libs/libraries/arvedsisse',
     tunnus: '/libs/libraries/tunnus',
     project: '/libs/libraries/project',
-    kassa: '/libs/libraries/kassa'
+    kassa: '/libs/libraries/kassa',
+    kontoandmik: '/aruanned/raamatupidamine/kontoandmik'
 }

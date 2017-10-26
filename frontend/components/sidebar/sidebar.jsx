@@ -33,16 +33,16 @@ class SideBarContainer extends React.Component {
     }
 
     render() {
-        let toolBarSymbol = this.state.show ? '<' : '>'; //todo move to styles file
+        let toolBarSymbol = this.state.show ? '<' : '>'; //@todo move to styles file
 
         //prepaire styles
-        let sideBarContainerStyle = Object.assign({}, sideBarStyles.sideBarContainerStyle, {width: this.state.width}),
+        let sideBarContainerStyle = Object.assign({}, sideBarStyles.sideBarContainerStyle, {width: this.state.width}, {height: this.props.height}),
             toolBarStyle = Object.assign({},sideBarStyles.toolBarStyle, {visibility: this.props.toolbar ? 'visible': 'hidden'}),
             contentStyle = Object.assign({},sideBarStyles.contentStyle, {visibility: this.state.show ? 'visible': 'hidden'}),
             buttonStyle = Object.assign({},sideBarStyles.buttonStyle, {
                 height: this.props.toolbar ? sideBarStyles.buttonStyle.height: '0',
                 visibility: this.props.toolbar ? 'visible': 'hidden'
-        } )
+        } );
 
         return (
             <div id="toolBarContainer" style={sideBarContainerStyle} ref="toolbar">
@@ -66,12 +66,14 @@ class SideBarContainer extends React.Component {
 
 SideBarContainer.propTypes = {
     toolbar: PropTypes.bool,
-    width: PropTypes.string
+    width: PropTypes.string,
+    heigth: PropTypes.string
 };
 
 SideBarContainer.defaultProps = {
     toolbar: true,
-    width: '100%'
+    width: '100%',
+    height: '100%'
 };
 
 module.exports = SideBarContainer;

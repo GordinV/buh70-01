@@ -1,8 +1,8 @@
 module.exports = {
     select: [{
         sql: `select case when l.tun5 = 1 then 'SD' when l.tun5 = 2 then 'SK' when l.tun5 = 3 then 'D' when l.tun5 = 4 then 'K' else null end::text as konto_tyyp, 
-                l.*, $2::integer as userid, 'KONTOD' as doc_type_id, l.tun5 as tyyp, 
-                l.properties::jsonb ->> 'valid' as valid
+                l.id, trim(l.kood) as kood, trim(l.nimetus) as nimetus, l.library, l.tun1, l.tun2, l.tun3, l.tun4, l.muud, l.properties, $2::integer as userid, 'KONTOD' as doc_type_id, l.tun5 as tyyp, 
+                (l.properties::jsonb ->> 'valid')::text as valid
                 from libs.library l 
                 where id = $1`,
         sqlAsNew: `select  'SD'::text as konto_tyyp, 
@@ -16,8 +16,7 @@ module.exports = {
             null::integer as tun4,
             2 as tyyp,
             null::text as muud,
-            null::date as valid,
-            null::text as properties`,
+            null::date as valid`,
         query: null,
         multiple: false,
         alias: 'row',
@@ -46,7 +45,7 @@ module.exports = {
             {id: "nimetus", name: "Nimetus", width: "35%"},
             {id: "konto_tyyp", name: "Konto tüüp", width: "20%"}
         ],
-        sqlString: `select id, kood, nimetus,  $2::integer as userId,
+        sqlString: `select id, trim(kood) as kood, trim(nimetus) as nimetus,  $2::integer as userId,
             case when l.tun5 = 1 then 'SD' when l.tun5 = 2 then 'SK' when l.tun5 = 3 then 'D' when l.tun5 = 4 then 'K' else null end::text as konto_tyyp
             from libs.library l
             where library = 'KONTOD' 

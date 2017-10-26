@@ -31,7 +31,7 @@ const docsStore = require('./../../stores/docs_store.js');
 class Register extends React.PureComponent {
     constructor(props) {
         super(props);
-        this.filterData = [] // массив объектов, куда запишем параметры для фильтрации @todo вынести все в отдельный компонет для фильтрации
+        this.filterData = []; // массив объектов, куда запишем параметры для фильтрации @todo вынести все в отдельный компонет для фильтрации
 
         this.btnAddClick = this.btnAddClick.bind(this);
         this.btnEditClick = this.btnEditClick.bind(this);
@@ -43,6 +43,7 @@ class Register extends React.PureComponent {
         this.clickHandler = this.clickHandler.bind(this);
         this.dblClickHandler = this.dblClickHandler.bind(this);
         this.headerClickHandler = this.headerClickHandler.bind(this);
+        this.isReports = this.isReports.bind(this);
 
         this.state = {
             // у каждого компонента свой объект
@@ -52,6 +53,8 @@ class Register extends React.PureComponent {
             showSystemMessage: false,
             activRowId: 0,
             filterString: null,
+            isReport: false,
+            treeValue: '',
             userData: this.props.userData
         }
 
@@ -64,20 +67,20 @@ class Register extends React.PureComponent {
         docsStore.on('change:data', (newValue, previousValue) => {
             // данные изменились, меняем состояние
             self.setState({components: docsStore.data})
-        })
+        });
 
         // создаем обработчик события на изменение строки грида
         docsStore.on('change:docsGrid', function (newValue, previousValue) {
             // данные изменились, меняем состояние
             self.setState({activRowId: docsStore.docsGrid})
-        })
+        });
 
         // создаем обработчик события системный извещение
         docsStore.on('change:systemMessage', function (newValue, previousValue) {
             // данные изменились, меняем состояние
             let systemMessageStatus = newValue ? true : false;
             self.setState({showSystemMessage: systemMessageStatus});
-        })
+        });
 
         // покажем данные
 
@@ -94,9 +97,7 @@ class Register extends React.PureComponent {
             gridConfig = [],
             gridData = [],
             systemMessage = docsStore.systemMessage,
-            toolbarParams = this.prepareParamsForToolbar(), //параметры для кнопок управления, взависимости от активной строки
-            filterData = this.getFilterFields(),
-            filterString = this.getFilterString();
+            filterData = this.getFilterFields();
 
         // проверим наличие данных, если есть пропихнем компонентам
         if (prepairedGridData.length > 0 && prepairedGridData[0].data.length > 0) {
@@ -104,38 +105,11 @@ class Register extends React.PureComponent {
             gridData = prepairedGridData[0].data[0].data;
         }
 
-        const btnParams = {
-            btnStart: {
-                show: false
-            },
-            btnLogin: {
-                show: true
-            }
-        };
-
         return (<div ref="parentDiv">
-                <div>
-                    <MenuToolBar edited={false} params={btnParams} userData={this.state.userData}/>
-                </div>
-
-                <ToolbarContainer ref='filterToolbarContainer' position="left">
-                    <span>Filter: {filterString}</span>
-                </ToolbarContainer>
+                {this.rendermenuToolBar()}
+                {this.renderFilterToolbar()}
                 <div ref="docContainer" style={styles.container}>
-                    <ToolbarContainer ref='toolbarContainer'>
-                        <div>
-                            <BtnAdd onClick={this.btnAddClick} show={toolbarParams['btnAdd'].show}
-                                    disable={toolbarParams['btnAdd'].disabled}/>
-                            <BtnEdit onClick={this.btnEditClick} show={toolbarParams['btnEdit'].show}
-                                     disable={toolbarParams['btnEdit'].disabled}/>
-                            <BtnDelete onClick={this.btnDeleteClick} show={toolbarParams['btnDelete'].show}
-                                       disable={toolbarParams['btnDelete'].disabled}/>
-                            <BtnPrint onClick={this.btnPrintClick} show={toolbarParams['btnPrint'].show}
-                                      disable={toolbarParams['btnPrint'].disabled}/>
-                            <BtnFilter onClick={this.btnFilterClick}/>
-                        </div>
-                    </ToolbarContainer>
-
+                    {this.renderDocToolBar()}
                     <div style={styles.wrapper}>
                         <Sidebar width="30%" toolbar={true} ref="list-sidebar">
                             <TreeList ref='treeList'
@@ -147,34 +121,122 @@ class Register extends React.PureComponent {
                                       onChangeAction='docsListChange'
                             />
                         </Sidebar>
-                        <Sidebar toolbar={false} ref="grid-sidebar">
-                            <DataGrid ref='dataGrid'
-                                      gridData={gridData}
-                                      gridColumns={gridConfig}
-                                      onChangeAction='docsGridChange'
-                                      onClick={this.clickHandler}
-                                      onDblClick={this.dblClickHandler}
-                                      onHeaderClick={this.headerClickHandler}
-                                      value={prepairedGridData[0].lastDocId}
-                                      url='api'/>
-                            <ModalPage ref='modalpageFilter'
-                                       modalPageBtnClick={this.modalPageBtnClick}
-                                       modalPageName='Filter'
-                                       show={this.state.getFilter}>
-                                <GridFilter ref='gridFilter' gridConfig={gridConfig} data={filterData}/>
-                            </ModalPage>
-                            <ModalPageDelete ref="modalpageDelete"
-                                             modalPageBtnClick={this.modalPageDelBtnClick}
-                                             show={this.state.getDeleteModalPage}/>
-                            <ModalPageInfo ref="modalpageInfo"
-                                           modalPageBtnClick={this.modalPageInfoBtnClick}
-                                           show={this.state.showSystemMessage}
-                                           systemMessage={systemMessage}/>
-                        </Sidebar>
+                        <div style={styles.container}>
+                            {this.renderAruannePage()}
+                            <Sidebar toolbar={false} ref="grid-sidebar" height="400px">
+                                <DataGrid ref='dataGrid'
+                                          gridData={gridData}
+                                          gridColumns={gridConfig}
+                                          onChangeAction='docsGridChange'
+                                          onClick={this.clickHandler}
+                                          onDblClick={this.dblClickHandler}
+                                          onHeaderClick={this.headerClickHandler}
+                                          value={prepairedGridData[0].lastDocId}
+                                          url='api'/>
+                                <ModalPage ref='modalpageFilter'
+                                           modalPageBtnClick={this.modalPageBtnClick}
+                                           modalPageName='Filter'
+                                           show={this.state.getFilter}>
+                                    <GridFilter ref='gridFilter' gridConfig={gridConfig} data={filterData}/>
+                                </ModalPage>
+                                <ModalPageDelete ref="modalpageDelete"
+                                                 modalPageBtnClick={this.modalPageDelBtnClick}
+                                                 show={this.state.getDeleteModalPage}/>
+                                <ModalPageInfo ref="modalpageInfo"
+                                               modalPageBtnClick={this.modalPageInfoBtnClick}
+                                               show={this.state.showSystemMessage}
+                                               systemMessage={systemMessage}/>
+                            </Sidebar>
+                        </div>
                     </div>
                 </div>
             </div>
         )
+    }
+
+    /**
+     * Вернет компонент Отчет, если выбранная ветка содержит тип == aruanne
+     * @returns {boolean|XML}
+     */
+    renderAruannePage() {
+        let isReport = this.isReports(this.state.treeValue);
+        const Component = (
+            <Sidebar toolbar={true} ref="aruanne-sidebar" height="100%">
+                Aruanne
+            </Sidebar>
+        );
+        return isReport &&Component;
+    }
+
+    /**
+     * Вернет компонет - панель инструментов документа
+     * @returns {XML}
+     */
+    renderDocToolBar() {
+        let toolbarParams = this.prepareParamsForToolbar(); //параметры для кнопок управления, взависимости от активной строки
+
+        return (
+            <ToolbarContainer ref='toolbarContainer'>
+                <div>
+                    <BtnAdd onClick={this.btnAddClick} show={toolbarParams['btnAdd'].show}
+                            disable={toolbarParams['btnAdd'].disabled}/>
+                    <BtnEdit onClick={this.btnEditClick} show={toolbarParams['btnEdit'].show}
+                             disable={toolbarParams['btnEdit'].disabled}/>
+                    <BtnDelete onClick={this.btnDeleteClick} show={toolbarParams['btnDelete'].show}
+                               disable={toolbarParams['btnDelete'].disabled}/>
+                    <BtnPrint onClick={this.btnPrintClick} show={toolbarParams['btnPrint'].show}
+                              disable={toolbarParams['btnPrint'].disabled}/>
+                    <BtnFilter onClick={this.btnFilterClick}/>
+                </div>
+            </ToolbarContainer>
+        );
+    }
+
+    /**
+     * Вернет компонет с данными фильтра
+     * @returns {XML}
+     */
+    renderFilterToolbar() {
+        let filterString = this.getFilterString();
+        let component = (
+            <ToolbarContainer ref='filterToolbarContainer' position="left">
+                <span>Filter: {filterString}</span>
+            </ToolbarContainer>);
+
+
+        return filterString && component;
+    }
+
+    /**
+     * Вернет компонет для toolbarMenu
+     * @returns {XML}
+     */
+    rendermenuToolBar() {
+        const btnParams = {
+            btnStart: {
+                show: false
+            },
+            btnLogin: {
+                show: true
+            }
+        };
+        return (
+            <div>
+                <MenuToolBar edited={false} params={btnParams} userData={this.state.userData}/>
+            </div>
+        );
+    }
+
+    /**
+     * Проанализирует свойства выбранного документа и вернет true , если тип == Aruanne
+     * @param document
+     * @returns {boolean}
+     */
+    isReports(document) {
+        let data = this.findComponent('docsList')[0].data,
+            documentData = data.filter(row => row.kood === document && row.props && JSON.parse(row.props).type === 'aruanne');
+
+        return !!documentData.length;
     }
 
     findComponent(componentName) {
@@ -225,6 +287,7 @@ class Register extends React.PureComponent {
         if (action && id) {
             flux.doAction(action, id);
         }
+        this.setState({treeValue: id});
     }
 
     dblClickHandler() {
@@ -298,8 +361,7 @@ class Register extends React.PureComponent {
         // создаст из полtй грида компоненты для формирования условий фильтрации
         let gridComponents = docsStore.data,
             gridData = [],
-            previosFilter = this.filterData,
-            filterFields;
+            previosFilter = this.filterData;
 
         for (let i = 0; i < gridComponents.length; i++) {
             if (gridComponents[i]['name'] == 'docsGrid') {
@@ -316,8 +378,8 @@ class Register extends React.PureComponent {
 
         if (gridData) {
             this.filterData = []; // обнулим массив
-            filterFields =
-                gridData.map((row, index) => {
+            this.filterFields =
+                gridData.map((row) => {
                     let componentType = 'text',
                         componentObjektValue;
 
@@ -409,9 +471,9 @@ class Register extends React.PureComponent {
 
 }
 
-/*
- Register.propTypes = {
- components: PropTypes.object.isRequired
- }
- */
+
+Register.propTypes = {
+    components: PropTypes.array.isRequired
+};
+
 module.exports = Register;

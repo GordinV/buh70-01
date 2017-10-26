@@ -12,7 +12,7 @@ const
     Select = require('../../components/select/select.jsx'),
     TextArea = require('../../components/text-area/text-area.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
-    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
+    MenuToolBar = require('./../../mixin/menuToolBar.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     styles = require('./kontod-styles');
@@ -20,26 +20,25 @@ const
 // Create a store
 const docStore = require('../../stores/doc_store.js');
 
-const now = new Date(),
-    KONTO_TYYP = [
-        {id: 1, kood: "SD", name: "SD"},
-        {id: 2, kood: "SK", name: "SK"},
-        {id: 3, kood: "D", name: "D"},
-        {id: 4, kood: "K", name: "K"}
-    ];
+const KONTO_TYYP = [
+    {id: 1, kood: "SD", name: "SD"},
+    {id: 2, kood: "SK", name: "SK"},
+    {id: 3, kood: "D", name: "D"},
+    {id: 4, kood: "K", name: "K"}
+];
 
 class Kontod extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            docData: this.props.data.row,
             edited: this.props.data.row.id == 0,
             showMessageBox: 'none',
-            userData: props.userData,
             checked: false,
             warning: ''
+        };
 
-        }
+        this.docData = this.props.data.row;
+//        this.docData =  delete this.docData['properties']; //удаляем JSON объект
 
         this.requiredFields = [
             {
@@ -50,18 +49,22 @@ class Kontod extends React.PureComponent {
             },
             {name: 'nimetus', type: 'C', min: null, max: null},
             {name: 'regkood', type: 'C', min: null, max: null}
-        ]
+        ];
+
         this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
         this.validation = this.validation.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
     }
 
+    /**
+     * вызовет метод валидации и вернет результат проверки
+     * @returns {string}
+     */
     validation() {
         if (!this.state.edited) return '';
 
         let requiredFields = this.requiredFields;
-        let warning = require('../../mixin/validateForm')(this, requiredFields);
-        return warning;
+        return require('../../mixin/validateForm')(this, requiredFields);
     }
 
     componentDidMount() {
@@ -87,32 +90,28 @@ class Kontod extends React.PureComponent {
                     row: Object.assign({}, flux.stores.docStore.data),
                     details: Object.assign([], flux.stores.docStore.details)
                 });
-
             }
 
             if (newValue !== previousValue) {
                 self.setState({edited: newValue});
             }
         });
-
     }
 
     render() {
 
         let isEditeMode = this.state.edited,
-            toolbarParams = this.prepaireToolBarParameters(isEditeMode),
             validationMessage = this.validation();
+
         const btnParams = {
             btnStart: {
                 show: true
             }
-        }
+        };
 
         return (
             <div>
-                <div>
-                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
-                </div>
+                {MenuToolBar(btnParams, this.props.userData)}
 
                 <Form pages={this.pages}
                       ref="form"
@@ -134,22 +133,22 @@ class Kontod extends React.PureComponent {
                             <InputText title="Kood "
                                        name='kood'
                                        ref="input-kood"
-                                       value={this.state.docData.kood}
+                                       value={this.docData.kood || ''}
                                        onChange={this.handleInputChange}/>
                         </div>
                         <div style={styles.docRow}>
                             <InputText title="Nimetus "
                                        name='nimetus'
                                        ref="input-nimetus"
-                                       value={this.state.docData.nimetus}
+                                       value={this.docData.nimetus || ''}
                                        onChange={this.handleInputChange}/>
                         </div>
                         <div style={styles.docRow}>
                             <Select title="Konto tüüp"
                                     name='tyyp'
                                     data={KONTO_TYYP}
-                                    value={this.state.docData.tyyp}
-                                    defaultValue={this.state.docData.konto_tyyp}
+                                    value={this.docData.tyyp || ''}
+                                    defaultValue={this.docData.konto_tyyp}
                                     ref="select-tyyp"
                                     btnDelete={isEditeMode}
                                     onChange={this.handleInputChange}
@@ -158,7 +157,7 @@ class Kontod extends React.PureComponent {
                         <div style={styles.docRow}>
                             <InputDate title='Kehtiv kuni:'
                                        name='valid'
-                                       value={this.state.docData.valid}
+                                       value={this.docData.valid || ''}
                                        ref='input-valid'
                                        readOnly={!isEditeMode}
                                        onChange={this.handleInputChange}/>
@@ -169,7 +168,7 @@ class Kontod extends React.PureComponent {
                                           name='muud'
                                           ref="textarea-muud"
                                           onChange={this.handleInputChange}
-                                          value={this.state.docData.muud}
+                                          value={this.docData.muud || ''}
                                           readOnly={!isEditeMode}/>
                         </div>
                     </div>
@@ -178,19 +177,34 @@ class Kontod extends React.PureComponent {
         );
     }
 
+    /**
+     * Обработчик для панели сохранения
+     * @param event
+     */
     handleToolbarEvents(event) {
         // toolbar event handler
 
         switch (event) {
             case 'CANCEL':
-                let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row, gridData: backup.details, warning: ''});
+                this.docData = flux.stores.docStore.backup.row; // восстановим данные
+
+                if (this.state.warning !== '') {
+                    this.setState({warning: ''});
+                } else {
+                    this.forceUpdate();
+                }
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
         }
     }
 
+    /**
+     * Обработчик для инпутов.
+     * @param inputName
+     * @param inputValue
+     * @returns {boolean}
+     */
     handleInputChange(inputName, inputValue) {
         // обработчик изменений
         // изменения допустимы только в режиме редактирования
@@ -199,55 +213,17 @@ class Kontod extends React.PureComponent {
             return false;
         }
 
-        let data = this.state.docData;
-
-        data[inputName] = inputValue;
-        this.setState({docData: data});
+        this.docData[inputName] = inputValue;
+        this.forceUpdate();
     }
-
-    prepaireToolBarParameters(isEditMode) {
-        let toolbarParams = {
-            btnAdd: {
-                show: !isEditMode,
-                disabled: isEditMode
-            },
-            btnEdit: {
-                show: !isEditMode,
-                disabled: isEditMode
-            },
-            btnPrint: {
-                show: true,
-                disabled: true
-            },
-            btnSave: {
-                show: isEditMode,
-                disabled: false
-            }
-        };
-
-        return toolbarParams;
-    }
-
 }
-
 
 Kontod.propTypes = {
     data: PropTypes.object.isRequired,
     edited: PropTypes.bool,
-    showMessageBox: PropTypes.string,
-    checked: PropTypes.bool,
-    warning: PropTypes.string
-
-}
-
-
-/*
- Arve.defaultProps = {
- disabled: false,
- show: true
- };
- */
-
+    warning: PropTypes.string,
+    userData: PropTypes.object
+};
 
 module.exports = Kontod;
 

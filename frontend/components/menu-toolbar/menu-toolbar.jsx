@@ -16,8 +16,9 @@ class MenuToolBar extends React.PureComponent {
         super(props);
 
         this.state = {
-            logedIn:  props.userData ? true: false
-        }
+            logedIn:  !!props.userData,
+            rekvIds: props.userData ? props.userData.userAccessList:  null
+        };
 
         this.btnStartClick = this.btnStartClick.bind(this);
         this.btnLoginClick = this.btnLoginClick.bind(this);
@@ -25,7 +26,6 @@ class MenuToolBar extends React.PureComponent {
     }
 
     render() {
-
         let isEditMode = this.props.edited,
             toolbarParams = {
                 btnStart: {
@@ -42,7 +42,7 @@ class MenuToolBar extends React.PureComponent {
                 },
                 btnRekv: {
                     show: this.state.logedIn,
-                    disabled: false
+                    disabled: !this.state.rekvIds
                 }
 
 
@@ -101,6 +101,7 @@ class MenuToolBar extends React.PureComponent {
 
 
     btnAccountClick() {
+        //@todo Страницу с данными пользователся
         console.log('btnAccount');
     }
 
@@ -117,7 +118,7 @@ MenuToolBar
     edited: PropTypes.bool,
     params: PropTypes.object.isRequired,
     logedIn: PropTypes.bool
-}
+};
 
 
 MenuToolBar
@@ -129,7 +130,7 @@ MenuToolBar
             show: true
         }
     }
-}
+};
 
 module
     .exports = MenuToolBar;

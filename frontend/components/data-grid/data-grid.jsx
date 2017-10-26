@@ -48,13 +48,6 @@ class DataGrid extends React.PureComponent {
         this.setState({gridColumns: nextProps.gridColumns, gridData: nextProps.gridData})
     }
 
-/*
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
-*/
-
     render() {
         let className = 'th';
         /*
@@ -62,7 +55,6 @@ class DataGrid extends React.PureComponent {
          onKeyDown: this.handleKeyPress('Down'),
          onDoubleClick: this.handleCellDblClick(),
          */
-
         return (
             <div style={{height: 'inherit'}}>
                 <div style={styles.header}>
@@ -185,7 +177,7 @@ class DataGrid extends React.PureComponent {
     }
 
     prepareTableRow() {
-        return this.state.gridData.map((row, rowIndex) => {
+        return this.props.gridData.map((row, rowIndex) => {
             let setRowActive = {},
                 objectIndex = 'tr-' + rowIndex,
                 activeRow = this.state.activeRow;

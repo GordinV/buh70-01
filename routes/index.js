@@ -1,4 +1,4 @@
-var checkAuth = require('../middleware/checkAuth');
+const checkAuth = require('../middleware/checkAuth');
 
 module.exports = function(app) {
 // same as main
@@ -29,4 +29,4 @@ module.exports = function(app) {
   app.post('/api/doc', checkAuth, require('./api_doc').post);
 
 
-}
+};

@@ -16,8 +16,7 @@ describe('components test, Select', () => {
     let onChangeHandler = jest.fn();
 
 
-    let component = ReactTestUtils.renderIntoDocument(<Select className='ui-c2'
-                                                              title="Asutus"
+    let component = ReactTestUtils.renderIntoDocument(<Select title="Asutus"
                                                               name='asutusid'
                                                               data ={libs}
                                                               libs="asutused"

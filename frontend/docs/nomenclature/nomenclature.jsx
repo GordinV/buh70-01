@@ -12,7 +12,7 @@ const
     TextArea = require('../../components/text-area/text-area.jsx'),
     InputNumber = require('../../components/input-number/input-number.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
-    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
+    MenuToolBar = require('./../../mixin/menuToolBar.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     styles = require('./nomenclature-styles'),
@@ -22,8 +22,7 @@ const
 // Create a store
 const docStore = require('../../stores/doc_store.js');
 
-const now = new Date(),
-    DOKUMENTS = [
+const DOKUMENTS = [
         {id: 1, kood: 'ARV', name: 'Arved'}
     ],
     CURRENCIES = [{id: 1, kood: 'EUR', name: 'EUR'}],
@@ -34,21 +33,19 @@ const now = new Date(),
         {id: 4, kood: 10, name: '10%'},
         {id: 5, kood: 18, name: '18%'},
         {id: 6, kood: 20, name: '20%'}
-    ]
+    ];
 
 class Nomenclature extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            docData: this.props.data.row,
             edited: this.props.data.row.id == 0,
-            showMessageBox: 'none',
-            checked: false,
-            libs: this.createLibs(),
-            userData: props.userData,
             warning: ''
+        };
 
-        }
+        this.docData = props.data.row;
+
+        this.libs = this.createLibs();
 
         this.requiredFields = [
             {
@@ -59,7 +56,7 @@ class Nomenclature extends React.PureComponent {
             },
             {name: 'nimetus', type: 'C', min: null, max: null},
             {name: 'regkood', type: 'C', min: null, max: null}
-        ]
+        ];
         this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
         this.validation = this.validation.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -69,14 +66,13 @@ class Nomenclature extends React.PureComponent {
         if (!this.state.edited) return '';
 
         let requiredFields = this.requiredFields;
-        let warning = require('../../mixin/validateForm')(this, requiredFields);
-        return warning;
+        return require('../../mixin/validateForm')(this, requiredFields);
     }
 
     componentDidMount() {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
-            data = self.props.data.row;
+            data = this.docData;
 
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
@@ -111,17 +107,16 @@ class Nomenclature extends React.PureComponent {
 
         docStore.on('change:libs', (newValue, previousValue) => {
             let isChanged = false,
-                libs = newValue,
-                libsData = this.state.libs;
+                libsData = this.libs;
 
             if (newValue.length > 0) {
 
-                libs.forEach(lib => {
+                newValue.forEach(lib => {
                     if (lib.id === 'dokProps') {
                         // оставим только данные этого документа
 
                     }
-                    if (this.state.libs[lib.id] && lib.data.length > 0) {
+                    if (this.libs[lib.id] && lib.data.length > 0) {
                         libsData[lib.id] = lib.data;
                         isChanged = true;
                     }
@@ -129,187 +124,198 @@ class Nomenclature extends React.PureComponent {
             }
 
             if (isChanged) {
-                self.setState({libs: libsData});
+                self.libs = libsData;
+                self.forceUpdate();
             }
         });
-
-
     }
 
     render() {
         let isEditeMode = this.state.edited,
-            toolbarParams = this.prepaireToolBarParameters(isEditeMode),
             validationMessage = this.validation();
 
         const btnParams = {
             btnStart: {
                 show: true
             }
-        }
+        };
 
         return (
             <div>
-                <div>
-                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
-                </div>
+                {MenuToolBar(btnParams, this.props.userData)}
 
                 <Form pages={this.pages}
-                  ref="form"
-                  handlePageClick={this.handlePageClick}
-                  disabled={isEditeMode}>
-                <ToolbarContainer ref='toolbar-container'>
-                    <div className='doc-toolbar-warning'>
-                        {validationMessage ? <span>{validationMessage}</span> : null }
-                    </div>
-                    <div>
-                        <DocToolBar ref='doc-toolbar'
-                                    edited={isEditeMode}
-                                    validator={this.validation}
-                                    eventHandler={this.handleToolbarEvents}/>
-                    </div>
-                </ToolbarContainer>
-                <div style={styles.doc}>
-                    <div style={styles.docRow}>
-                        <InputText title="Kood "
-                                   name='kood'
-                                   ref="input-kood"
-                                   value={this.state.docData.kood}
-                                   onChange={this.handleInputChange}/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <InputText title="Nimetus "
-                                   name='nimetus'
-                                   ref="input-nimetus"
-                                   value={this.state.docData.nimetus}
-                                   onChange={this.handleInputChange}/>
-                    </div>
-
-                    <div style={styles.docRow}>
-                        <Select title="Dokument:"
-                                name='dok'
-                                data={DOKUMENTS}
-                                value={this.state.docData.dok}
-                                defaultValue={this.state.docData.dok}
-                                ref="select-dok"
-                                btnDelete={isEditeMode}
-                                onChange={this.handleInputChange}
-                                readOnly={!isEditeMode}/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <Select title="Maksumäär:"
-                                name='vat'
-                                data={TAXIES}
-                                collId='kood'
-                                value={this.state.docData.vat}
-                                defaultValue={this.state.docData.vat}
-                                ref="select-vat"
-                                btnDelete={isEditeMode}
-                                onChange={this.handleInputChange}
-                                readOnly={!isEditeMode}/>
-                    </div>
-
-                    <div style={styles.docRow}>
-                        <div style={styles.docColumn}>
-                            <InputNumber title="Hind: "
-                                         name='hind'
-                                         ref="input-hind"
-                                         value={Number(this.state.docData.hind)}
-                                         onChange={this.handleInputChange}/>
+                      ref="form"
+                      handlePageClick={this.handlePageClick}
+                      disabled={isEditeMode}>
+                    <ToolbarContainer ref='toolbar-container'>
+                        <div className='doc-toolbar-warning'>
+                            {validationMessage ? <span>{validationMessage}</span> : null }
                         </div>
-                        <div style={styles.docColumn}>
-                            <div style={styles.docRow}>
-                                <Select title="Valuuta:"
-                                        name='valuuta'
-                                        data={CURRENCIES}
-                                        collId='kood'
-                                        value={this.state.docData.valuuta}
-                                        defaultValue={this.state.docData.valuuta}
-                                        ref="select-valuuta"
-                                        btnDelete={isEditeMode}
-                                        onChange={this.handleInputChange}
-                                        readOnly={!isEditeMode}/>
-                                <InputNumber title="Kuurs: "
-                                             name='kuurs'
-                                             ref="input-kuurs"
-                                             value={Number(this.state.docData.kuurs)}
+                        <div>
+                            <DocToolBar ref='doc-toolbar'
+                                        edited={isEditeMode}
+                                        validator={this.validation}
+                                        eventHandler={this.handleToolbarEvents}/>
+                        </div>
+                    </ToolbarContainer>
+                    <div style={styles.doc}>
+                        <div style={styles.docRow}>
+                            <InputText title="Kood "
+                                       name='kood'
+                                       ref="input-kood"
+                                       value={this.docData.kood}
+                                       onChange={this.handleInputChange}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <InputText title="Nimetus "
+                                       name='nimetus'
+                                       ref="input-nimetus"
+                                       value={this.docData.nimetus}
+                                       onChange={this.handleInputChange}/>
+                        </div>
+
+                        <div style={styles.docRow}>
+                            <Select title="Dokument:"
+                                    name='dok'
+                                    data={DOKUMENTS}
+                                    value={this.docData.dok || ''}
+                                    defaultValue={this.docData.dok}
+                                    ref="select-dok"
+                                    btnDelete={isEditeMode}
+                                    onChange={this.handleInputChange}
+                                    readOnly={!isEditeMode}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <Select title="Maksumäär:"
+                                    name='vat'
+                                    data={TAXIES}
+                                    collId='kood'
+                                    value={this.docData.vat || ''}
+                                    defaultValue={this.docData.vat}
+                                    ref="select-vat"
+                                    btnDelete={isEditeMode}
+                                    onChange={this.handleInputChange}
+                                    readOnly={!isEditeMode}/>
+                        </div>
+
+                        <div style={styles.docRow}>
+                            <div style={styles.docColumn}>
+                                <InputNumber title="Hind: "
+                                             name='hind'
+                                             ref="input-hind"
+                                             value={Number(this.docData.hind)}
                                              onChange={this.handleInputChange}/>
                             </div>
+                            <div style={styles.docColumn}>
+                                <div style={styles.docRow}>
+                                    <Select title="Valuuta:"
+                                            name='valuuta'
+                                            data={CURRENCIES}
+                                            collId='kood'
+                                            value={this.docData.valuuta || 'EUR'}
+                                            defaultValue={this.docData.valuuta}
+                                            ref="select-valuuta"
+                                            btnDelete={isEditeMode}
+                                            onChange={this.handleInputChange}
+                                            readOnly={!isEditeMode}/>
+                                    <InputNumber title="Kuurs: "
+                                                 name='kuurs'
+                                                 ref="input-kuurs"
+                                                 value={Number(this.docData.kuurs) || 1}
+                                                 onChange={this.handleInputChange}/>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div style={styles.docRow}>
-                        <div style={styles.docColumn}>
-                            <Select title="Konto (Meie teenused)"
-                                    name='konto_db'
-                                    libs="kontod"
-                                    data={this.state.libs['kontod']}
-                                    readOnly={!isEditeMode}
-                                    value={this.state.docData['konto_db']}
-                                    ref='select_konto_db'
-                                    collId="kood"
-                                    onChange={this.handleInputChange}/>
+                        <div style={styles.docRow}>
+                            <div style={styles.docColumn}>
+                                <Select title="Konto (Meie teenused)"
+                                        name='konto_db'
+                                        libs="kontod"
+                                        data={this.libs['kontod']}
+                                        readOnly={!isEditeMode}
+                                        value={this.docData['konto_db'] || ''}
+                                        ref='select_konto_db'
+                                        collId="kood"
+                                        onChange={this.handleInputChange}/>
+                            </div>
+                            <div style={styles.docColumn}>
+                                <Select title="Konto (Ostetud teenused)"
+                                        name='konto_kr'
+                                        libs="kontod"
+                                        data={this.libs['kontod']}
+                                        readOnly={!isEditeMode}
+                                        value={this.docData.konto_kr || ''}
+                                        ref='select_konto_kr'
+                                        collId="kood"
+                                        onChange={this.handleInputChange}/>
+                            </div>
                         </div>
-                        <div style={styles.docColumn}>
-                            <Select title="Konto (Ostetud teenused)"
-                                    name='konto_kr'
-                                    libs="kontod"
-                                    data={this.state.libs['kontod']}
-                                    readOnly={!isEditeMode}
-                                    value={this.state.docData.konto_kr}
-                                    ref='select_konto_kr'
-                                    collId="kood"
-                                    onChange={this.handleInputChange}/>
-                        </div>
-                    </div>
-                    <div style={styles.docRow}>
+                        <div style={styles.docRow}>
 
-                        <Select title="Projekt:"
-                                name='projekt'
-                                libs="project"
-                                data={this.state.libs['project']}
-                                readOnly={!isEditeMode}
-                                value={this.state.docData['projekt']}
-                                ref='select_projekt'
-                                collId="kood"
-                                onChange={this.handleInputChange}/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <Select title="Tunnus:"
-                                name='tunnus'
-                                libs="tunnus"
-                                data={this.state.libs['tunnus']}
-                                readOnly={!isEditeMode}
-                                value={this.state.docData['tunnus']}
-                                ref='select_tunnus'
-                                collId="kood"
-                                onChange={this.handleInputChange}/>
-                    </div>
-                    <div style={styles.docRow}>
+                            <Select title="Projekt:"
+                                    name='projekt'
+                                    libs="project"
+                                    data={this.libs['project']}
+                                    readOnly={!isEditeMode}
+                                    value={this.docData['projekt'] || ''}
+                                    ref='select_projekt'
+                                    collId="kood"
+                                    onChange={this.handleInputChange}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <Select title="Tunnus:"
+                                    name='tunnus'
+                                    libs="tunnus"
+                                    data={this.libs['tunnus']}
+                                    readOnly={!isEditeMode}
+                                    value={this.docData['tunnus'] || ''}
+                                    ref='select_tunnus'
+                                    collId="kood"
+                                    onChange={this.handleInputChange}/>
+                        </div>
+                        <div style={styles.docRow}>
                                 <TextArea title="Muud"
                                           name='muud'
                                           ref="textarea-muud"
                                           onChange={this.handleInputChange}
-                                          value={this.state.docData.muud}
+                                          value={this.docData.muud || ''}
                                           readOnly={!isEditeMode}/>
+                        </div>
                     </div>
-                </div>
-            </Form >
+                </Form >
             </div>
         );
     }
 
+    /**
+     * Обработчик для панели сохранения
+     * @param event
+     */
     handleToolbarEvents(event) {
         // toolbar event handler
 
         switch (event) {
             case 'CANCEL':
-                let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row, gridData: backup.details, warning: ''});
+                this.docData = flux.stores.docStore.backup.row; // восстановим данные
+
+                if (this.state.warning !== '') {
+                    this.setState({warning: ''});
+                } else {
+                    this.forceUpdate();
+                }
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
         }
     }
 
+    /**
+     * Обработчик для инпутов.
+     * @param inputName
+     * @param inputValue
+     * @returns {boolean}
+     */
     handleInputChange(inputName, inputValue) {
         // обработчик изменений
         // изменения допустимы только в режиме редактирования
@@ -318,48 +324,23 @@ class Nomenclature extends React.PureComponent {
             return false;
         }
 
-        let data = this.state.docData;
-
-        data[inputName] = inputValue;
-        this.setState({docData: data});
-    }
-
-    prepaireToolBarParameters(isEditMode) {
-        let toolbarParams = {
-            btnAdd: {
-                show: !isEditMode,
-                disabled: isEditMode
-            },
-            btnEdit: {
-                show: !isEditMode,
-                disabled: isEditMode
-            },
-            btnPrint: {
-                show: true,
-                disabled: true
-            },
-            btnSave: {
-                show: isEditMode,
-                disabled: false
-            }
-        };
-
-        return toolbarParams;
+        this.docData[inputName] = inputValue;
+        this.forceUpdate();
     }
 
 
+    /**
+     * вернет объект библиотек документа
+     * @returns {{}}
+     */
     createLibs() {
-        // вернет объект библиотек документа
         let libs = {};
         LIBRARIES.forEach((lib) => {
             libs[lib] = [];
         })
         return libs;
     }
-
-
 }
-
 
 Nomenclature.propTypes = {
     data: PropTypes.object.isRequired,
@@ -368,15 +349,7 @@ Nomenclature.propTypes = {
     checked: PropTypes.bool,
     warning: PropTypes.string
 
-}
-
-
-/*
- Arve.defaultProps = {
- disabled: false,
- show: true
- };
- */
+};
 
 
 module.exports = Nomenclature;

@@ -1,20 +1,21 @@
 require('./../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
 import ReactTestUtils from 'react-dom/test-utils';
+
 const React = require('react');
 const flux = require('fluxify');
 let docStore = require('../../stores/doc_store.js');
 
 
-describe('doc test, Sorder', () => {
+describe('doc test, Journal', () => {
     // проверяем на наличие компонента и его пропсы и стейты
     // проверяем изменение стейтов после клика
-    const Sorder = require('./sorder.jsx');
+    const Journal = require('./journal.jsx');
 //    const style = require('./input-text-styles');
 
-    let dataRow = require('./../../../test/fixture/doc-sorder-fixture'),
+    let dataRow = require('./../../../test/fixture/doc-journal-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/raamatupidamine/sorder'),
+        model = require('./../../../models/raamatupidamine/journal'),
         data = {
             row: dataRow,
             bpm: model.bpm,
@@ -26,7 +27,7 @@ describe('doc test, Sorder', () => {
 
     let onChangeHandler = jest.fn();
 
-    let doc = ReactTestUtils.renderIntoDocument(<Sorder data={data} bpm={model.bpm}/>);
+    let doc = ReactTestUtils.renderIntoDocument(<Journal data={data} bpm={model.bpm}/>);
 
     it('should be defined', () => {
         expect(doc).toBeDefined();
@@ -39,24 +40,20 @@ describe('doc test, Sorder', () => {
         expect(doc.refs['doc-common']).toBeDefined();
         expect(doc.refs['input-number']).toBeDefined();
         expect(doc.refs['input-kpv']).toBeDefined();
-        expect(doc.refs['select-kassaId']).toBeDefined();
-        expect(doc.refs['select-asutusId']).toBeDefined();
-        expect(doc.refs['input-arvnr']).toBeDefined();
-        expect(doc.refs['input-dokument']).toBeDefined();
-        expect(doc.refs['dokprop']).toBeDefined();
-        expect(doc.refs['textarea-nimi']).toBeDefined();
-        expect(doc.refs['textarea-aadress']).toBeDefined();
-        expect(doc.refs['textarea-alus']).toBeDefined();
+        expect(doc.refs['input-dok']).toBeDefined();
+        expect(doc.refs['select-asutusid']).toBeDefined();
+        expect(doc.refs['textarea-selg']).toBeDefined();
+        expect(doc.refs['textarea-muud']).toBeDefined();
         expect(doc.refs['data-grid']).toBeDefined();
         expect(doc.refs['input-summa']).toBeDefined();
-        expect(doc.refs['textarea-muud']).toBeDefined();
+        expect(doc.refs['data-grid']).toBeDefined();
     });
 
     it('test doc-toolbar-events', (done) => {
         let docToolbar = doc.refs['doc-toolbar'];
 
-        expect(docToolbar.btnEditClick).toBeDefined();
-        docToolbar.btnEditClick();
+        expect(docToolbar.btnAddClick).toBeDefined();
+        docToolbar.btnAddClick();
 
         setTimeout(() => {
             let state = doc.state;
@@ -69,49 +66,39 @@ describe('doc test, Sorder', () => {
             done();
         }, 1000);
 
-
-    });
-
-    it('backup test',() => {
-        //@todo реализовать
-        expect(doc.handleToolbarEvents).toBeDefined();
     });
 
     it('doc-toolbar btnAdd click event test (handleGridBtnClick(btnName, id))', () => {
         let btnAdd = doc.refs['grid-button-add'];
         expect(btnAdd).toBeDefined();
-
         doc.handleGridBtnClick('add');
-        let state = doc.state;
-        expect(state.gridRowEdit).toBeTruthy();
-        expect(state.gridRowEvent).toBe('add');
-        expect(state.gridRowData.id).toContain('NEW');
+
+        expect(doc.state.gridRowEdit).toBeTruthy();
+        expect(doc.state.gridRowEvent).toBe('add');
+        expect(doc.gridRowData.id).toContain('NEW');
         expect(doc.refs['modalpage-grid-row']).toBeDefined();
         expect(doc.refs['grid-row-container']).toBeDefined();
-        expect(doc.refs['nomid']).toBeDefined();
+        expect(doc.refs['deebet']).toBeDefined();
+        expect(doc.refs['kreedit']).toBeDefined();
         expect(doc.refs['summa']).toBeDefined();
-        expect(doc.refs['konto']).toBeDefined();
-        expect(doc.refs['tunnus']).toBeDefined();
-        expect(doc.refs['project']).toBeDefined();
-
     });
 
     it ('select grid row test', ()=> {
 
-        let nomId = doc.refs['nomid'],
-            konto = doc.refs['konto'],
+        let db = doc.refs['deebet'],
+            kr = doc.refs['kreedit'],
             summa = doc.refs['summa'];
 
-        expect(nomId).toBeDefined();
-        expect(konto).toBeDefined();
+        expect(db).toBeDefined();
+        expect(kr).toBeDefined();
         expect(summa).toBeDefined();
 
-        doc.handleGridRowChange('nomid', 3)
-        doc.handleGridRowChange('konto', '113')
+        doc.handleGridRowChange('deebet', '111')
+        doc.handleGridRowChange('kreedit', '113')
         doc.handleGridRowInput('summa', 10);
-        expect(doc.state.gridRowData['nomid']).toBe(3);
-        expect(doc.state.gridRowData['konto']).toBe('113');
-        expect(doc.state.gridRowData['summa']).toBe(10);
+        expect(doc.gridRowData['deebet']).toBe('111');
+        expect(doc.gridRowData['kreedit']).toBe('113');
+        expect(doc.gridRowData['summa']).toBe(10);
 
 //        ReactTestUtils.Simulate.change(inputSelect, {"target": {"value": 2}});
 //        expect(inputSelect.state.value).toBe(2);
@@ -124,7 +111,7 @@ describe('doc test, Sorder', () => {
         expect(doc.state.gridRowEdit).toBeFalsy();
         // модальное окно редактирования должно исчезнуть
         expect(doc.refs['modalpage-grid-row']).not.toBeDefined();
-        expect(doc.state.gridData.length).toBe(3);
+        expect(doc.gridData.length).toBe(3);
     });
 
 
@@ -143,28 +130,17 @@ describe('doc test, Sorder', () => {
     it('grid btnDelete test', ()=> {
         let btnDel = doc.refs['grid-button-delete'];
         expect(btnDel).toBeDefined();
-        expect(doc.state.gridData.length).toBe(3);
+        expect(doc.gridData.length).toBe(3);
         doc.handleGridBtnClick('delete');
-        expect(doc.state.gridData.length).toBe(2);
+        expect(doc.gridData.length).toBe(2);
     });
 
     it('test recalcDocSumma', () => {
 
         expect(doc.recalcDocSumma).toBeDefined();
-        let docData = doc.recalcDocSumma(data.row);
-        expect(docData.summa).toBe(99);
-    });
 
-    it('test for libs', () => {
-        expect(doc.createLibs).toBeDefined();
-        let libs = doc.createLibs();
-        expect(libs).toEqual({ asutused: [],
-            kontod: [],
-            dokProps: [],
-            kassa:[],
-            tunnus: [],
-            project: [],
-            nomenclature: [] });
+        doc.recalcDocSumma();
+        expect(doc.docData.summa).toBe(99);
     });
 
     it ('test toolbar btnEdit', ()=> {
@@ -192,17 +168,25 @@ describe('doc test, Sorder', () => {
         },1000);
     });
 
+    it('backup test',() => {
+        //@todo реализовать
+        expect(doc.handleToolbarEvents).toBeDefined();
+    });
+
     it('test of onChange action', (done) => {
         let input = doc.refs['input-number'],
             docToolbar = doc.refs['doc-toolbar'],
-            number = input.state.value;
+            number = doc.docData['number'];
 
         expect(input).toBeDefined();
         expect(docToolbar.btnEditClick).toBeDefined();
         expect(input.props.onChange).toBeDefined();
         doc.handleInput('number', '9999');
         // изменения вне режима редактирования не меняют состояния
-        expect(doc.state.docData['number']).toBe(number);
+
+        let docNum = doc.docData['number'];
+        console.log('test number', docNum, number);
+        expect(doc.docData['number']).toBe(number);
         docToolbar.btnEditClick();
 
         // изменения должны примениться
@@ -211,12 +195,11 @@ describe('doc test, Sorder', () => {
 //            input.value = '9999';
 //            ReactTestUtils.Simulate.change(input);
             doc.handleInput('number', '9999');
-            expect(doc.state.docData['number']).toBe('9999');
+            expect(doc.docData['number']).toBe('9999');
             docToolbar.btnCancelClick();
             done();
         }, 1000);
 
     });
-
 
 });

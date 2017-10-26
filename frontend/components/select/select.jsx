@@ -3,10 +3,7 @@
 const PropTypes = require('prop-types');
 
 const React = require('react'),
-    flux = require('fluxify'),
     styles = require('./select-styles');
-
-//    InputText = require('./doc-input-text.jsx');
 
 class Select extends React.PureComponent {
     constructor(props) {
@@ -30,7 +27,6 @@ class Select extends React.PureComponent {
         data.forEach((row) => {
             if (row[collId] == value) {
                 this.setState({value: row[collId], fieldValue: row[collId]});
-                return;
             }
         }, this);
 
@@ -40,13 +36,12 @@ class Select extends React.PureComponent {
         // вернет значения поля по выбранному ИД
 
         let fieldValue,
-            data = this.state.data;
+            data = this.props.data;
 
         data.forEach((row) => {
             if (row[collId] == rowId) {
                 fieldValue = row[collId];
                 this.setState({fieldValue: fieldValue});
-                return;
             }
         }, this);
 
@@ -63,7 +58,7 @@ class Select extends React.PureComponent {
     componentDidMount() {
         if (this.props.collId && this.props.collId !== 'id') {
             // ищем ИД по значению поля
-            this.findFieldValue(this.state.data, this.props.collId, this.props.value);
+            this.findFieldValue(this.props.data, this.props.collId, this.props.value);
         }
     }
 
@@ -85,21 +80,11 @@ class Select extends React.PureComponent {
             // смотрим к чему привязан селект и отдаим его наверх
             this.props.onChange(this.props.name, fieldValue); // в случае если задан обработчик на верхнем уровне, отдадим обработку туда
         }
-
     }
-
-/*
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
-    }
-*/
 
     render() {
-        let dataOptions = this.state.data || [],
-            inputClassName = this.props.className || 'doc-input',
+        let dataOptions = this.props.data || [],
             inputReadOnly = this.state.readOnly || false,
-            inputPlaceHolder = this.props.placeholder || this.props.title,
             Options = null,
             inputDefaultValue = this.props.defaultValue; // Дадим дефолтное значение для виджета, чтоб покать его сразу, до подгрузки библиотеки
 
@@ -126,10 +111,6 @@ class Select extends React.PureComponent {
 
         if (dataOptions.length) {
             Options = dataOptions.map((item, index) => {
-
-                if (typeof item == 'array') {
-                    item = item[0];
-                }
                 let key = 'option-' + index;
                 return <option value={item[this.props.collId]} key={key} ref={key}> {item.name} </option>
             }, this);
@@ -141,7 +122,7 @@ class Select extends React.PureComponent {
         let inputStyle = Object.assign({}, styles.input, inputReadOnly ? {} : styles.hide,
             inputReadOnly ? styles.readOnly: {}),
             selectStyle = Object.assign({}, styles.select, inputReadOnly ? styles.hide : {}, inputReadOnly ? styles.readOnly: {}),
-            buttonStyle = Object.assign({}, styles.button, this.props.btnDelete ? {} : styles.hide)
+            buttonStyle = Object.assign({}, styles.button, this.props.btnDelete ? {} : styles.hide);
 
         return (
             <div style={styles.wrapper} ref="wrapper">
@@ -184,8 +165,9 @@ Select.propTypes = {
     libs: PropTypes.string,
     collId: PropTypes.string,
     title: PropTypes.string,
-    placeholder: PropTypes.string
-}
+    placeholder: PropTypes.string,
+    defaultValue: PropTypes.string
+};
 
 Select.defaultProps = {
     readOnly: false,
@@ -194,7 +176,8 @@ Select.defaultProps = {
     btnDelete: false,
     value: 0,
     collId: 'id',
-    title: ''
-}
+    title: '',
+    defaultValue: ''
+};
 
 module.exports = Select;

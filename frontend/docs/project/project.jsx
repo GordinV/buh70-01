@@ -11,27 +11,22 @@ const
     TextArea = require('../../components/text-area/text-area.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
-    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
+    MenuToolBar = require('./../../mixin/menuToolBar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     styles = require('./project-styles');
 
 // Create a store
 const docStore = require('../../stores/doc_store.js');
 
-const now = new Date();
-
 class Project extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            docData: this.props.data.row,
-            edited: this.props.data.row.id == 0,
-            showMessageBox: 'none',
-            checked: false,
-            userData: props.userData,
+            edited: props.data.row.id == 0,
             warning: ''
+        };
 
-        }
+        this.docData = props.data.row;
 
         this.requiredFields = [
             {
@@ -42,24 +37,28 @@ class Project extends React.PureComponent {
             },
             {name: 'nimetus', type: 'C', min: null, max: null},
             {name: 'regkood', type: 'C', min: null, max: null}
-        ]
+        ];
         this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
         this.validation = this.validation.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+//        this.prepaireToolBarParameters = this.prepaireToolBarParameters.bind(this);
     }
 
+    /**
+     * вызовет метод валидации и вернет результат проверки
+     * @returns {string}
+     */
     validation() {
         if (!this.state.edited) return '';
 
         let requiredFields = this.requiredFields;
-        let warning = require('../../mixin/validateForm')(this, requiredFields);
-        return warning;
+        return require('../../mixin/validateForm')(this, requiredFields);
     }
 
     componentDidMount() {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
-            data = self.props.data.row;
+            data = this.docData;
 
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
@@ -90,19 +89,16 @@ class Project extends React.PureComponent {
 
     render() {
         let isEditeMode = this.state.edited,
-            toolbarParams = this.prepaireToolBarParameters(isEditeMode),
             validationMessage = this.validation();
         const btnParams = {
             btnStart: {
                 show: true
             }
-        }
+        };
 
         return (
             <div>
-                <div>
-                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
-                </div>
+                {MenuToolBar(btnParams, this.props.userData)}
 
                 <Form pages={this.pages}
                       ref="form"
@@ -124,14 +120,14 @@ class Project extends React.PureComponent {
                             <InputText title="Kood "
                                        name='kood'
                                        ref="input-kood"
-                                       value={this.state.docData.kood}
+                                       value={this.docData.kood}
                                        onChange={this.handleInputChange}/>
                         </div>
                         <div style={styles.docRow}>
                             <InputText title="Nimetus "
                                        name='nimetus'
                                        ref="input-nimetus"
-                                       value={this.state.docData.nimetus}
+                                       value={this.docData.nimetus}
                                        onChange={this.handleInputChange}/>
                         </div>
 
@@ -140,7 +136,7 @@ class Project extends React.PureComponent {
                                           name='muud'
                                           ref="textarea-muud"
                                           onChange={this.handleInputChange}
-                                          value={this.state.docData.muud}
+                                          value={this.docData.muud || ''}
                                           readOnly={!isEditeMode}/>
                         </div>
                     </div>
@@ -149,19 +145,34 @@ class Project extends React.PureComponent {
         );
     }
 
+    /**
+     * Обработчик для панели сохранения
+     * @param event
+     */
     handleToolbarEvents(event) {
         // toolbar event handler
 
         switch (event) {
             case 'CANCEL':
-                let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row, warning: ''});
+                this.docData = flux.stores.docStore.backup.row; // восстановим данные
+
+                if (this.state.warning !== '') {
+                    this.setState({warning: ''});
+                } else {
+                    this.forceUpdate();
+                }
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
         }
     }
 
+    /**
+     * Обработчик для инпутов.
+     * @param inputName
+     * @param inputValue
+     * @returns {boolean}
+     */
     handleInputChange(inputName, inputValue) {
         // обработчик изменений
         // изменения допустимы только в режиме редактирования
@@ -170,14 +181,17 @@ class Project extends React.PureComponent {
             return false;
         }
 
-        let data = this.state.docData;
-
-        data[inputName] = inputValue;
-        this.setState({docData: data});
+        this.docData[inputName] = inputValue;
+        this.forceUpdate();
     }
 
-    prepaireToolBarParameters(isEditMode) {
-        let toolbarParams = {
+    /**
+     * Подготовит параметры для панетли инструментов
+     * @param isEditMode
+     * @returns {{btnAdd: {show: boolean, disabled: *}, btnEdit: {show: boolean, disabled: *}, btnPrint: {show: boolean, disabled: boolean}, btnSave: {show: *, disabled: boolean}}}
+     */
+    static prepaireToolBarParameters(isEditMode) {
+        return  {
             btnAdd: {
                 show: !isEditMode,
                 disabled: isEditMode
@@ -195,8 +209,6 @@ class Project extends React.PureComponent {
                 disabled: false
             }
         };
-
-        return toolbarParams;
     }
 
 }
@@ -205,20 +217,9 @@ class Project extends React.PureComponent {
 Project.propTypes = {
     data: PropTypes.object.isRequired,
     edited: PropTypes.bool,
-    showMessageBox: PropTypes.string,
-    checked: PropTypes.bool,
     warning: PropTypes.string
 
-}
-
-
-/*
- Arve.defaultProps = {
- disabled: false,
- show: true
- };
- */
-
+};
 
 module.exports = Project;
 

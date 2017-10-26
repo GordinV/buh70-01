@@ -1,3 +1,4 @@
+'use strict';
 require('./../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
 import ReactTestUtils from 'react-dom/test-utils';
@@ -21,7 +22,7 @@ const btnParams = {
         disabled: false
     }
 
-}
+};
 
 
 describe('components test, MenuToolbar', () => {

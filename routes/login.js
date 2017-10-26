@@ -1,4 +1,6 @@
-var userid = require('../models/userid'),
+'use strict';
+
+const userid = require('../models/userid'),
     async = require('async'),
     HttpError = require('error').HttpError,
     errorMessage = '';
@@ -10,14 +12,22 @@ exports.get = function (req, res) {
 
 
 exports.post = function (req, res, next) {
-    var username = req.body.username,
-        password = req.body.password;
+    let username = req.body.username,
+        password = req.body.password,
+        errorMessage;
+
 
     async.waterfall([
             function (callback) {
                 //Loooking for acccount and loading login data
                 userid.getUserId(username, 1, function (err, kasutaja) {
-                    if (err) return next(err);
+                    if (err) return callback(err, null);
+
+                    if (!kasutaja) {
+                        const err = new HttpError(403, 'No user');
+                        return callback(err, null);
+                    }
+
 
                     errorMessage = null;
                     req.session.user = {
@@ -30,23 +40,27 @@ exports.post = function (req, res, next) {
                         userAccessList: kasutaja.allowed_access,
                         userLibraryList: kasutaja.allowed_libs
                     };
+                    global.userId = kasutaja.id;
+                    global.rekvId = kasutaja.rekvid;
                     callback(null, kasutaja);
                 });
             },
             // checking for password
             function (kasutaja, callback) {
-                console.log('checking for password');
                 userid.updateUserPassword(username, password, kasutaja.parool, function (err, result) {
-                    if (err) return next(err);
+                    if (err) return callback(err, null, null);
+                    let error;
 
                     if (!result) {
-                        var err = new HttpError(403, 'Ошибка в пароле');
+                        error = new HttpError(403, 'Ошибка в пароле');
                         req.session.userId = null;
+                        global.userId = null;
+                        global.rekvId = null;
                         errorMessage = 'Ошибка в пароле';
                         console.error('Ошибка в пароле');
                         // return next(err);
                     }
-                    return callback(err, result, kasutaja);
+                    return callback(error, result, kasutaja);
 
                 });
             },
@@ -61,11 +75,12 @@ exports.post = function (req, res, next) {
             },
 
         ],
+
+
         // finished
-        function (err, result) {
+        function (err) {
             if (err) return next(err);
-//        res.status(200).send();
-            //       res.end();
+
             if (errorMessage) {
                 //back to login
                 res.redirect('/login');

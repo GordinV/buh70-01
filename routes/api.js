@@ -20,9 +20,7 @@
 
 exports.post = function (req, res) {
     //   console.log('api req.body', req.body);
-    let docTypeId = req.body.docType,
-        dataType = req.body.dataType, // тип запрашиваемых данных
-        returnData = [],
+    let returnData = [],
         results = {},
         DocDataObject = require('../models/documents'),
         async = require('async'),
@@ -68,14 +66,14 @@ exports.post = function (req, res) {
             if (err) {
                 res.send({result:'Error'});
                 return
-            };
+            }
 
             returnData = components.map(function (component) {
                 component.data = results[component.name].data;
                 component.lastDocId = lastDocId;
 
                 return component;
-            })
+            });
             res.send(returnData);
         });
     } catch (error) {
@@ -84,4 +82,4 @@ exports.post = function (req, res) {
 
     }
 // end try
-}
+};

@@ -12,29 +12,28 @@ const
     TextArea = require('../../components/text-area/text-area.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
+    MenuToolBar = require('./../../mixin/menuToolBar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     styles = require('./document-styles'),
-    TYPIES = [{id:1, kood: 'document', name: 'document'}, {id: 2, kood: 'library', name: 'library'}],
-    MODULES=[{id:1, kood:'Raamatupidamine', name: 'Raamatupidamine'},{id:2, kood:'Libraries', name:'Libraries'}];
+    DOCUMENT_TYPES = [{id: 1, kood: 'document', name: 'document'}, {id: 2, kood: 'library', name: 'library'}];
 
 
 // Create a store
 const docStore = require('../../stores/doc_store.js');
 
-const now = new Date();
-
+/**
+ * Реализует документ справочника Типы документов
+ */
 class Document extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            docData: this.props.data.row,
             edited: this.props.data.row.id == 0,
-            showMessageBox: 'none',
-            checked: false,
             warning: ''
 
-        }
+        };
 
+        this.docData = this.props.data.row;
         this.requiredFields = [
             {
                 name: 'kood',
@@ -44,24 +43,27 @@ class Document extends React.PureComponent {
             },
             {name: 'nimetus', type: 'C', min: null, max: null},
             {name: 'regkood', type: 'C', min: null, max: null}
-        ]
+        ];
         this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
         this.validation = this.validation.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
     }
 
+    /**
+     * вызовет метод валидации и вернет результат проверки
+     * @returns {string}
+     */
     validation() {
         if (!this.state.edited) return '';
 
         let requiredFields = this.requiredFields;
-        let warning = require('../../mixin/validateForm')(this, requiredFields);
-        return warning;
+        return require('../../mixin/validateForm')(this, requiredFields);
     }
 
     componentDidMount() {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
-            data = self.props.data.row;
+            data = this.docData;
 
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
@@ -92,78 +94,87 @@ class Document extends React.PureComponent {
 
 
     render() {
-        let isEditeMode = this.state.edited,
-            toolbarParams = this.prepaireToolBarParameters(isEditeMode),
+        let isInEditMode = this.state.edited,
             validationMessage = this.validation();
 
-        return (
-            <Form pages={this.pages}
-                  ref="form"
-                  handlePageClick={this.handlePageClick}
-                  disabled={isEditeMode}>
-                <ToolbarContainer ref='toolbar-container'>
-                    <div className='doc-toolbar-warning'>
-                        {validationMessage ? <span>{validationMessage}</span> : null }
-                    </div>
-                    <div>
-                        <DocToolBar ref='doc-toolbar'
-                                    edited={isEditeMode}
-                                    validator={this.validation}
-                                    eventHandler={this.handleToolbarEvents}/>
-                    </div>
-                </ToolbarContainer>
-                <div style={styles.doc}>
-                    <div style={styles.docRow}>
-                        <InputText title="Kood "
-                                   name='kood'
-                                   ref="input-kood"
-                                   value={this.state.docData.kood}
-                                   onChange={this.handleInputChange}/>
-                    </div>
-                    <div style={styles.docRow}>
-                        <InputText title="Nimetus "
-                                   name='nimetus'
-                                   ref="input-nimetus"
-                                   value={this.state.docData.nimetus}
-                                   onChange={this.handleInputChange}/>
-                    </div>
+        const btnParams = {
+            btnStart: {
+                show: true
+            }
+        };
 
-                    <div style={styles.docRow}>
-                        <Select title="Tüüp:"
-                                name='type'
-                                data={TYPIES}
-                                collId='kood'
-                                value={this.state.docData.type}
-                                defaultValue={this.state.docData.type}
-                                ref="select-type"
-                                btnDelete={isEditeMode}
-                                onChange={this.handleInputChange}
-                                readOnly={!isEditeMode}/>
-                    </div>
-{/*
-                    <div style={styles.docRow}>
-                        <Select title="Moduul:"
-                                name='module'
-                                data={MODULES}
-                                collId='kood'
-                                value={this.state.docData.module}
-                                defaultValue={this.state.docData.module}
-                                ref="select-module"
-                                btnDelete={isEditeMode}
-                                onChange={this.handleInputChange}
-                                readOnly={!isEditeMode}/>
-                    </div>
-*/}
-                    <div style={styles.docRow}>
+        return (
+            <div>
+                {MenuToolBar(btnParams, this.props.userData)}
+
+                <Form pages={this.pages}
+                      ref="form"
+                      handlePageClick={this.handlePageClick}
+                      disabled={isInEditMode}>
+                    <ToolbarContainer ref='toolbar-container'>
+                        <div className='doc-toolbar-warning'>
+                            {validationMessage ? <span>{validationMessage}</span> : null }
+                        </div>
+                        <div>
+                            <DocToolBar ref='doc-toolbar'
+                                        edited={isInEditMode}
+                                        validator={this.validation}
+                                        eventHandler={this.handleToolbarEvents}/>
+                        </div>
+                    </ToolbarContainer>
+                    <div style={styles.doc}>
+                        <div style={styles.docRow}>
+                            <InputText title="Kood "
+                                       name='kood'
+                                       ref="input-kood"
+                                       value={this.docData.kood}
+                                       onChange={this.handleInputChange}/>
+                        </div>
+                        <div style={styles.docRow}>
+                            <InputText title="Nimetus "
+                                       name='nimetus'
+                                       ref="input-nimetus"
+                                       value={this.docData.nimetus}
+                                       onChange={this.handleInputChange}/>
+                        </div>
+
+                        <div style={styles.docRow}>
+                            <Select title="Tüüp:"
+                                    name='type'
+                                    data={DOCUMENT_TYPES}
+                                    collId='kood'
+                                    value={this.docData.type}
+                                    defaultValue={this.docData.type}
+                                    ref="select-type"
+                                    btnDelete={isInEditMode}
+                                    onChange={this.handleInputChange}
+                                    readOnly={!isInEditMode}/>
+                        </div>
+                        {/*
+                         <div style={styles.docRow}>
+                         <Select title="Moduul:"
+                         name='module'
+                         data={MODULES}
+                         collId='kood'
+                         value={this.state.docData.module}
+                         defaultValue={this.state.docData.module}
+                         ref="select-module"
+                         btnDelete={isEditeMode}
+                         onChange={this.handleInputChange}
+                         readOnly={!isEditeMode}/>
+                         </div>
+                         */}
+                        <div style={styles.docRow}>
                                 <TextArea title="Muud"
                                           name='muud'
                                           ref="textarea-muud"
                                           onChange={this.handleInputChange}
-                                          value={this.state.docData.muud}
-                                          readOnly={!isEditeMode}/>
+                                          value={this.docData.muud || ''}
+                                          readOnly={!isInEditMode}/>
+                        </div>
                     </div>
-                </div>
-            </Form >
+                </Form >
+            </div>
         );
     }
 
@@ -172,14 +183,25 @@ class Document extends React.PureComponent {
 
         switch (event) {
             case 'CANCEL':
-                let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row,  warning: ''});
+                this.docData = flux.stores.docStore.backup.row; // восстановим данные
+
+                if (this.state.warning !== '') {
+                    this.setState({warning: ''});
+                } else {
+                    this.forceUpdate();
+                }
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
         }
     }
 
+    /**
+     * Обработчик для инпутов.
+     * @param inputName
+     * @param inputValue
+     * @returns {boolean}
+     */
     handleInputChange(inputName, inputValue) {
         // обработчик изменений
         // изменения допустимы только в режиме редактирования
@@ -188,14 +210,17 @@ class Document extends React.PureComponent {
             return false;
         }
 
-        let data = this.state.docData;
-
-        data[inputName] = inputValue;
-        this.setState({docData: data});
+        this.docData[inputName] = inputValue;
+        this.forceUpdate();
     }
 
-    prepaireToolBarParameters(isEditMode) {
-        let toolbarParams = {
+    /**
+     * Подготовит параметры для панетли инструментов
+     * @param isEditMode
+     * @returns {{btnAdd: {show: boolean, disabled: *}, btnEdit: {show: boolean, disabled: *}, btnPrint: {show: boolean, disabled: boolean}, btnSave: {show: *, disabled: boolean}}}
+     */
+    static prepaireToolBarParameters(isEditMode) {
+        return {
             btnAdd: {
                 show: !isEditMode,
                 disabled: isEditMode
@@ -213,29 +238,17 @@ class Document extends React.PureComponent {
                 disabled: false
             }
         };
-
-        return toolbarParams;
     }
 
 }
 
-
 Document.propTypes = {
     data: PropTypes.object.isRequired,
+    userData: PropTypes.object,
     edited: PropTypes.bool,
-    showMessageBox: PropTypes.string,
-    checked: PropTypes.bool,
     warning: PropTypes.string
 
-}
-
-
-/*
- Arve.defaultProps = {
- disabled: false,
- show: true
- };
- */
+};
 
 
 module.exports = Document;

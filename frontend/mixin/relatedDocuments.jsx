@@ -2,6 +2,7 @@
 
 const relatedDocuments = (self) => {
     // формируем зависимости
+
     let relatedDocuments = self.state.relations;
     if (relatedDocuments.length > 0) {
         relatedDocuments.forEach((doc) => {

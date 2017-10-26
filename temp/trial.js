@@ -1,5 +1,16 @@
 
 'use strict';
+
+let data = [{kood: "dok", props: {"type":"Aruanne"}}];
+
+let found = data.filter((row) => row.kood ==="dok" && row.props.type === 'Aruanne');
+
+
+
+console.log('found', found, !!found.length);
+
+
+
 /*
 const getNodes = (data, node) => {
     // node = выбранный элемент (ид)
@@ -56,4 +67,3 @@ arr.forEach((item, i) => setTimeout(function() {
 })()
  */
 
-console.log(typeof null)

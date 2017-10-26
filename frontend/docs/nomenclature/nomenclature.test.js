@@ -95,7 +95,7 @@ describe('doc test,Nomenclature', () => {
         expect(input.props.onChange).toBeDefined();
         doc.handleInputChange('kood', '9999');
         // изменения вне режима редактирования не меняют состояния
-        expect(doc.state.docData['kood']).toBe(kood);
+        expect(doc.docData['kood']).toBe(kood);
         docToolbar.btnEditClick();
 
         // изменения должны примениться
@@ -104,7 +104,7 @@ describe('doc test,Nomenclature', () => {
 //            input.value = '9999';
 //            ReactTestUtils.Simulate.change(input);
             doc.handleInputChange('kood', '9999');
-            expect(doc.state.docData['kood']).toBe('9999');
+            expect(doc.docData['kood']).toBe('9999');
             docToolbar.btnCancelClick();
             done();
         }, 1000);
