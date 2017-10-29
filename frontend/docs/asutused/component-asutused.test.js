@@ -64,12 +64,20 @@ describe('doc test, Asutused', () => {
             docToolbar.btnEditClick();
             setTimeout(() => {
                 expect(doc.state.edited).toBeTruthy();
+                // проверим чтоб резервная копия была
+                expect(flux.docStore.backup.docData).not.toBeNull();
+                expect(flux.docStore.backup.gridData).not.toBeNull();
+
+                // will change data
+                doc.handleInputChange('regkood', '9999');
+                expect(doc.docData.regkood).toBe('9999');
+
                 done();
             }, 1000);
         }
     });
 
-    it ('doc-toolbar btnCancel test', (done) => {
+    it ('doc-toolbar btnCancel test', () => {
         let docToolbar = doc.refs['doc-toolbar'];
         expect(docToolbar.btnCancelClick).toBeDefined();
 
@@ -78,9 +86,16 @@ describe('doc test, Asutused', () => {
         setTimeout(() => {
             expect(doc.state).toBeDefined();
             expect(doc.state.edited).toBeFalsy();
-            done();
+            // резервная копия удалена
+            expect(flux.docStore.backup.docData).toBeNull();
+            expect(flux.docStore.backup.gridData).toBeNull();
         },1000);
     });
+
+    it ('doc-toolbar docData restore test', () => {
+        expect(doc.docData.regkood).not.toBe('9999');;
+    });
+
 
     it('test of onChange action', (done) => {
         let input = doc.refs['input-regkood'],

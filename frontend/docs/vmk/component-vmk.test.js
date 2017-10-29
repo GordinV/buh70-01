@@ -7,13 +7,13 @@ const flux = require('fluxify');
 let docStore = require('../../stores/doc_store.js');
 
 
-describe('doc test, Vorder', () => {
+describe('doc test, VMK', () => {
     // проверяем на наличие компонента и его пропсы и стейты
     // проверяем изменение стейтов после клика
-    const Vorder = require('./vorder.jsx');
+    const Vorder = require('./vmk.jsx');
 //    const style = require('./input-text-styles');
 
-    let dataRow = require('./../../../test/fixture/doc-vorder-fixture'),
+    let dataRow = require('./../../../test/fixture/doc-vmk-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
         model = require('./../../../models/raamatupidamine/vorder'),
         data = {
@@ -40,14 +40,12 @@ describe('doc test, Vorder', () => {
         expect(doc.refs['doc-common']).toBeDefined();
         expect(doc.refs['input-number']).toBeDefined();
         expect(doc.refs['input-kpv']).toBeDefined();
-        expect(doc.refs['select-kassaId']).toBeDefined();
-        expect(doc.refs['select-asutusId']).toBeDefined();
+        expect(doc.refs['select-aaId']).toBeDefined();
         expect(doc.refs['input-arvnr']).toBeDefined();
-        expect(doc.refs['input-dokument']).toBeDefined();
+        expect(doc.refs['input-maksepaev']).toBeDefined();
         expect(doc.refs['dokprop']).toBeDefined();
-        expect(doc.refs['textarea-nimi']).toBeDefined();
-        expect(doc.refs['textarea-aadress']).toBeDefined();
-        expect(doc.refs['textarea-alus']).toBeDefined();
+        expect(doc.refs['input-viitenr']).toBeDefined();
+        expect(doc.refs['textarea-selg']).toBeDefined();
         expect(doc.refs['data-grid']).toBeDefined();
         expect(doc.refs['input-summa']).toBeDefined();
         expect(doc.refs['textarea-muud']).toBeDefined();
@@ -72,11 +70,11 @@ describe('doc test, Vorder', () => {
 
 
     });
-
-    it('backup test',() => {
+    it('backup test', () => {
         //@todo реализовать
         expect(doc.handleToolbarEvents).toBeDefined();
     });
+
 
     it('doc-toolbar btnAdd click event test (handleGridBtnClick(btnName, id))', () => {
         let btnAdd = doc.refs['grid-button-add'];
@@ -86,10 +84,12 @@ describe('doc test, Vorder', () => {
         let state = doc.state;
         expect(state.gridRowEdit).toBeTruthy();
         expect(state.gridRowEvent).toBe('add');
-        expect(state.gridRowData.id).toContain('NEW');
+        expect(doc.gridRowData.id).toContain('NEW');
         expect(doc.refs['modalpage-grid-row']).toBeDefined();
         expect(doc.refs['grid-row-container']).toBeDefined();
         expect(doc.refs['nomid']).toBeDefined();
+        expect(doc.refs['asutusid']).toBeDefined();
+        expect(doc.refs['aa']).toBeDefined();
         expect(doc.refs['summa']).toBeDefined();
         expect(doc.refs['konto']).toBeDefined();
         expect(doc.refs['tunnus']).toBeDefined();
@@ -97,22 +97,30 @@ describe('doc test, Vorder', () => {
 
     });
 
-    it ('select grid row test', ()=> {
+    it('select grid row test', () => {
 
         let nomId = doc.refs['nomid'],
+            asutusId = doc.refs['asutusid'],
+            aa = doc.refs['aa'],
             konto = doc.refs['konto'],
             summa = doc.refs['summa'];
 
         expect(nomId).toBeDefined();
+        expect(asutusId).toBeDefined();
+        expect(aa).toBeDefined();
         expect(konto).toBeDefined();
         expect(summa).toBeDefined();
 
-        doc.handleGridRowChange('nomid', 3)
-        doc.handleGridRowChange('konto', '113')
+        doc.handleGridRowChange('nomid', 3);
+        doc.handleGridRowChange('asutusid', 1);
+        doc.handleGridRowChange('aa', 'aa-test');
+        doc.handleGridRowChange('konto', '113');
         doc.handleGridRowInput('summa', 10);
-        expect(doc.state.gridRowData['nomid']).toBe(3);
-        expect(doc.state.gridRowData['konto']).toBe('113');
-        expect(doc.state.gridRowData['summa']).toBe(10);
+        expect(doc.gridRowData['nomid']).toBe(3);
+        expect(doc.gridRowData['asutusid']).toBe(1);
+        expect(doc.gridRowData['aa']).toBe('aa-test');
+        expect(doc.gridRowData['konto']).toBe('113');
+        expect(doc.gridRowData['summa']).toBe(10);
 
 //        ReactTestUtils.Simulate.change(inputSelect, {"target": {"value": 2}});
 //        expect(inputSelect.state.value).toBe(2);
@@ -125,9 +133,8 @@ describe('doc test, Vorder', () => {
         expect(doc.state.gridRowEdit).toBeFalsy();
         // модальное окно редактирования должно исчезнуть
         expect(doc.refs['modalpage-grid-row']).not.toBeDefined();
-        expect(doc.state.gridData.length).toBe(3);
+        expect(doc.gridData.length).toBe(3);
     });
-
 
     it('gridRow ModalPage btnCancel click test', () => {
         let btnAdd = doc.refs['grid-button-add'];
@@ -141,46 +148,56 @@ describe('doc test, Vorder', () => {
         expect(doc.refs['modalpage-grid-row']).not.toBeDefined();
     });
 
-    it('grid btnDelete test', ()=> {
+    it('grid btnDelete test', () => {
         let btnDel = doc.refs['grid-button-delete'];
         expect(btnDel).toBeDefined();
-        expect(doc.state.gridData.length).toBe(3);
+        expect(doc.gridData.length).toBe(3);
         doc.handleGridBtnClick('delete');
-        expect(doc.state.gridData.length).toBe(2);
+        expect(doc.gridData.length).toBe(2);
     });
 
     it('test recalcDocSumma', () => {
 
         expect(doc.recalcDocSumma).toBeDefined();
-        let docData = doc.recalcDocSumma(data.row);
-        expect(docData.summa).toBe(99);
+        doc.recalcDocSumma();
+        expect(doc.docData.summa).toBe(99);
     });
 
     it('test for libs', () => {
         expect(doc.createLibs).toBeDefined();
         let libs = doc.createLibs();
-        expect(libs).toEqual({ asutused: [],
+        expect(libs).toEqual({
+            asutused: [],
             kontod: [],
             dokProps: [],
-            kassa:[],
             tunnus: [],
             project: [],
-            nomenclature: [] });
+            nomenclature: [],
+            aa: []
+        });
     });
 
-    it ('test toolbar btnEdit', ()=> {
+    it('test toolbar btnEdit', () => {
         let docToolbar = doc.refs['doc-toolbar'];
         expect(docToolbar.btnEditClick).toBeDefined();
-        if (!doc.state.edited)  {
+        if (!doc.state.edited) {
             docToolbar.btnEditClick();
             setTimeout(() => {
                 expect(doc.state.edited).toBeTruthy();
+                // проверим чтоб резервная копия была
+                expect(flux.docStore.backup.docData).not.toBeNull();
+                expect(flux.docStore.backup.gridData).not.toBeNull();
+
+                // will change data
+                doc.handleInputChange('number', '9999');
+                expect(doc.docData.number).toBe('9999');
+
                 done();
             }, 1000);
         }
     });
 
-    it ('doc-toolbar btnCancel test', (done) => {
+    it('doc-toolbar btnCancel test', () => {
         let docToolbar = doc.refs['doc-toolbar'];
         expect(docToolbar.btnCancelClick).toBeDefined();
 
@@ -189,9 +206,48 @@ describe('doc test, Vorder', () => {
         setTimeout(() => {
             expect(doc.state).toBeDefined();
             expect(doc.state.edited).toBeFalsy();
+            // резервная копия удалена
+            expect(flux.docStore.backup.docData).toBeNull();
+            expect(flux.docStore.backup.gridData).toBeNull();
+        }, 1000);
+    });
+
+    it ('doc-toolbar docData restore test', () => {
+        expect(doc.docData.number).not.toBe('9999');;
+    });
+
+    it('test of onChange action', (done) => {
+        let input = doc.refs['input-number'],
+            docToolbar = doc.refs['doc-toolbar'],
+            number = input.state.value;
+
+        expect(input).toBeDefined();
+        expect(docToolbar.btnEditClick).toBeDefined();
+        expect(input.props.onChange).toBeDefined();
+        doc.handleInput('number', '9999');
+        // изменения вне режима редактирования не меняют состояния
+        expect(doc.docData['number']).toBe(number);
+        docToolbar.btnEditClick();
+
+        // изменения должны примениться
+        setTimeout(() => {
+            // изменения должны примениться
+//            input.value = '9999';
+//            ReactTestUtils.Simulate.change(input);
+            doc.handleInput('number', '9999');
+            expect(doc.docData['number']).toBe('9999');
+            docToolbar.btnCancelClick();
             done();
-        },1000);
+        }, 1000);
+
+    });
+
+    it('should contain handlePageClick function', () => {
+        expect(doc.handlePageClick).toBeDefined();
     });
 
 
 });
+/**
+ * Created by HP on 24.06.2017.
+ */

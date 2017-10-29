@@ -87,15 +87,6 @@ class Journal extends React.PureComponent {
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
-            if (newValue) {
-                // делаем копии
-                flux.doAction('backupChange', {
-                    row: Object.assign({}, flux.stores.docStore.data),
-                    details: Object.assign([], flux.stores.docStore.details)
-                });
-
-            }
-
             if (newValue !== previousValue) {
                 self.setState({edited: newValue});
             }
@@ -562,8 +553,8 @@ class Journal extends React.PureComponent {
         switch (event) {
             case 'CANCEL':
 
-                this.docData = flux.stores.docStore.backup.row; // восстановим данные
-                this.gridData = flux.stores.docStore.backup.details;
+                this.docData = JSON.parse(flux.stores.docStore.backup.docData); // восстановим данные
+                this.gridData = JSON.parse(flux.stores.docStore.backup.gridData);
 
                 if (this.state.warning !== '') {
                     this.setState({warning: ''});

@@ -84,7 +84,7 @@ describe('doc test, SMK', () => {
         let state = doc.state;
         expect(state.gridRowEdit).toBeTruthy();
         expect(state.gridRowEvent).toBe('add');
-        expect(state.gridRowData.id).toContain('NEW');
+        expect(doc.gridRowData.id).toContain('NEW');
         expect(doc.refs['modalpage-grid-row']).toBeDefined();
         expect(doc.refs['grid-row-container']).toBeDefined();
         expect(doc.refs['nomid']).toBeDefined();
@@ -104,6 +104,14 @@ describe('doc test, SMK', () => {
             docToolbar.btnEditClick();
             setTimeout(() => {
                 expect(doc.state.edited).toBeTruthy();
+                // проверим чтоб резервная копия была
+                expect(flux.docStore.backup.docData).not.toBeNull();
+                expect(flux.docStore.backup.gridData).not.toBeNull();
+
+                // will change data
+                doc.handleInputChange('number', '9999');
+                expect(doc.docData.number).toBe('9999');
+
                 done();
             }, 1000);
         }
@@ -130,11 +138,11 @@ describe('doc test, SMK', () => {
         doc.handleGridRowChange('aa', 'aa-test');
         doc.handleGridRowChange('konto', '113');
         doc.handleGridRowInput('summa', 10);
-        expect(doc.state.gridRowData['nomid']).toBe(3);
-        expect(doc.state.gridRowData['asutusid']).toBe(1);
-        expect(doc.state.gridRowData['aa']).toBe('aa-test');
-        expect(doc.state.gridRowData['konto']).toBe('113');
-        expect(doc.state.gridRowData['summa']).toBe(10);
+        expect(doc.gridRowData['nomid']).toBe(3);
+        expect(doc.gridRowData['asutusid']).toBe(1);
+        expect(doc.gridRowData['aa']).toBe('aa-test');
+        expect(doc.gridRowData['konto']).toBe('113');
+        expect(doc.gridRowData['summa']).toBe(10);
 
 //        ReactTestUtils.Simulate.change(inputSelect, {"target": {"value": 2}});
 //        expect(inputSelect.state.value).toBe(2);
@@ -147,7 +155,7 @@ describe('doc test, SMK', () => {
         expect(doc.state.gridRowEdit).toBeFalsy();
         // модальное окно редактирования должно исчезнуть
         expect(doc.refs['modalpage-grid-row']).not.toBeDefined();
-        expect(doc.state.gridData.length).toBe(3);
+        expect(doc.gridData.length).toBe(3);
     });
 
 
@@ -166,16 +174,16 @@ describe('doc test, SMK', () => {
     it('grid btnDelete test', () => {
         let btnDel = doc.refs['grid-button-delete'];
         expect(btnDel).toBeDefined();
-        expect(doc.state.gridData.length).toBe(3);
+        expect(doc.gridData.length).toBe(3);
         doc.handleGridBtnClick('delete');
-        expect(doc.state.gridData.length).toBe(2);
+        expect(doc.gridData.length).toBe(2);
     });
 
     it('test recalcDocSumma', () => {
 
         expect(doc.recalcDocSumma).toBeDefined();
-        let docData = doc.recalcDocSumma(data.row);
-        expect(docData.summa).toBe(99);
+        doc.recalcDocSumma();
+        expect(doc.docData.summa).toBe(99);
     });
 
     it('test for libs', () => {
@@ -193,7 +201,7 @@ describe('doc test, SMK', () => {
     });
 
 
-    it('doc-toolbar btnCancel test', (done) => {
+    it('doc-toolbar btnCancel test', () => {
         let docToolbar = doc.refs['doc-toolbar'];
         expect(docToolbar.btnCancelClick).toBeDefined();
         expect(doc.state.edited).toBeTruthy();
@@ -202,8 +210,15 @@ describe('doc test, SMK', () => {
         setTimeout(() => {
             expect(doc.state).toBeDefined();
             expect(doc.state.edited).toBeFalsy();
-            done();
+            // резервная копия удалена
+            expect(flux.docStore.backup.docData).toBeNull();
+            expect(flux.docStore.backup.gridData).toBeNull();
+
         }, 1000);
+    });
+
+    it ('doc-toolbar docData restore test', () => {
+        expect(doc.docData.number).not.toBe('9999');;
     });
 
     it('test of onChange action', (done) => {
@@ -216,7 +231,7 @@ describe('doc test, SMK', () => {
         expect(input.props.onChange).toBeDefined();
         doc.handleInput('number', '9999');
         // изменения вне режима редактирования не меняют состояния
-        expect(doc.state.docData['number']).toBe(number);
+        expect(doc.docData['number']).toBe(number);
         docToolbar.btnEditClick();
 
         // изменения должны примениться
@@ -225,13 +240,16 @@ describe('doc test, SMK', () => {
 //            input.value = '9999';
 //            ReactTestUtils.Simulate.change(input);
             doc.handleInput('number', '9999');
-            expect(doc.state.docData['number']).toBe('9999');
+            expect(doc.docData['number']).toBe('9999');
             docToolbar.btnCancelClick();
             done();
         }, 1000);
 
     });
 
+    it('should contain handlePageClick function', () => {
+        expect(doc.handlePageClick).toBeDefined();
+    });
 
 
 });

@@ -18,7 +18,7 @@ const Form = require('../../components/form/form.jsx'),
     DokProp = require('../../components/docprop/docprop.jsx'),
     relatedDocuments = require('../../mixin/relatedDocuments.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
-    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
+    MenuToolBar = require('./../../mixin/menuToolBar.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
@@ -36,18 +36,17 @@ class Vorder extends React.PureComponent {
         super(props);
 
         this.state = {
-            docData: this.props.data.row,
-            bpm: this.props.bpm,
             edited: false,
-            gridData: this.props.data.details,
             relations: this.props.data.relations,
-            gridConfig: this.props.data.gridConfig,
             gridRowEdit: false,
             gridRowEvent: null,
-            gridRowData: null,
-            userData: props.userData,
-            libs: this.createLibs()
-        }
+        };
+
+        this.docData = this.props.data.row;
+        this.gridData = this.props.data.details;
+        this.gridConfig = this.props.data.gridConfig;
+        this.gridRowData = null;
+        this.libs = this.createLibs();
 
         this.pages = [{pageName: 'Väljamakse kassaorder'}];
         this.requiredFields = [
@@ -78,6 +77,9 @@ class Vorder extends React.PureComponent {
 
     }
 
+    /**
+     * пишем исходные данные в хранилище, регистрируем обработчики событий
+     */
     componentDidMount() {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
@@ -91,16 +93,15 @@ class Vorder extends React.PureComponent {
         flux.doAction('detailsChange', details); // данные грида
         flux.doAction('gridConfigChange', gridConfig); // данные грида
 
-        docStore.on('change:libs', (newValue, previousValue) => {
+        docStore.on('change:libs', (newValue) => {
             let isChanged = false,
-                libs = newValue,
-                libsData = self.state.libs;
+                libsData = self.libs;
 
             if (newValue.length > 0) {
 
-                libs.forEach(lib => {
+                newValue.forEach(lib => {
 
-                    if (self.state.libs[lib.id] && lib.data.length > 0) {
+                    if (self.libs[lib.id] && lib.data.length > 0) {
                         libsData[lib.id] = lib.data;
                         isChanged = true;
                     }
@@ -108,21 +109,13 @@ class Vorder extends React.PureComponent {
             }
 
             if (isChanged) {
-                self.setState({libs: libsData});
+                self.libs = libsData;
+                self.forceUpdate();
             }
         });
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
-            if (newValue) {
-                // делаем копии
-                flux.doAction('backupChange', {
-                    row: Object.assign({}, flux.stores.docStore.data),
-                    details: Object.assign([], flux.stores.docStore.details)
-                });
-
-            }
-
             if (newValue !== previousValue) {
                 self.setState({edited: newValue});
             }
@@ -146,24 +139,18 @@ class Vorder extends React.PureComponent {
         // формируем зависимости
         relatedDocuments(this);
 
-        let data = this.state.docData,
-            isEditeMode = this.state.edited,
-            validationMessage = this.validation(),
-            bpm = this.state.bpm,
-            gridData = this.state.gridData,
-            gridColumns = this.state.gridConfig;
+        let isEditeMode = this.state.edited,
+            validationMessage = this.validation();
 
         const btnParams = {
             btnStart: {
                 show: true
             }
-        }
+        };
 
         return (
             <div>
-                <div>
-                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
-                </div>
+                {MenuToolBar(btnParams, this.props.userData)}
 
                 <Form pages={this.pages}
                       ref="form"
@@ -174,10 +161,10 @@ class Vorder extends React.PureComponent {
                             {validationMessage ? <span>{validationMessage}</span> : null }
                         </div>
                         <div>
-                            <DocToolBar bpm={bpm}
+                            <DocToolBar bpm={this.props.bpm}
                                         ref='doc-toolbar'
                                         edited={isEditeMode}
-                                        docStatus={this.state.docData.doc_status}
+                                        docStatus={this.docData.doc_status}
                                         validator={this.validation}
                                         eventHandler={this.handleToolbarEvents}/>
                         </div>
@@ -186,50 +173,50 @@ class Vorder extends React.PureComponent {
                         <div style={styles.docRow}>
                             <DocCommon
                                 ref='doc-common'
-                                data={this.state.docData}
+                                data={this.docData}
                                 readOnly={!isEditeMode}/>
                         </div>
                         <div style={styles.docRow}>
                             <div style={styles.docColumn}>
                                 <InputText title='Number'
                                            name='number'
-                                           value={data.number}
+                                           value={this.docData.number}
                                            ref="input-number"
                                            onChange={this.handleInput}
                                            readOnly={!isEditeMode}/>
                                 <InputDate title='Kuupäev '
                                            name='kpv'
-                                           value={data.kpv}
+                                           value={this.docData.kpv}
                                            ref='input-kpv'
                                            onChange={this.handleInput}
                                            readOnly={!isEditeMode}/>
                                 <Select title="Kassa"
                                         name='kassa_id'
                                         libs="kassa"
-                                        value={data.kassa_id}
-                                        data={this.state.libs['kassa']}
-                                        defaultValue={data.kassa}
+                                        value={this.docData.kassa_id}
+                                        data={this.libs['kassa']}
+                                        defaultValue={this.docData.kassa}
                                         ref="select-kassaId"
                                         onChange={this.handleInput}
                                         readOnly={!isEditeMode}/>
                                 <Select title="Partner"
                                         name='asutusid'
-                                        data={this.state.libs['asutused']}
+                                        data={this.libs['asutused']}
                                         libs="asutused"
-                                        value={data.asutusid}
-                                        defaultValue={data.asutus}
+                                        value={this.docData.asutusid}
+                                        defaultValue={this.docData.asutus}
                                         onChange={this.handleInput}
                                         ref="select-asutusId"
                                         readOnly={!isEditeMode}/>
                                 <InputText title="Arve nr."
                                            name='arvnr'
-                                           value={data.arvnr}
+                                           value={this.docData.arvnr || ''}
                                            ref="input-arvnr"
                                            onChange={this.handleInput}
                                            readOnly={true}/>
                                 <InputText title='Dokument '
                                            name='dokument'
-                                           value={data.dokument}
+                                           value={this.docData.dokument || ''}
                                            ref='input-dokument'
                                            onChange={this.handleInput}
                                            readOnly={!isEditeMode}/>
@@ -238,8 +225,8 @@ class Vorder extends React.PureComponent {
                                 <DokProp title="Konteerimine: "
                                          name='doklausid'
                                          libs="dokProps"
-                                         value={this.state.docData.doklausid}
-                                         defaultValue={this.state.docData.dokprop}
+                                         value={this.docData.doklausid}
+                                         defaultValue={this.docData.dokprop}
                                          ref="dokprop"
                                          onChange={this.handleInput}
                                          readOnly={!isEditeMode}/>
@@ -249,7 +236,7 @@ class Vorder extends React.PureComponent {
                             <TextArea title="Nimi"
                                       name='nimi'
                                       ref="textarea-nimi"
-                                      value={data.nimi}
+                                      value={this.docData.nimi || ''}
                                       onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
                         </div>
@@ -257,7 +244,7 @@ class Vorder extends React.PureComponent {
                             <TextArea title="Aadress"
                                       name='aadress'
                                       ref="textarea-aadress"
-                                      value={data.aadress}
+                                      value={this.docData.aadress || ''}
                                       onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
                         </div>
@@ -265,7 +252,7 @@ class Vorder extends React.PureComponent {
                             <TextArea title="Alus"
                                       name='alus'
                                       ref="textarea-alus"
-                                      value={data.alus}
+                                      value={this.docData.alus || ''}
                                       onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
                         </div>
@@ -282,8 +269,8 @@ class Vorder extends React.PureComponent {
 
                         <div style={styles.docRow}>
                             <DataGrid source='details'
-                                      gridData={gridData}
-                                      gridColumns={gridColumns}
+                                      gridData={this.gridData}
+                                      gridColumns={this.gridConfig}
                                       handleGridRow={this.handleGridRow}
                                       readOnly={!isEditeMode}
                                       ref="data-grid"/>
@@ -292,7 +279,7 @@ class Vorder extends React.PureComponent {
                             <InputText title="Summa: "
                                        name='summa'
                                        ref="input-summa"
-                                       value={data.summa}
+                                       value={this.docData.summa}
                                        disabled={true}
                                        pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
                         </div>
@@ -300,7 +287,7 @@ class Vorder extends React.PureComponent {
                             <TextArea title="Märkused"
                                       name='muud'
                                       ref="textarea-muud"
-                                      value={data.muud}
+                                      value={this.docData.muud || ''}
                                       onChange={this.handleInput}
                                       readOnly={!isEditeMode}/>
                         </div>
@@ -315,39 +302,55 @@ class Vorder extends React.PureComponent {
         );
     }
 
+    /**
+     * toolbar event handler
+     * @param event
+     */
     handleToolbarEvents(event) {
-        // toolbar event handler
-
         switch (event) {
             case 'CANCEL':
-                let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row, gridData: backup.details, warning: ''});
+                this.docData = JSON.parse(flux.stores.docStore.backup.docData); // восстановим данные
+                this.gridData = JSON.parse(flux.stores.docStore.backup.gridData);
+
+                if (this.state.warning !== '') {
+                    this.setState({warning: ''});
+                } else {
+                    this.forceUpdate();
+                }
+
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
         }
     }
 
+    /**
+     * Обработчик событий инпутов
+     * @param name
+     * @param value
+     */
     handleInput(name, value) {
-        let data = this.state.docData;
-
-        data[name] = value;
-        this.setState({docData: data});
+        this.docData[name] = value;
+        this.forceUpdate();
     }
 
+    /**
+     * Валидация данных формы
+     * @returns {string}
+     */
     validation() {
         if (!this.state.edited) return '';
 
         let requiredFields = this.requiredFields;
-        let warning = require('../../mixin/validateForm')(this, requiredFields, this.state.docData);
-
-        return warning;
+        return require('../../mixin/validateForm')(this, requiredFields, this.docData);
     }
 
+    /**
+     * формирует объекты модального окна редактирования строки грида
+     * @returns {XML}
+     */
     createGridRow() {
-        // формирует объекты модального окна редактирования строки грида
-        let style = styles.gridRow,
-            row = Object.assign({}, this.state.gridRowData),
+        let row = Object.assign({}, this.gridRowData),
             validateMessage = '',
             modalObjects = ['btnOk', 'btnCancel'],
             buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked;
@@ -359,7 +362,7 @@ class Vorder extends React.PureComponent {
 
         if (!row) return <div/>;
 
-        let nomData = this.state.libs['nomenclature'].filter(lib => {
+        let nomData = this.libs['nomenclature'].filter(lib => {
             if (!lib.dok || lib.dok === LIBDOK) return lib;
         });
 
@@ -396,7 +399,7 @@ class Vorder extends React.PureComponent {
                             <Select title="Korr. konto"
                                     name='konto'
                                     libs="kontod"
-                                    data={this.state.libs['kontod']}
+                                    data={this.libs['kontod']}
                                     value={row.konto}
                                     ref='konto'
                                     collId="kood"
@@ -406,7 +409,7 @@ class Vorder extends React.PureComponent {
                             <Select title="Tunnus:"
                                     name='tunnus'
                                     libs="tunnus"
-                                    data={this.state.libs['tunnus']}
+                                    data={this.libs['tunnus']}
                                     value={row.tunnus}
                                     ref='tunnus'
                                     collId="kood"
@@ -416,7 +419,7 @@ class Vorder extends React.PureComponent {
                             <Select title="Project:"
                                     name='proj'
                                     libs="project"
-                                    data={this.state.libs['project']}
+                                    data={this.libs['project']}
                                     value={row.proj}
                                     ref='project'
                                     collId="kood"
@@ -431,31 +434,36 @@ class Vorder extends React.PureComponent {
             ;
     }
 
+    /**
+     * управление модальным окном
+     * @param gridEvent
+     * @param data
+     */
     handleGridRow(gridEvent, data) {
-        // управление модальным окном
-        this.setState({gridRowEdit: true, gridRowEvent: gridEvent, gridRowData: data});
+        this.gridRowData = data;
+        this.setState({gridRowEdit: true, gridRowEvent: gridEvent});
     }
 
-    modalPageClick(btnEvent, data) {
-        // отработаем Ok из модального окна
-        let gridData = this.state.gridData,
-            docData = this.state.docData,
-            gridColumns = this.state.gridConfig,
-            gridRow = this.state.gridRowData;
+    /**
+     * Обработчик события клика модального окна
+     * @param btnEvent
+     */
+    modalPageClick(btnEvent) {
 
+        // отработаем Ok из модального окна
         if (btnEvent == 'Ok') {
 
             // ищем по ид строку в данных грида, если нет, то добавим строку
-            if (!gridData.some(row => {
-                    if (row.id === gridRow.id) return true;
+            if (!this.gridData.some(row => {
+                    if (row.id === this.gridRowData.id) return true;
                 })) {
                 // вставка новой строки
-                gridData.splice(0, 0, gridRow);
+                this.gridData.splice(0, 0, this.gridRowData);
             } else {
-                gridData = gridData.map(row => {
-                    if (row.id === gridRow.id) {
+                this.gridData = this.gridData.map(row => {
+                    if (row.id === this.gridRowData.id) {
                         // нашли, замещаем
-                        return gridRow;
+                        return this.gridRowData;
                     } else {
                         return row;
                     }
@@ -464,23 +472,26 @@ class Vorder extends React.PureComponent {
 
         }
 
-        docData = this.recalcDocSumma(docData);
-        this.setState({gridRowEdit: false, gridData: gridData, docData: docData});
+        this.recalcDocSumma();
+        this.setState({gridRowEdit: false});
 
     }
 
-    recalcDocSumma(docData) {
-        // перерасчет итоговой суммы документа
-        let gridData = this.state.gridData;
-
-        docData['summa'] = 0;
-        gridData.forEach(row => {
-            docData['summa'] += Number(row['summa']);
+    /**
+     * перерасчет итоговой суммы документа
+     */
+    recalcDocSumma() {
+        this.docData['summa'] = 0;
+        this.gridData.forEach(row => {
+            this.docData['summa'] += Number(row['summa']);
         });
-        return docData;
     }
 
-    handleGridBtnClick(btnName, id) {
+    /**
+     * Обработчик событий панели инструментов грида
+     * @param btnName
+     */
+    handleGridBtnClick(btnName) {
         switch (btnName) {
             case 'add':
                 this.addRow();
@@ -494,94 +505,98 @@ class Vorder extends React.PureComponent {
         }
     }
 
+    /**
+     * удалит активную строку
+     */
     deleteRow() {
-        // удалит активную строку
-        let gridData = this.state.gridData,
-            gridActiveRow = this.refs['data-grid'].state.activeRow,
-            docData = this.state.docData;
+        let gridActiveRow = this.refs['data-grid'].state.activeRow;
 
-        gridData.splice(gridActiveRow, 1);
+        this.gridData.splice(gridActiveRow, 1);
 
         // перерасчет итогов
-        docData = this.recalcDocSumma(docData);
+        this.recalcDocSumma();
 
         // изменим состояние
-        this.setState({gridData: gridData, docData: docData});
+        this.forceUpdate();
     }
 
+    /**
+     * откроет активную строку для редактирования
+     */
     editRow() {
-        // откроет активную строку для редактирования
-        let gridData = this.state.gridData,
-            gridActiveRow = this.refs['data-grid'].state.activeRow,
-            gridRow = gridData[gridActiveRow];
+        this.gridRowData = this.gridData[this.refs['data-grid'].state.activeRow];
 
         // откроем модальное окно для редактирования
-        this.setState({gridRowEdit: true, gridRowEvent: 'edit', gridRowData: gridRow});
+        this.setState({gridRowEdit: true, gridRowEvent: 'edit'});
     }
 
+    /**
+     * добавит в грид новую строку
+     */
     addRow() {
-        // добавит в состояние новую строку
+        let newRow = {};
 
-        let gridColumns = this.state.gridConfig,
-            gridData = this.state.gridData,
-            newRow = new Object();
-
-        for (let i = 0; i < gridColumns.length; i++) {
-            let field = gridColumns[i].id;
+        for (let i = 0; i < this.gridConfig.length; i++) {
+            let field = this.gridConfig[i].id;
             newRow[field] = '';
         }
 
         newRow.id = 'NEW' + Math.random(); // генерим новое ид
 
         // откроем модальное окно для редактирования
-        this.setState({gridRowEdit: true, gridRowEvent: 'add', gridRowData: newRow});
+        this.gridRowData = newRow;
+        this.setState({gridRowEdit: true, gridRowEvent: 'add'});
 
     }
 
+    /**
+     * отслеживаем изменения данных на форме
+     * @param name
+     * @param value
+     */
     handleGridRowChange(name, value) {
-        // отслеживаем изменения данных на форме
-
-        let rowData = this.state.gridRowData;
-
-        if (value !== rowData[name] && name === 'nomid') {
+        if (value !== this.gridRowData[name] && name === 'nomid') {
             // произошло изменение услуги, обнулим значения
-            rowData['summa'] = 0;
-            rowData['nomid'] = value;
-//            rowData['konto'] = value;
+            this.gridRowData['summa'] = 0;
+            this.gridRowData['nomid'] = value;
         }
         // ищем по справочнику поля код и наименование
-        let libData = this.state.libs['nomenclature'];
+        let libData = this.libs['nomenclature'];
         libData.forEach(row => {
             if (row.id == value) {
-                rowData['kood'] = row.kood;
-                rowData['nimetus'] = row.name;
-                return;
+                this.gridRowData['kood'] = row.kood;
+                this.gridRowData['nimetus'] = row.name;
             }
         });
 
-        rowData[name] = value;
+        this.gridRowData[name] = value;
 
-        this.setState({gridRowData: rowData});
+        this.forceUpdate();
         this.validateGridRow();
 
     }
 
+    /**
+     * Обработчик в на изменения в строке грида
+     * @param name
+     * @param value
+     */
     handleGridRowInput(name, value) {
         // пересчет сумм
-        let rowData = this.state.gridRowData;
-
-        rowData[name] = value;
-        this.setState({gridRowData: rowData});
+        this.gridRowData[name] = value;
+        this.forceUpdate();
         this.validateGridRow();
     }
 
+    /**
+     * will check values on the form and return string with warning
+     */
     validateGridRow() {
-        // will check values on the form and return string with warning
-        let warning = '',
-            gridRowData = this.state.gridRowData;
+        let warning = '';
+
         // только после проверки формы на валидность
-        if (!gridRowData['nomid']) warning = warning + ' код услуги';
-        if (!gridRowData['summa']) warning = warning + ' сумма';
+        if (!this.gridRowData['nomid']) warning = warning + ' код услуги';
+        if (!this.gridRowData['summa']) warning = warning + ' сумма';
 
         if (warning.length > 2) {
             // есть проблемы
@@ -590,13 +605,27 @@ class Vorder extends React.PureComponent {
         this.setState({checked: true, warning: warning});
     }
 
+    /**
+     * вернет объект библиотек документа
+     * @returns {{}}
+     */
     createLibs() {
-        // вернет объект библиотек документа
         let libs = {};
         LIBRARIES.forEach((lib) => {
             libs[lib] = [];
-        })
+        });
         return libs;
+    }
+
+
+    /**
+     * Обработчик события клик по вкладке
+     * @param page
+     */
+    handlePageClick(page) {
+        if (page.docId) {
+            document.location.href = "/document/" + page.docTypeId + page.docId;
+        }
     }
 
 }
@@ -615,6 +644,6 @@ Vorder.propTypes = {
     checked: PropTypes.bool,
     warning: PropTypes.string
 
-}
+};
 
 module.exports = Vorder;

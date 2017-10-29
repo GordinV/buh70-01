@@ -15,10 +15,9 @@ const React = require('react'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
     ModalPageDelete = require('./../../components/modalpage/modalpage-delete/modalPage-delete.jsx'),
     ModalPageInfo = require('./../../components/modalpage/modalpage-info/modalPage-info.jsx'),
-//    DataList = require('./../../components/datalist/datalist.jsx'),
     TreeList = require('./../../components/tree/tree.jsx'),
     Sidebar = require('./../../components/sidebar/sidebar.jsx'),
-    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
+    MenuToolBar = require('./../../mixin/menuToolBar.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
     styles = require('./doc-register-styles'),
     GridFilter = require('./../../components/data-grid/grid-filter/grid-filter.jsx');
@@ -31,6 +30,19 @@ const docsStore = require('./../../stores/docs_store.js');
 class Register extends React.PureComponent {
     constructor(props) {
         super(props);
+
+        this.state = {
+            // у каждого компонента свой объект
+            getFilter: false,
+            getDeleteModalPage: false,
+            showSystemMessage: false,
+            activRowId: 0,
+            filterString: null,
+            isReport: false,
+            treeValue: ''
+        };
+
+        this.components = this.props.components;
         this.filterData = []; // массив объектов, куда запишем параметры для фильтрации @todo вынести все в отдельный компонет для фильтрации
 
         this.btnAddClick = this.btnAddClick.bind(this);
@@ -45,18 +57,6 @@ class Register extends React.PureComponent {
         this.headerClickHandler = this.headerClickHandler.bind(this);
         this.isReports = this.isReports.bind(this);
 
-        this.state = {
-            // у каждого компонента свой объект
-            components: this.props.components,
-            getFilter: false,
-            getDeleteModalPage: false,
-            showSystemMessage: false,
-            activRowId: 0,
-            filterString: null,
-            isReport: false,
-            treeValue: '',
-            userData: this.props.userData
-        }
 
     }
 
@@ -99,6 +99,16 @@ class Register extends React.PureComponent {
             systemMessage = docsStore.systemMessage,
             filterData = this.getFilterFields();
 
+        const btnParams = {
+            btnStart: {
+                show: false
+            },
+            btnLogin: {
+                show: true
+            }
+        };
+
+
         // проверим наличие данных, если есть пропихнем компонентам
         if (prepairedGridData.length > 0 && prepairedGridData[0].data.length > 0) {
             gridConfig = prepairedGridData[0].data[0].columns;
@@ -106,7 +116,7 @@ class Register extends React.PureComponent {
         }
 
         return (<div ref="parentDiv">
-                {this.rendermenuToolBar()}
+                {MenuToolBar(btnParams, this.props.userData)}
                 {this.renderFilterToolbar()}
                 <div ref="docContainer" style={styles.container}>
                     {this.renderDocToolBar()}
@@ -165,7 +175,7 @@ class Register extends React.PureComponent {
                 Aruanne
             </Sidebar>
         );
-        return isReport &&Component;
+        return isReport && Component;
     }
 
     /**
@@ -207,25 +217,6 @@ class Register extends React.PureComponent {
         return filterString && component;
     }
 
-    /**
-     * Вернет компонет для toolbarMenu
-     * @returns {XML}
-     */
-    rendermenuToolBar() {
-        const btnParams = {
-            btnStart: {
-                show: false
-            },
-            btnLogin: {
-                show: true
-            }
-        };
-        return (
-            <div>
-                <MenuToolBar edited={false} params={btnParams} userData={this.state.userData}/>
-            </div>
-        );
-    }
 
     /**
      * Проанализирует свойства выбранного документа и вернет true , если тип == Aruanne
@@ -241,11 +232,10 @@ class Register extends React.PureComponent {
 
     findComponent(componentName) {
         // вернет данные компонента по его названию
-        let components = this.state.components,
-            componentData = [];
+        let componentData = [];
 
-        if (components.length > 0) {
-            componentData = components.filter(function (item) {
+        if (this.components.length > 0) {
+            componentData = this.components.filter(function (item) {
                 if (item.name == componentName) {
                     return item;
                 }

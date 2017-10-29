@@ -84,14 +84,6 @@ class Kontod extends React.PureComponent {
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
-            if (newValue) {
-                // делаем копии
-                flux.doAction('backupChange', {
-                    row: Object.assign({}, flux.stores.docStore.data),
-                    details: Object.assign([], flux.stores.docStore.details)
-                });
-            }
-
             if (newValue !== previousValue) {
                 self.setState({edited: newValue});
             }
@@ -186,7 +178,7 @@ class Kontod extends React.PureComponent {
 
         switch (event) {
             case 'CANCEL':
-                this.docData = flux.stores.docStore.backup.row; // восстановим данные
+                this.docData = JSON.parse(flux.stores.docStore.backup.docData); // восстановим данные
 
                 if (this.state.warning !== '') {
                     this.setState({warning: ''});

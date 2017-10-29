@@ -23,7 +23,6 @@ class Input extends React.PureComponent {
         let fieldValue = e.target.value;
         this.setState({value: fieldValue});
 
-        console.log('input change called',fieldValue );
         if (this.props.onChange) {
             this.props.onChange(this.props.name, fieldValue);
         }

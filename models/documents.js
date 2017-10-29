@@ -198,7 +198,6 @@ const Doc = {
      * @returns {*}
      */
     selectDoc: function (docTypeId, params, callback) {
-
         let doc = getModule(docTypeId, null, __dirname),
             sql = doc.select,
             docBpm = [], // БП документа

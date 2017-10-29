@@ -1,20 +1,20 @@
 require('./../../../test/testdom')('<html><body></body></html>'); // создадим ДОМ
 
 import ReactTestUtils from 'react-dom/test-utils';
+
 const React = require('react');
 const flux = require('fluxify');
 let docStore = require('../../stores/doc_store.js');
 
-
-describe('doc test, Arve', () => {
+describe('doc test, Vorder', () => {
     // проверяем на наличие компонента и его пропсы и стейты
     // проверяем изменение стейтов после клика
-    const Arve = require('./arve.jsx');
+    const Vorder = require('./vorder.jsx');
 //    const style = require('./input-text-styles');
 
-    let dataRow = require('./../../../test/fixture/doc-common-fixture'),
+    let dataRow = require('./../../../test/fixture/doc-vorder-fixture'),
         libs = require('./../../../test/fixture/datalist-fixture'),
-        model = require('./../../../models/raamatupidamine/arv'),
+        model = require('./../../../models/raamatupidamine/vorder'),
         data = {
             row: dataRow,
             bpm: model.bpm,
@@ -26,15 +26,10 @@ describe('doc test, Arve', () => {
 
     let onChangeHandler = jest.fn();
 
-    let doc = ReactTestUtils.renderIntoDocument(<Arve data={data} bpm={model.bpm}/>);
+    let doc = ReactTestUtils.renderIntoDocument(<Vorder data={data} bpm={model.bpm}/>);
 
     it('should be defined', () => {
         expect(doc).toBeDefined();
-    });
-
-    it('should contain data about bpm', () => {
-        let data = doc.state.docData;
-        expect(data.bpm).toBeDefined();
     });
 
     it('should contain objects in non-edited mode', () => {
@@ -44,22 +39,24 @@ describe('doc test, Arve', () => {
         expect(doc.refs['doc-common']).toBeDefined();
         expect(doc.refs['input-number']).toBeDefined();
         expect(doc.refs['input-kpv']).toBeDefined();
-        expect(doc.refs['input-tahtaeg']).toBeDefined();
-        expect(doc.refs['select-asutusid']).toBeDefined();
-        expect(doc.refs['input-lisa']).toBeDefined();
-        expect(doc.refs['dokprop-doklausid']).toBeDefined();
-        expect(doc.refs['textarea-muud']).toBeDefined();
+        expect(doc.refs['select-kassaId']).toBeDefined();
+        expect(doc.refs['select-asutusId']).toBeDefined();
+        expect(doc.refs['input-arvnr']).toBeDefined();
+        expect(doc.refs['input-dokument']).toBeDefined();
+        expect(doc.refs['dokprop']).toBeDefined();
+        expect(doc.refs['textarea-nimi']).toBeDefined();
+        expect(doc.refs['textarea-aadress']).toBeDefined();
+        expect(doc.refs['textarea-alus']).toBeDefined();
         expect(doc.refs['data-grid']).toBeDefined();
         expect(doc.refs['input-summa']).toBeDefined();
-        expect(doc.refs['input-kbm']).toBeDefined();
-        expect(doc.refs['data-grid']).toBeDefined();
+        expect(doc.refs['textarea-muud']).toBeDefined();
     });
 
     it('test doc-toolbar-events', (done) => {
         let docToolbar = doc.refs['doc-toolbar'];
 
-        expect(docToolbar.btnAddClick).toBeDefined();
-        docToolbar.btnAddClick();
+        expect(docToolbar.btnEditClick).toBeDefined();
+        docToolbar.btnEditClick();
 
         setTimeout(() => {
             let state = doc.state;
@@ -72,43 +69,49 @@ describe('doc test, Arve', () => {
             done();
         }, 1000);
 
+
+    });
+
+    it('backup test',() => {
+        //@todo реализовать
+        expect(doc.handleToolbarEvents).toBeDefined();
     });
 
     it('doc-toolbar btnAdd click event test (handleGridBtnClick(btnName, id))', () => {
         let btnAdd = doc.refs['grid-button-add'];
         expect(btnAdd).toBeDefined();
+
         doc.handleGridBtnClick('add');
         let state = doc.state;
         expect(state.gridRowEdit).toBeTruthy();
         expect(state.gridRowEvent).toBe('add');
-        expect(state.gridRowData.id).toContain('NEW');
+        expect(doc.gridRowData.id).toContain('NEW');
         expect(doc.refs['modalpage-grid-row']).toBeDefined();
         expect(doc.refs['grid-row-container']).toBeDefined();
         expect(doc.refs['nomid']).toBeDefined();
-        expect(doc.refs['kogus']).toBeDefined();
-        expect(doc.refs['hind']).toBeDefined();
-        expect(doc.refs['kbmta']).toBeDefined();
-        expect(doc.refs['kbm']).toBeDefined();
         expect(doc.refs['summa']).toBeDefined();
+        expect(doc.refs['konto']).toBeDefined();
+        expect(doc.refs['tunnus']).toBeDefined();
+        expect(doc.refs['project']).toBeDefined();
+
     });
 
-    it ('select teenus test', ()=> {
+    it ('select grid row test', ()=> {
 
-        let inputSelect = doc.refs['nomid'],
-            inputHind = doc.refs['hind'];
+        let nomId = doc.refs['nomid'],
+            konto = doc.refs['konto'],
+            summa = doc.refs['summa'];
 
-        expect(inputSelect).toBeDefined();
-        expect(inputHind).toBeDefined();
+        expect(nomId).toBeDefined();
+        expect(konto).toBeDefined();
+        expect(summa).toBeDefined();
 
-        doc.handleGridRowChange('nomid', 2)
-        doc.handleGridRowInput('hind', 10);
-        doc.handleGridRowInput('kogus', 1);
-        expect(doc.state.gridRowData['nomid']).toBe(2);
-        expect(doc.state.gridRowData['hind']).toBe(10);
-        expect(doc.state.gridRowData['kogus']).toBe(1);
-        expect(doc.state.gridRowData['kbm']).toBe(2);
-        expect(doc.state.gridRowData['kbmta']).toBe(10);
-        expect(doc.state.gridRowData['summa']).toBe(12);
+        doc.handleGridRowChange('nomid', 3)
+        doc.handleGridRowChange('konto', '113')
+        doc.handleGridRowInput('summa', 10);
+        expect(doc.gridRowData['nomid']).toBe(3);
+        expect(doc.gridRowData['konto']).toBe('113');
+        expect(doc.gridRowData['summa']).toBe(10);
 
 //        ReactTestUtils.Simulate.change(inputSelect, {"target": {"value": 2}});
 //        expect(inputSelect.state.value).toBe(2);
@@ -121,8 +124,9 @@ describe('doc test, Arve', () => {
         expect(doc.state.gridRowEdit).toBeFalsy();
         // модальное окно редактирования должно исчезнуть
         expect(doc.refs['modalpage-grid-row']).not.toBeDefined();
-        expect(doc.state.gridData.length).toBe(3);
+        expect(doc.gridData.length).toBe(3);
     });
+
 
     it('gridRow ModalPage btnCancel click test', () => {
         let btnAdd = doc.refs['grid-button-add'];
@@ -139,25 +143,28 @@ describe('doc test, Arve', () => {
     it('grid btnDelete test', ()=> {
         let btnDel = doc.refs['grid-button-delete'];
         expect(btnDel).toBeDefined();
-        expect(doc.state.gridData.length).toBe(3);
+        expect(doc.gridData.length).toBe(3);
         doc.handleGridBtnClick('delete');
-        expect(doc.state.gridData.length).toBe(2);
+        expect(doc.gridData.length).toBe(2);
     });
 
-    it('test recalcRowSumm', () => {
-        let data = {
-            kogus: 1,
-            hind: 10,
-            kbmta: 0,
-            kbm: 0,
-            summa: 0
-        };
+    it('test recalcDocSumma', () => {
 
-        expect(doc.recalcRowSumm).toBeDefined();
-        data = doc.recalcRowSumm(data);
-        expect(data.kbmta).toBe(10);
-        expect(data.kbm).toBe(2);
-        expect(data.summa).toBe(12);
+        expect(doc.recalcDocSumma).toBeDefined();
+        doc.recalcDocSumma();
+        expect(doc.docData.summa).toBe(99);
+    });
+
+    it('test for libs', () => {
+        expect(doc.createLibs).toBeDefined();
+        let libs = doc.createLibs();
+        expect(libs).toEqual({ asutused: [],
+            kontod: [],
+            dokProps: [],
+            kassa:[],
+            tunnus: [],
+            project: [],
+            nomenclature: [] });
     });
 
     it ('test toolbar btnEdit', ()=> {
@@ -167,12 +174,20 @@ describe('doc test, Arve', () => {
             docToolbar.btnEditClick();
             setTimeout(() => {
                 expect(doc.state.edited).toBeTruthy();
+                // проверим чтоб резервная копия была
+                expect(flux.docStore.backup.docData).not.toBeNull();
+                expect(flux.docStore.backup.gridData).not.toBeNull();
+
+                // will change data
+                doc.handleInputChange('number', '9999');
+                expect(doc.docData.number).toBe('9999');
+
                 done();
             }, 1000);
         }
     });
 
-    it ('doc-toolbar btnCancel test', (done) => {
+    it ('doc-toolbar btnCancel test', () => {
         let docToolbar = doc.refs['doc-toolbar'];
         expect(docToolbar.btnCancelClick).toBeDefined();
 
@@ -181,35 +196,21 @@ describe('doc test, Arve', () => {
         setTimeout(() => {
             expect(doc.state).toBeDefined();
             expect(doc.state.edited).toBeFalsy();
-            done();
+            // резервная копия удалена
+            expect(flux.docStore.backup.docData).toBeNull();
+            expect(flux.docStore.backup.gridData).toBeNull();
+
         },1000);
     });
 
-    it('test of onChange action', (done) => {
-        let input = doc.refs['input-number'],
-            docToolbar = doc.refs['doc-toolbar'],
-            number = input.state.value;
-
-        expect(input).toBeDefined();
-        expect(docToolbar.btnEditClick).toBeDefined();
-        expect(input.props.onChange).toBeDefined();
-        doc.handleInputChange('number', '9999');
-        // изменения вне режима редактирования не меняют состояния
-        expect(doc.state.docData['number']).toBe(number);
-        docToolbar.btnEditClick();
-
-        // изменения должны примениться
-        setTimeout(() => {
-            // изменения должны примениться
-//            input.value = '9999';
-//            ReactTestUtils.Simulate.change(input);
-            doc.handleInputChange('number', '9999');
-            expect(doc.state.docData['number']).toBe('9999');
-            docToolbar.btnCancelClick();
-            done();
-        }, 1000);
-
+    it ('doc-toolbar docData restore test', () => {
+        expect(doc.docData.number).not.toBe('9999');;
     });
+
+    it('should contain handlePageClick function', () => {
+        expect(doc.handlePageClick).toBeDefined();
+    });
+
 
 
 });

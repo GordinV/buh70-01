@@ -5,6 +5,8 @@ const PropTypes = require('prop-types');
 const React = require('react'),
     styles = require('./input-date-styles');
 
+let currentDate = new Date().toLocaleDateString();
+
 class InputDate extends React.PureComponent {
 
     constructor(props) {
@@ -48,25 +50,25 @@ class InputDate extends React.PureComponent {
             );
 
         return (
-        <div style={styles.wrapper}>
-            <label style={styles.label} htmlFor={this.props.name} ref="label">
-                {this.props.title}
-            </label>
+            <div style={styles.wrapper}>
+                <label style={styles.label} htmlFor={this.props.name} ref="label">
+                    {this.props.title}
+                </label>
 
-            <input type='date'
-                   name={this.props.name}
-                   ref="input"
-                   value={this.state.value}
-                   readOnly={this.state.readOnly}
-                   title={this.props.title}
-                   pattern={this.props.pattern}
-                   placeholder={inputPlaceHolder}
-                   min={this.props.min}
-                   max={this.props.max}
-                   onChange={this.onChange}
-                   disabled={this.props.disabled}
-            />
-        </div>)
+                <input type='date'
+                       name={this.props.name}
+                       ref="input"
+                       value={this.state.value}
+                       readOnly={this.state.readOnly}
+                       title={this.props.title}
+                       pattern={this.props.pattern}
+                       placeholder={inputPlaceHolder}
+                       min={this.props.min}
+                       max={this.props.max}
+                       onChange={this.onChange}
+                       disabled={this.props.disabled}
+                />
+            </div>)
     }
 
     validate(value) {
@@ -95,7 +97,6 @@ InputDate.propTypes = {
     width: PropTypes.string,
     title: PropTypes.string,
     placeholder: PropTypes.string
-
 }
 
 
@@ -103,6 +104,7 @@ InputDate.defaultProps = {
     readOnly: false,
     disabled: false,
     valid: true,
+    value: String(currentDate),
     title: ''
 }
 

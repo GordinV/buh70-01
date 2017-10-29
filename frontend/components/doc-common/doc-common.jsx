@@ -10,63 +10,42 @@ class DocCommon extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            readOnly: props.readOnly,
-            data: this.props.data
+            readOnly: props.readOnly
         }
     }
 
-    componentWillReceiveProps(nextProps) {
-        // при изменении, поменяет состояние (передаст дальше режим редактирования)
-        this.setState({readOnly:nextProps.readOnly })
-    }
-
     render() {
-/*
-        var data = this.props.data,
-            bpm = data.bpm || [],
-            actualStepData = bpm.filter((step) => {
-                // текущий шаг БП
-                if (step.actualStep) {
-                    return step;
-                }
-            }),
-            executers = actualStepData.map((stepData)=> {
-                // найдем исполнителей
-                return stepData.actors || {name: 'AUTHOR'};
-            });
-*/
-        let data = this.state.data;
-
         return (
             <div ref='wrapper' style = {styles.wrapper}>
                             <InputText ref="id"
                                        title='Id'
                                        name='id'
-                                       value={data.id.toString()}
+                                       value={String(this.props.data.id)}
                                        disabled={true}
                                        width="75%"/>
                             <InputText ref="created"
                                        title='Created'
                                        name='created'
-                                       value={data.created.toString()}
+                                       value={this.props.data.created}
                                        disabled={true}
                                        width="75%"/>
                             <InputText ref="lastupdate"
                                        title='Updated'
                                        name='lastupdate'
-                                       value={data.lastupdate.toString()}
+                                       value={this.props.data.lastupdate}
                                        disabled={true}
                                        width="75%"/>
                             <InputText ref="status"
                                        title='Status'
                                        name='status'
-                                       value={data.status}
+                                       value={this.props.data.status}
                                        disabled={true}
                                        width="75%"/>
             </div>
         );
     }
 
+/*
     onChangeHandler(inputName, inputValue) {
         // обработчик изменений
         let data = flux.stores.docStore.data;
@@ -74,6 +53,7 @@ class DocCommon extends React.PureComponent {
         // задать новое значение поля
         flux.doAction('dataChange', data);
     }
+*/
 }
 
 DocCommon.propTypes = {

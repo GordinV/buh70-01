@@ -91,8 +91,7 @@ const edit = (docTypeId, docId) => {
 }
 
 const add = (docTypeId) => {
-    let url = "/document/" + docTypeId + '0';
-    document.location.href = url;
+    document.location.href = "/document/" + docTypeId + '0';
 };
 
 const requeryForAction = (action, callback) => {

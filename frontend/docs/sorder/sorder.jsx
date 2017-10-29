@@ -77,9 +77,10 @@ class Sorder extends React.PureComponent {
 
     }
 
+    /**
+     * пишем исходные данные в хранилище, регистрируем обработчики событий
+     */
     componentDidMount() {
-
-        // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
             data = this.props.data.row,
             details = this.props.data.details,
@@ -112,15 +113,6 @@ class Sorder extends React.PureComponent {
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
-            if (newValue) {
-                // делаем копии
-                flux.doAction('backupChange', {
-                    row: Object.assign({}, flux.stores.docStore.data),
-                    details: Object.assign([], flux.stores.docStore.details)
-                });
-
-            }
-
             if (newValue !== previousValue) {
                 self.setState({edited: newValue});
             }
@@ -332,7 +324,8 @@ class Sorder extends React.PureComponent {
         switch (event) {
             case 'CANCEL':
 
-                this.docData = flux.stores.docStore.backup.row; // восстановим данные
+                this.docData = JSON.parse(flux.stores.docStore.backup.docData); // восстановим данные
+                this.gridData = JSON.parse(flux.stores.docStore.backup.gridData);
 
                 if (this.state.warning !== '') {
                     this.setState({warning: ''});
@@ -624,6 +617,17 @@ class Sorder extends React.PureComponent {
         });
         return libs;
     }
+
+    /**
+     * Обработчик события клик по вкладке
+     * @param page
+     */
+    handlePageClick(page) {
+        if (page.docId) {
+            document.location.href = "/document/" + page.docTypeId + page.docId;
+        }
+    }
+
 
 }
 ;

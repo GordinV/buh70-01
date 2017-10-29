@@ -28,7 +28,7 @@ class DocToolBar extends React.PureComponent {
 
     render() {
         let isEditMode = this.props.edited,
-            isDocDisabled = this.props.docStatus == 2 ? true : false,
+            isDocDisabled = this.props.docStatus == 2,
             docId = flux.stores.docStore.data.id || 0,
             toolbarParams = {
                 btnAdd: {
@@ -75,17 +75,17 @@ class DocToolBar extends React.PureComponent {
         </ToolbarContainer>
     }
 
+    /**
+     * Вызовет метод перехода на новый документ
+     */
     btnAddClick() {
-        // обработчик для кнопки Add
-        // отправим извещение наверх
-//        this.props.onClick(this.name);
-        flux.doAction('docIdChange', 0);
-        flux.doAction('editedChange', true);
-        flux.doAction('savedChange', false);
+        flux.doAction('addDoc');
     }
 
+    /**
+     * обработчик для кнопки Edit
+     */
     btnEditClick() {
-        // обработчик для кнопки Edit
         // переводим документ в режим редактирования, сохранен = false
         if (!this.props.docStatus || this.props.docStatus < 2) {
             flux.doAction('editedChange', true);
@@ -97,10 +97,11 @@ class DocToolBar extends React.PureComponent {
         console.log('print called');
     }
 
+    /**
+     * обработчик для кнопки Save
+     */
     btnSaveClick() {
-        // обработчик для кнопки Save
         // валидатор
-
         let validationMessage = this.props.validator ? this.props.validator() : 'validator do not exists',
             isValid = this.props.validator ? !this.props.validator() : true;
 
@@ -145,12 +146,12 @@ DocToolBar.propTypes = {
     edited: PropTypes.bool,
     docStatus: PropTypes.number,
     validator: PropTypes.func
-}
+};
 
 DocToolBar.defaultProps = {
     bpm: [],
     edited: false,
     docStatus: 0
-}
+};
 
 module.exports = DocToolBar;

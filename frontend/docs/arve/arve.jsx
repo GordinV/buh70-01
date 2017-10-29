@@ -21,7 +21,7 @@ const
     DokProp = require('../../components/docprop/docprop.jsx'),
     relatedDocuments = require('../../mixin/relatedDocuments.jsx'),
     ToolbarContainer = require('./../../components/toolbar-container/toolbar-container.jsx'),
-    MenuToolBar = require('./../../components/menu-toolbar/menu-toolbar.jsx'),
+    MenuToolBar = require('./../../mixin/menuToolBar.jsx'),
     DocToolBar = require('./../../components/doc-toolbar/doc-toolbar.jsx'),
     validateForm = require('../../mixin/validateForm'),
     ModalPage = require('./../../components/modalpage/modalPage.jsx'),
@@ -39,21 +39,21 @@ class Arve extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            docData: this.props.data.row,
-            bpm: this.props.bpm,
             edited: this.props.data.row.id == 0,
             showMessageBox: 'none',
             relations: this.props.data.relations,
-            gridData: this.props.data.details,
-            gridConfig: this.props.data.gridConfig,
             gridRowEdit: false,
             gridRowEvent: null,
-            gridRowData: null,
-            libs: this.createLibs(),
             checked: false,
             warning: '',
-            userData: props.userData
         };
+
+        this.docData = this.props.data.row;
+        this.gridData = this.props.data.details;
+        this.gridConfig = this.props.data.gridConfig;
+        this.gridRowData = null;
+        this.libs = this.createLibs();
+
 
         this.pages = [{pageName: 'Arve'}];
         this.requiredFields = [
@@ -74,6 +74,7 @@ class Arve extends React.PureComponent {
         ];
         this.handleToolbarEvents = this.handleToolbarEvents.bind(this);
         this.validation = this.validation.bind(this);
+
         this.modalPageClick = this.modalPageClick.bind(this);
         this.handleGridBtnClick = this.handleGridBtnClick.bind(this);
         this.addRow = this.addRow.bind(this);
@@ -84,45 +85,18 @@ class Arve extends React.PureComponent {
         this.handleInputChange = this.handleInputChange.bind(this);
     }
 
-    validation() {
-        if (!this.state.edited) return '';
-
-        let requiredFields = this.requiredFields;
-        let warning = require('../../mixin/validateForm')(this, requiredFields);
-        return warning;
-    }
-
-    componentWillMount() {
-        this.relatedDocuments();
-    }
-
     componentDidMount() {
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
-            data = self.props.data.row,
-            details = self.props.data.details,
+            data = Object.assign({}, self.props.data.row),
+            details = Object.assign([], self.props.data.details),
             gridConfig = self.props.data.gridConfig;
 
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
+        flux.doAction('docIdChange', data.id);
         flux.doAction('detailsChange', details); // данные грида
         flux.doAction('gridConfigChange', gridConfig); // данные грида
-//        flux.doAction('gridNameChange', 'arv-grid-row'); // задаем имя компонента строки грида (для редактирования
-
-        // отслеживает изменения данных в гриде
-        docStore.on('change:details', function (newValue, previousValue) {
-            if (JSON.stringify(newValue) !== JSON.stringify(previousValue) && typeof newValue == 'array') {
-                // итоги
-                let summa = newValue.reduce((sum, row) => sum + Number(row.summa), 0), // сумма счета
-                    kbm = newValue.reduce((sum, row) => sum + Number(row.kbm), 0), // сумма налога
-                    docData = self.state.docData;
-
-                docData.summa = summa;
-                docData.kbm = kbm;
-
-                self.setState({gridData: newValue, docData: docData});
-            }
-        });
 
         // грузим справочники
         LIBRARIES.forEach(lib => {
@@ -138,33 +112,23 @@ class Arve extends React.PureComponent {
 
         // отслеживаем режим редактирования
         docStore.on('change:edited', function (newValue, previousValue) {
-            if (newValue) {
-                // делаем копии
-                flux.doAction('backupChange', {
-                    row: Object.assign({}, flux.stores.docStore.data),
-                    details: Object.assign([], flux.stores.docStore.details)
-                });
-
-            }
-
             if (newValue !== previousValue) {
                 self.setState({edited: newValue});
             }
         });
 
-        docStore.on('change:libs', (newValue, previousValue) => {
+        docStore.on('change:libs', (newValue) => {
             let isChanged = false,
-                libs = newValue,
-                libsData = this.state.libs;
+                libsData = this.libs;
 
             if (newValue.length > 0) {
 
-                libs.forEach(lib => {
+                newValue.forEach(lib => {
                     if (lib.id === 'dokProps') {
                         // оставим только данные этого документа
 
                     }
-                    if (this.state.libs[lib.id] && lib.data.length > 0) {
+                    if (this.libs[lib.id] && lib.data.length > 0) {
                         libsData[lib.id] = lib.data;
                         isChanged = true;
                     }
@@ -172,53 +136,43 @@ class Arve extends React.PureComponent {
             }
 
             if (isChanged) {
-                self.setState({libs: libsData});
+                this.libs = libsData;
+                this.forceUpdate();
             }
         });
 
-    }
 
-/*
-    shouldComponentUpdate(nextProps, nextState) {
-        // @todo добавить проверку на изменение состояния
-        return true;
     }
-*/
 
     render() {
         // формируем зависимости
         relatedDocuments(this);
 
-        let bpm = this.state.bpm,
-            isEditeMode = this.state.edited,
-            toolbarParams = this.prepaireToolBarParameters(isEditeMode),
-            validationMessage = this.validation(),
-            libs = flux.stores.docStore.libs;
+        let isEditMode = this.state.edited,
+            validationMessage = this.validation();
 
         const btnParams = {
             btnStart: {
                 show: true
             }
-        }
+        };
 
         return (
             <div>
-                <div>
-                    <MenuToolBar edited={isEditeMode} params={btnParams} userData={this.state.userData}/>
-                </div>
+                {MenuToolBar(btnParams, this.props.userData)}
                 <Form pages={this.pages}
                       ref="form"
                       handlePageClick={this.handlePageClick}
-                      disabled={isEditeMode}>
+                      disabled={isEditMode}>
                     <ToolbarContainer ref='toolbar-container'>
                         <div className='doc-toolbar-warning'>
                             {validationMessage ? <span>{validationMessage}</span> : null }
                         </div>
                         <div>
-                            <DocToolBar bpm={bpm}
+                            <DocToolBar bpm={this.props.bpm}
                                         ref='doc-toolbar'
-                                        edited={isEditeMode}
-                                        docStatus={this.state.docData.doc_status}
+                                        edited={isEditMode}
+                                        docStatus={this.docData.doc_status}
                                         validator={this.validation}
                                         eventHandler={this.handleToolbarEvents}/>
                         </div>
@@ -227,43 +181,43 @@ class Arve extends React.PureComponent {
                         <div style={styles.docRow}>
                             <DocCommon
                                 ref='doc-common'
-                                data={this.state.docData}
-                                readOnly={!isEditeMode}/>
+                                data={this.docData}
+                                readOnly={!isEditMode}/>
                         </div>
                         <div style={styles.docRow}>
                             <div style={styles.docColumn}>
                                 <InputText ref="input-number"
                                            title='Number'
                                            name='number'
-                                           value={this.state.docData.number}
-                                           readOnly={!isEditeMode}
+                                           value={this.docData.number}
+                                           readOnly={!isEditMode}
                                            onChange={this.handleInputChange}/>
                                 <InputDate title='Kuupäev '
-                                           name='kpv' value={this.state.docData.kpv}
+                                           name='kpv' value={this.docData.kpv}
                                            ref='input-kpv'
-                                           readOnly={!isEditeMode}
+                                           readOnly={!isEditMode}
                                            onChange={this.handleInputChange}/>
                                 <InputDate title='Tähtaeg '
                                            name='tahtaeg'
-                                           value={this.state.docData.tahtaeg}
+                                           value={this.docData.tahtaeg}
                                            ref="input-tahtaeg"
-                                           readOnly={!isEditeMode}
+                                           readOnly={!isEditMode}
                                            onChange={this.handleInputChange}/>
                                 <Select title="Asutus"
                                         name='asutusid'
                                         libs="asutused"
-                                        data={this.state.libs['asutused']}
-                                        value={this.state.docData.asutusid}
-                                        defaultValue={this.state.docData.asutus}
+                                        data={this.libs['asutused']}
+                                        value={this.docData.asutusid}
+                                        defaultValue={this.docData.asutus}
                                         ref="select-asutusid"
-                                        btnDelete={isEditeMode}
+                                        btnDelete={isEditMode}
                                         onChange={this.handleInputChange}
-                                        readOnly={!isEditeMode}/>
+                                        readOnly={!isEditMode}/>
                                 {/*
                                  <SelectData title="Asutus widget"
                                  name='asutusid'
-                                 value={this.state.docData.asutusid}
-                                 defaultValue={this.state.docData.asutus}
+                                 value={this.docData.asutusid}
+                                 defaultValue={this.docData.asutus}
                                  collName="asutus"
                                  ref="selectData-asutusid"
                                  onChange={this.handleInputChange}
@@ -271,19 +225,19 @@ class Arve extends React.PureComponent {
                                  */}
                                 <InputText title='Lisa '
                                            name='lisa'
-                                           value={this.state.docData.lisa}
+                                           value={this.docData.lisa}
                                            ref='input-lisa'
-                                           readOnly={!isEditeMode}
+                                           readOnly={!isEditMode}
                                            onChange={this.handleInputChange}/>
                             </div>
                             <div style={styles.docColumn}>
                                 <DokProp title="Konteerimine: "
                                          name='doklausid'
                                          libs="dokProps"
-                                         value={this.state.docData.doklausid}
-                                         defaultValue={this.state.docData.dokprop}
+                                         value={this.docData.doklausid}
+                                         defaultValue={this.docData.dokprop}
                                          ref="dokprop-doklausid"
-                                         readOnly={!isEditeMode}/>
+                                         readOnly={!isEditMode}/>
                             </div>
                         </div>
                         <div style={styles.docRow}>
@@ -291,11 +245,11 @@ class Arve extends React.PureComponent {
                                   name='muud'
                                   ref="textarea-muud"
                                   onChange={this.handleInputChange}
-                                  value={this.state.docData.muud}
-                                  readOnly={!isEditeMode}/>
+                                  value={this.docData.muud || ''}
+                                  readOnly={!isEditMode}/>
                         </div>
 
-                        {isEditeMode ?
+                        {isEditMode ?
                             <div style={styles.docRow}>
                                 <ToolbarContainer
                                     ref='grid-toolbar-container'
@@ -308,17 +262,17 @@ class Arve extends React.PureComponent {
 
                         <div style={styles.docRow}>
                             <DataGrid source='details'
-                                      gridData={this.state.gridData}
-                                      gridColumns={this.state.gridConfig}
+                                      gridData={this.gridData}
+                                      gridColumns={this.gridConfig}
                                       handleGridRow={this.handleGridRow}
-                                      readOnly={!isEditeMode}
+                                      readOnly={!isEditMode}
                                       ref="data-grid"/>
                         </div>
                         <div style={styles.docRow}>
                             <InputText title="Summa "
                                        name='summa'
                                        ref="input-summa"
-                                       value={this.state.docData.summa}
+                                       value={this.docData.summa}
                                        disabled={true}
                                        onChange={this.handleInputChange}
                                        pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
@@ -326,7 +280,7 @@ class Arve extends React.PureComponent {
                                        name='kbm'
                                        ref="input-kbm"
                                        disabled={true}
-                                       value={this.state.docData.kbm}
+                                       value={this.docData.kbm}
                                        onChange={this.handleInputChange}
                                        pattern="^[0-9]+(\.[0-9]{1,4})?$"/>
                         </div>
@@ -339,50 +293,35 @@ class Arve extends React.PureComponent {
         );
     }
 
-    relatedDocuments() {
-        // формируем зависимости
-        let relatedDocuments = this.state.relations;
-        if (relatedDocuments.length > 0) {
-            relatedDocuments.forEach((doc) => {
-                if (doc.id) {
-                    // проверим на уникальность списка документов
-                    let isExists = this.pages.find((page) => {
-                        if (!page.docId) {
-                            return false;
-                        } else {
-                            return page.docId == doc.id && page.docTypeId == doc.doc_type;
-                        }
-                    });
+    /**
+     * валидация формы
+     */
+    validation() {
+        if (!this.state.edited) return '';
 
-                    if (!isExists) {
-                        // в массиве нет, добавим ссылку на документ
-                        this.pages.push({docTypeId: doc.doc_type, docId: doc.id, pageName: doc.name + ' id:' + doc.id})
-                    }
-                }
-            });
-        }
+        let requiredFields = this.requiredFields;
+        return require('../../mixin/validateForm')(this, requiredFields);
     }
 
-    modalPageClick(btnEvent, data) {
-        // отработаем Ok из модального окна
-        let gridData = this.state.gridData,
-            docData = this.state.docData,
-            gridColumns = this.state.gridConfig,
-            gridRow = this.state.gridRowData;
 
+    /**
+     * отработаем Ok из модального окна
+     * @param btnEvent
+     */
+    modalPageClick(btnEvent) {
         if (btnEvent == 'Ok') {
 
             // ищем по ид строку в данных грида, если нет, то добавим строку
-            if (!gridData.some(row => {
-                    if (row.id === gridRow.id) return true;
+            if (!this.gridData.some(row => {
+                    if (row.id === this.gridRowData.id) return true;
                 })) {
                 // вставка новой строки
-                gridData.splice(0, 0, gridRow);
+                this.gridData.splice(0, 0, this.gridRowData);
             } else {
-                gridData = gridData.map(row => {
-                    if (row.id === gridRow.id) {
+                this.gridData = this.gridData.map(row => {
+                    if (row.id === this.gridRowData.id) {
                         // нашли, замещаем
-                        return gridRow;
+                        return this.gridRowData;
                     } else {
                         return row;
                     }
@@ -391,60 +330,75 @@ class Arve extends React.PureComponent {
 
         }
 
-        docData = this.recalcDocSumma(docData);
-        this.setState({gridRowEdit: false, gridData: gridData, docData: docData});
+        this.recalcDocSumma();
+        this.setState({gridRowEdit: false});
 
     }
 
+    /**
+     * Обработчик события клик по вкладке
+     * @param page
+     */
     handlePageClick(page) {
         if (page.docId) {
-            let url = "/document/" + page.docTypeId + page.docId;
-            document.location.href = url;
+            document.location.href = "/document/" + page.docTypeId + page.docId;
         }
     }
 
+    /**
+     * метод вызывается при выборе задачи
+     * @param e
+     */
     handleSelectTask(e) {
-        // метод вызывается при выборе задачи
-        var taskValue = e.target.value;
+        return e.target.value;
     }
 
+    /**
+     *  toolbar event handler
+     * @param event
+     */
     handleToolbarEvents(event) {
-        // toolbar event handler
-
         switch (event) {
             case 'CANCEL':
-                let backup = flux.stores.docStore.backup;
-                this.setState({docData: backup.row, gridData: backup.details, warning: ''});
+                this.docData = JSON.parse(flux.stores.docStore.backup.docData); // восстановим данные
+                this.gridData = JSON.parse(flux.stores.docStore.backup.gridData);
+
+                if (this.state.warning !== '') {
+                    this.setState({warning: ''});
+                } else {
+                    this.forceUpdate();
+                }
                 break;
             default:
                 console.error('handleToolbarEvents, no event handler for ', event);
         }
     }
 
+    /**
+     * Обработчик изменений инпутов
+     * @param inputName
+     * @param inputValue
+     * @returns {boolean}
+     */
     handleInputChange(inputName, inputValue) {
-        // обработчик изменений
-        console.log('handleInputChange', inputName, inputValue);
+
         // изменения допустимы только в режиме редактирования
         if (!this.state.edited) {
             console.error('not in edite mode');
             return false;
         }
 
-        let data = this.state.docData;
-
-        data[inputName] = inputValue;
-        this.setState({docData: data});
-        /*
-         let data = flux.stores.docStore.data;
-         data[inputName] = inputValue;
-         // задать новое значение поля
-         flux.doAction('dataChange', data);
-         */
-
+        this.docData[inputName] = inputValue;
+        this.forceUpdate();
     }
 
+    /**
+     * Подготовка параметров для панели инструментов
+     * @param isEditMode
+     * @returns {{btnAdd: {show: boolean, disabled: *}, btnEdit: {show: boolean, disabled: *}, btnPrint: {show: boolean, disabled: boolean}, btnSave: {show: *, disabled: boolean}}}
+     */
     prepaireToolBarParameters(isEditMode) {
-        let toolbarParams = {
+        return {
             btnAdd: {
                 show: !isEditMode,
                 disabled: isEditMode
@@ -462,11 +416,13 @@ class Arve extends React.PureComponent {
                 disabled: false
             }
         };
-
-        return toolbarParams;
     }
 
-    handleGridBtnClick(btnName, id) {
+    /**
+     * обработчик для событий клик панели инструментов грида
+     * @param btnName
+     */
+    handleGridBtnClick(btnName) {
         switch (btnName) {
             case 'add':
                 this.addRow();
@@ -480,54 +436,56 @@ class Arve extends React.PureComponent {
         }
     }
 
+    /**
+     * удалит активную строку
+     */
     deleteRow() {
-        // удалит активную строку
-        let gridData = this.state.gridData,
-            gridActiveRow = this.refs['data-grid'].state.activeRow,
-            docData = this.state.docData;
+        let gridActiveRow = this.refs['data-grid'].state.activeRow;
 
-        gridData.splice(gridActiveRow, 1);
+        this.gridData.splice(gridActiveRow, 1);
 
         // перерасчет итогов
-        docData = this.recalcDocSumma(docData);
+        this.recalcDocSumma();
 
         // изменим состояние
-        this.setState({gridData: gridData, docData: docData});
+        this.forceUpdate();
     }
 
+    /**
+     * откроет активную строку для редактирования
+     */
     editRow() {
-        // откроет активную строку для редактирования
-        let gridData = this.state.gridData,
-            gridActiveRow = this.refs['data-grid'].state.activeRow,
-            gridRow = gridData[gridActiveRow];
+        this.gridRowData = this.gridData[this.refs['data-grid'].state.activeRow];
 
         // откроем модальное окно для редактирования
-        this.setState({gridRowEdit: true, gridRowEvent: 'edit', gridRowData: gridRow});
+        this.setState({gridRowEdit: true, gridRowEvent: 'edit'});
     }
 
+    /**
+     * добавит в состояние новую строку
+     */
     addRow() {
-        // добавит в состояние новую строку
+        let newRow = {};
 
-        let gridColumns = this.state.gridConfig,
-            gridData = this.state.gridData,
-            newRow = new Object();
-
-        for (let i = 0; i < gridColumns.length; i++) {
-            let field = gridColumns[i].id;
+        for (let i = 0; i < this.gridConfig.length; i++) {
+            let field = this.gridConfig[i].id;
             newRow[field] = '';
         }
 
         newRow.id = 'NEW' + Math.random(); // генерим новое ид
 
+        this.gridRowData = newRow;
         // откроем модальное окно для редактирования
-        this.setState({gridRowEdit: true, gridRowEvent: 'add', gridRowData: newRow});
+        this.setState({gridRowEdit: true, gridRowEvent: 'add'});
 
     }
 
+    /**
+     * Создаст компонет строки грида
+     * @returns {XML}
+     */
     createGridRow() {
-        let style = styles.gridRow,
-            row = this.state.gridRowData,
-            validateMessage = '',
+        let validateMessage = '',
             modalObjects = ['btnOk', 'btnCancel'],
             buttonOkReadOnly = validateMessage.length > 0 || !this.state.checked;
 
@@ -537,9 +495,9 @@ class Arve extends React.PureComponent {
         }
 
 
-        if (!row) return <div/>;
+        if (!this.gridRowData) return <div/>;
 
-        let nomData = this.state.libs['nomenclature'].filter(lib => {
+        let nomData = this.libs['nomenclature'].filter(lib => {
             if (!lib.dok || lib.dok === LIBDOK) return lib;
         });
 
@@ -557,8 +515,8 @@ class Arve extends React.PureComponent {
                                 libs="nomenclature"
                                 data={nomData}
                                 readOnly={false}
-                                value={row.nomid}
-                                defaultValue={row.kood}
+                                value={this.gridRowData.nomid}
+                                defaultValue={this.gridRowData.kood}
                                 ref='nomid'
                                 placeholder='Teenuse kood'
                                 onChange={this.handleGridRowChange}/>
@@ -566,7 +524,7 @@ class Arve extends React.PureComponent {
                     <div style={styles.docRow}>
                         <InputNumber title='Kogus '
                                      name='kogus'
-                                     value={row.kogus}
+                                     value={Number(this.gridRowData.kogus)}
                                      readOnly={false}
                                      disabled={false}
                                      bindData={false}
@@ -577,7 +535,7 @@ class Arve extends React.PureComponent {
                     <div style={styles.docRow}>
                         <InputNumber title='Hind '
                                      name='hind'
-                                     value={row.hind}
+                                     value={Number(this.gridRowData.hind)}
                                      readOnly={false}
                                      disabled={false}
                                      bindData={false}
@@ -588,7 +546,7 @@ class Arve extends React.PureComponent {
                     <div style={styles.docRow}>
                         <InputNumber title='Kbm-ta: '
                                      name='kbmta'
-                                     value={row.kbmta}
+                                     value={Number(this.gridRowData.kbmta)}
                                      disabled={true}
                                      bindData={false}
                                      ref='kbmta'
@@ -598,7 +556,7 @@ class Arve extends React.PureComponent {
                     <div style={styles.docRow}>
                         <InputNumber title='Kbm: '
                                      name='kbm'
-                                     value={row.kbm}
+                                     value={Number(this.gridRowData.kbm)}
                                      disabled={true}
                                      bindData={false}
                                      ref='kbm'
@@ -608,7 +566,7 @@ class Arve extends React.PureComponent {
                     <div style={styles.docRow}>
                         <InputNumber title='Summa: '
                                      name='Summa'
-                                     value={row.summa}
+                                     value={Number(this.gridRowData.summa)}
                                      disabled={true}
                                      bindData={false}
                                      ref='summa'
@@ -621,76 +579,84 @@ class Arve extends React.PureComponent {
         </div>);
     }
 
+    /**
+     * отслеживаем изменения данных на форм
+     * @param name
+     * @param value
+     */
     handleGridRowChange(name, value) {
-        // отслеживаем изменения данных на форме
-        let rowData = Object({}, this.state.gridRowData);
-
-        if (value !== rowData[name] && name === 'nomid') {
+        if (value !== this.gridRowData[name] && name === 'nomid') {
             // произошло изменение услуги, обнулим значения
-            rowData['kogus'] = 0;
-            rowData['hind'] = 0;
-            rowData['summa'] = 0;
-            rowData['kbm'] = 0;
-            rowData['kbmta'] = 0;
-            rowData['nomid'] = value;
+            this.gridRowData['kogus'] = 0;
+            this.gridRowData['hind'] = 0;
+            this.gridRowData['summa'] = 0;
+            this.gridRowData['kbm'] = 0;
+            this.gridRowData['kbmta'] = 0;
+            this.gridRowData['nomid'] = value;
         }
         // ищем по справочнику поля код и наименование
 
-        let libData = this.state.libs['nomenclature'];
+        let libData = this.libs['nomenclature'];
         libData.forEach(row => {
             if (row.id == value) {
-                rowData['kood'] = row.kood;
-                rowData['nimetus'] = row.name;
-                return;
+                this.gridRowData['kood'] = row.kood;
+                this.gridRowData['nimetus'] = row.name;
             }
         });
 
-        rowData[name] = value;
-        this.setState({gridRowData: rowData});
+        this.gridRowData[name] = value;
+//        this.forceUpdate();
         this.validateGridRow();
 
     }
 
+    /**
+     * Обработчик для строки грида
+     * @param name
+     * @param value
+     */
     handleGridRowInput(name, value) {
+        this.gridRowData[name] = value;
+
         // пересчет сумм
-        let rowData = Object.assign({}, this.state.gridRowData);
-        rowData[name] = value;
-        rowData = this.recalcRowSumm(rowData);
-        this.setState({gridRowData: rowData});
+        this.recalcRowSumm();
+//        this.forceUpdate();
         this.validateGridRow();
     }
 
-    recalcRowSumm(gridRowData) {
-        // перерасчет суммы строки и расчет налога
-        gridRowData['kogus'] = Number(gridRowData.kogus);
-        gridRowData['hind'] = Number(gridRowData.hind);
-        gridRowData['kbmta'] = Number(gridRowData['kogus']) * Number(gridRowData['hind']);
-        gridRowData['kbm'] = Number(gridRowData['kbmta'] * 0.20); // @todo врменно
-        gridRowData['summa'] = Number(gridRowData['kbmta']) + Number(gridRowData['kbm']);
-
-        return gridRowData;
+    /**
+     * перерасчет суммы строки и расчет налога
+     */
+    recalcRowSumm() {
+        this.gridRowData['kogus'] = Number(this.gridRowData.kogus);
+        this.gridRowData['hind'] = Number(this.gridRowData.hind);
+        this.gridRowData['kbmta'] = Number(this.gridRowData['kogus']) * Number(this.gridRowData['hind']);
+        this.gridRowData['kbm'] = Number(this.gridRowData['kbmta'] * 0.20); // @todo врменно
+        this.gridRowData['summa'] = Number(this.gridRowData['kbmta']) + Number(this.gridRowData['kbm']);
     }
 
-    recalcDocSumma(docData) {
-        let gridData = Object.assign([], this.state.gridData);
-
-        docData['summa'] = 0;
-        docData['kbm'] = 0;
-        gridData.forEach(row => {
-            docData['summa'] += Number(row['summa']);
-            docData['kbm'] += Number(row['kbm']);
+    /**
+     * Перерасчет итоговых сумм документа
+     */
+    recalcDocSumma() {
+        this.docData['summa'] = 0;
+        this.docData['kbm'] = 0;
+        this.gridData.forEach(row => {
+            this.docData['summa'] += Number(row['summa']);
+            this.docData['kbm'] += Number(row['kbm']);
         });
-        return docData;
     }
 
+    /**
+     * will check values on the form and return string with warning
+     */
     validateGridRow() {
-        // will check values on the form and return string with warning
-        let warning = '',
-            gridRowData = this.state.gridRowData;
+        let warning = '';
+
         // только после проверки формы на валидность
-        if (!gridRowData['nomid']) warning = warning + ' код услуги';
-        if (!gridRowData['kogus']) warning = warning + ' кол-во';
-        if (!gridRowData['hind']) warning = warning + ' цена';
+        if (!this.gridRowData['nomid']) warning = warning + ' код услуги';
+        if (!this.gridRowData['kogus']) warning = warning + ' кол-во';
+        if (!this.gridRowData['hind']) warning = warning + ' цена';
 
         if (warning.length > 2) {
             // есть проблемы
@@ -699,12 +665,15 @@ class Arve extends React.PureComponent {
         this.setState({checked: true, warning: warning});
     }
 
+    /**
+     * вернет объект библиотек документа
+     * @returns {{}}
+     */
     createLibs() {
-        // вернет объект библиотек документа
         let libs = {};
         LIBRARIES.forEach((lib) => {
             libs[lib] = [];
-        })
+        });
         return libs;
     }
 }
@@ -724,7 +693,7 @@ Arve.propTypes = {
     checked: PropTypes.bool,
     warning: PropTypes.string
 
-}
+};
 
 
 /*

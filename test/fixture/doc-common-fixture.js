@@ -1,5 +1,6 @@
 module.exports = {
     id: 1,
+    number: '0001',
     type: 'DOK1',
     created: '2017-01-01',
     lastupdate: '2017-01-01',

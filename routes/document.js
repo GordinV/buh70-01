@@ -105,11 +105,8 @@ exports.get = function(req, res, params) {
 
     }
 
-    let Doc = React.createFactory(docComponent),
-        now = new Date();
-
     try {
-        DocDataObject.selectDoc(docTypeId, [docId, user.userId], (err, data, bpm)=> {
+        DocDataObject.selectDoc(docTypeId, [Number(docId), user.userId], (err, data, bpm)=> {
 
             if (err) {
                 console.error(err);
@@ -121,7 +118,6 @@ exports.get = function(req, res, params) {
                 data:data,
                 userData: user
             }
-
 
             if (data.row) {
                 if (bpm) {

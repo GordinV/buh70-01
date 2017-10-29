@@ -91,7 +91,7 @@ const docStore = flux.createStore({
         setLibsFilter: function (updater, libName, filter) {
 
             // ищем справочник
-            var libs = this.libs;
+            let libs = this.libs;
 
             for (let i = 0; i < libs.length; i++) {
                 if (libs[i].id == libName) {
@@ -146,22 +146,22 @@ const docStore = flux.createStore({
             // Stores updates are only made inside store's action callbacks
             // чистим данные грида
             try {
-                //               console.log('docIdChange', value);
                 updater.set({docId: value});
+
             } catch (e) {
                 console.error('docIdChange viga', e);
             }
         },
         dataChange: function (updater, value) {
-            // Отслеживает загрузку данных документа
-            updater.set({data: value});
+            console.log('called data change', value);
 
             if (typeof value.arvid !== 'undefinite') {
                 // если контрагент отсутсвует, то и параметр контрагента также обнулим
                 value.arvid = value.asutusid ? value.arvid : null;
-                // зададим параметры для справочника счетов
-                //flux.doAction('setLibsFilter', 'arvedSisse', [value.asutusid, value.arvid]);
             }
+            // Отслеживает загрузку данных документа
+            updater.set({data: value});
+
         },
         bpmChange: function (updater, value) {
             // Загрузка БП
@@ -188,6 +188,11 @@ const docStore = flux.createStore({
         editedChange: function (updater, value) {
             // Меняется режим редактирования документа
             updater.set({edited: value});
+            if (value) {
+                backupDoc();
+            } else {
+                flux.doAction('backupChange', {docData: null, gridData:null});
+            }
         },
         savedChange: function (updater, value) {
             // Отслеживает изменения в данных и из сохранение
@@ -205,29 +210,41 @@ const docStore = flux.createStore({
         },
         requery(action, params) {
             return requery(action, JSON.stringify(params));
+        },
+        addDoc: function () {
+            document.location.href = "/document/" + flux.stores.docStore.data.doc_type_id + '0';
         }
     }
 });
+
+/**
+ * сохраняет копию данных
+ */
+function backupDoc() {
+    let docData =  JSON.stringify(docStore.data),
+        gridData = JSON.stringify(docStore.details);
+
+    flux.doAction('backupChange', {docData: docData, gridData:gridData});
+}
 
 function deleteDoc() {
     // вызывает метод удаления документа
     // вернемся в регистр
     //requery('delete', null);
     document.location = '/documents'
-};
+}
 
+
+/**
+ * Выполнит запрос на исполнение задачи
+ * @param task
+ */
 function executeTask(task) {
-    /*
-     Выполнит запрос на исполнение задачи
-     */
-
-    var tasksParameters = {
+    const tasksParameters = {
         docId: docStore.data.id,
         tasks: task,
         doc_type_id: docStore.data.doc_type_id
     };
-
-    //   console.log('executeTask:', task, tasksParameters);
 
     requery('execute', JSON.stringify(tasksParameters), function (err, data) {
         if (err || data.result == 'Error') {
@@ -235,8 +252,6 @@ function executeTask(task) {
         }
 
         try {
-//            console.log('executeTask arrived docStore.data.id, docStore.docId, data',docStore.data.id,docStore.docId,  data);
-
             // при успешном выполнении задачи, выполнить перегрузку документа (временно)
             //@todo подтянуть изменения без перегрузки страницы
             reloadDocument(docStore.data.id);
@@ -244,11 +259,13 @@ function executeTask(task) {
             console.error('requery, reloadDocument', e);
         }
     })
-};
+}
 
+/**
+ * вызывает метод сохранения документа
+ */
 function saveDoc() {
-    // вызывает метод сохранения документа
-    var saveData = {
+    const saveData = {
         id: docStore.data.id,
         doc_type_id: docStore.data.doc_type_id, // вынесено для подгрузки модели
         data: docStore.data,
@@ -276,37 +293,15 @@ function saveDoc() {
             console.error('tekkis viga', e);
         }
     });
+}
 
-
-    /*
-
-     requery('saveAndSelect', JSON.stringify(saveData), function(err, data) {
-     if (err) return err;
-
-     try {
-     if (data.id !== saveData.data.id) {
-     // обновим ид
-     saveData.data.id = data.id;
-     flux.doAction( 'dataChange', saveData.data ); //новые данные
-     }
-     flux.doAction( 'docIdChange', data.id ); // новое ид
-     flux.doAction( 'savedChange', true ); // устанавливаем режим сохранен
-     flux.doAction( 'editedChange', false ); // устанавливаем режим сохранен
-     } catch(e) {
-     console.error;
-     }
-
-     });
-     */
-
-};
-
+/**
+ * reload document
+ * @param docId
+ */
 function reloadDocument(docId) {
-    // reload document
-
     if (docId) {
-        var url = "/document/" + docStore.data.doc_type_id + docId;
-        document.location.href = url;
+        document.location.href = "/document/" + docStore.data.doc_type_id + docId;
     }
 }
 
@@ -316,9 +311,9 @@ function loadLibs(libraryName, libParams) {
         requery('selectAsLibs', JSON.stringify({doc_type_id: libraryName, id: 0, params: libParams}), function (err, data) {
             if (err) throw err;
 
-            var newLibs = docStore.libs.map(function (item) {
+            let newLibs = docStore.libs.map(function (item) {
                 // ищем данные справолчника, которые обновили
-                var returnData = item;
+                let returnData = item;
 
                 if (item.id == libraryName) {
                     returnData.data = data;
@@ -335,13 +330,18 @@ function loadLibs(libraryName, libParams) {
     }
 }
 
+/**
+ * метод обеспечит получение данных от сервера
+ * @param action
+ * @param parameters
+ * @param callback
+ */
 function requery(action, parameters, callback) {
-    // метод обеспечит получение данных от сервера
     if (!window.jQuery) {
         return;
     }
 
-    var URL = '/api/doc';
+    const URL = '/api/doc';
     $.ajax({
         url: URL,
         type: "POST",
@@ -366,7 +366,7 @@ function requery(action, parameters, callback) {
         }.bind(this)
     });
 
-};
+}
 
 
 module.exports = docStore;
