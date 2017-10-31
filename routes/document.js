@@ -88,7 +88,7 @@ exports.get = function(req, res, params) {
             break;
         default:
             docComponent = require('../middleware/returnDocComponent')(docTypeId); // вернет компонент по типу тип документа
-    };
+    }
 
 
     // пишем в сессию выбранный документ
@@ -117,7 +117,7 @@ exports.get = function(req, res, params) {
             docInitData = {
                 data:data,
                 userData: user
-            }
+            };
 
             if (data.row) {
                 if (bpm) {
@@ -182,13 +182,3 @@ if (!Date.prototype.toLocalISOString) {
 
     }());
 }
-
-function getDateTime(dt) {
-    if (!dt) {
-        dt = new Date();
-    }
-
-    //dt.getTimezoneOffset();
-    return  dt.toLocalISOString();
-}
-

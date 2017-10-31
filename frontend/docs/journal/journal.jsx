@@ -65,12 +65,6 @@ class Journal extends React.PureComponent {
 
     }
 
-/*
-    componentWillMount() {
-        this.relatedDocuments();
-    }
-*/
-
     /**
      * пишем исходные данные в хранилище, регистрируем обработчики событий
      */
@@ -293,32 +287,28 @@ class Journal extends React.PureComponent {
      * @param data
      */
     modalPageClick(btnEvent, data) {
-        let gridData = this.gridData,
-            gridRow = this.gridRowData;
-
         if (btnEvent == 'Ok') {
 
             // ищем по ид строку в данных грида, если нет, то добавим строку
-            if (!gridData.some(row => {
-                    if (row.id === gridRow.id) return true;
+            if (!this.gridData.some(row => {
+                    if (row.id === this.gridRowData.id) return true;
                 })) {
                 // вставка новой строки
-                gridData.splice(0, 0, gridRow);
+                this.gridData.splice(0, 0, this.gridRowData);
             } else {
-                gridData = gridData.map(row => {
-                    if (row.id === gridRow.id) {
+                this.gridData = this.gridData.map(row => {
+                    if (row.id === this.gridRowData.id) {
                         // нашли, замещаем
-                        return gridRow;
+                        return this.gridRowData;
                     } else {
                         return row;
                     }
-                })
+                });
             }
 
         }
 
         this.recalcDocSumma();
-        this.gridData = gridData;
         this.setState({gridRowEdit: !!this.state.warning});
     }
 

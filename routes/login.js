@@ -12,9 +12,11 @@ exports.get = function (req, res) {
 
 
 exports.post = function (req, res, next) {
+
     let username = req.body.username,
         password = req.body.password,
-        errorMessage;
+        errorMessage,
+        statusCode = 200;
 
 
     async.waterfall([
@@ -57,6 +59,7 @@ exports.post = function (req, res, next) {
                         global.userId = null;
                         global.rekvId = null;
                         errorMessage = 'Ошибка в пароле';
+                        statusCode = 403;
                         console.error('Ошибка в пароле');
                         // return next(err);
                     }
@@ -65,7 +68,7 @@ exports.post = function (req, res, next) {
                 });
             },
 
-            // saving lat login timestamp
+            // saving last login timestamp
             function (result, kasutaja, callback) {
                 if (result) {
                     userid.updateUseridLastLogin(kasutaja.id, function (err, result) {
@@ -83,6 +86,7 @@ exports.post = function (req, res, next) {
 
             if (errorMessage) {
                 //back to login
+                res.statusCode = statusCode;
                 res.redirect('/login');
             } else {
                 // open main page

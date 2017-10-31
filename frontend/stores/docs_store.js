@@ -27,17 +27,17 @@ const docsStore = flux.createStore({
             updater.set({sortBy: value});
             requery({name: 'docsGrid', value: this.docsList, sortBy: value});
         },
-        Add: function (updater) {
+        Add: function () {
             add(this.docsList);
         },
-        Edit: function (updater) {
+        Edit: function () {
             if (this.docsList && this.docsGrid) {
                 edit(this.docsList, this.docsGrid);
             } else {
-                console.error('Тип документа или документ не выбран');
+                console.error('Тип документа или документ не выбран', this.docsList,this.docsGrid );
             }
         },
-        Delete: function (updater) {
+        Delete: function () {
             let docTypeId = this.docsList;
             requeryForAction('delete', (err, data) => {
                 if (err) {
@@ -48,7 +48,7 @@ const docsStore = flux.createStore({
                 }
             });
         },
-        Print: function (updater) {
+        Print: function () {
             console.log('button Print cliked!');
         },
         changeName: function (updater, name) {
@@ -58,26 +58,35 @@ const docsStore = flux.createStore({
         docsGridChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
             updater.set({docsGrid: value});
-            localStorage['docsGrid'] = value;
-
         },
         docsListChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
             let lastValue = flux.stores.docsStore.docsList || 'DOK';
             if (value !== lastValue) {
                 updater.set({docsList: value});
-                flux.doAction('sortByChange', ORDER_BY);
             }
+            flux.doAction('sqlWhereChange','');
+            flux.doAction('sortByChange', ORDER_BY);
+
 //            localStorage['docsList'] = value;
         },
         dataChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
             updater.set({data: value});
-        },
-        userDataChange: function (updater, userDara) {
-            updater.set({userData: userData});
+            if (!this.docsGrid) {
+                let gridValue = value[1].data[0].data[0].id;
+                flux.doAction('docsGridChange',gridValue);
+            }
 
-            let logedIn = userData ? true: false;
+            if (!this.docsList) {
+                let treeValue = value[0].value;
+                flux.doAction('docsListChange',treeValue);
+            }
+        },
+        userDataChange: function (updater, value) {
+            updater.set({userData: value});
+
+            let logedIn = !!userData;
             updater.set({logedIn: logedIn});
 
         },
@@ -86,16 +95,15 @@ const docsStore = flux.createStore({
 });
 
 const edit = (docTypeId, docId) => {
-    let url = "/document/" + docTypeId + docId;
-    document.location.href = url;
-}
+    document.location.href = "/document/" + docTypeId + docId;
+};
 
 const add = (docTypeId) => {
     document.location.href = "/document/" + docTypeId + '0';
 };
 
 const requeryForAction = (action, callback) => {
-    if (!window.jQuery || !$) return // для тестов
+    if (!window.jQuery || !$) return; // для тестов
 
     // метод обеспечит запрос на выполнение
     let docId = docsStore.docsGrid,
@@ -125,12 +133,10 @@ const requeryForAction = (action, callback) => {
 
     }
 
-    console.log('docId docTypeId:', docId, docTypeId, docsStore.docsList, docsStore.docsGrid, docsStore.data);
-
     let parameters = {
         docId: docId,
         doc_type_id: docTypeId
-    }
+    };
 
     $.ajax({
         url: '/api/doc',
@@ -155,10 +161,10 @@ const requeryForAction = (action, callback) => {
             callback(err, null);
         }
     });
-}
+};
 
 const requery = (component) => {
-    if (!window.jQuery) return // для тестов
+    if (!window.jQuery) return; // для тестов
 
     // метод обеспечит получение данных от сервера
     // component = this.state.components[name]
@@ -169,7 +175,6 @@ const requery = (component) => {
     // фильтруем список компонентов
     let componentsForUpdate = components.filter((item) => {
         // ищем объект по наименованию. или вернем все если параметр не задан
-        //       console.log('component:' + JSON.stringify(component));
         if (component.name == '' || item.name == component.name) {
             return item.name;
         }
@@ -178,8 +183,7 @@ const requery = (component) => {
     // сортировка
     let sqlSortBy = '',
         sqlWhere = docsStore.sqlWhere || '',
-        sortByArray = docsStore.sortBy,
-        arrType = typeof sortByArray;
+        sortByArray = docsStore.sortBy;
 
     if (docsStore.sortBy) {
         for (let i = 0; i < sortByArray.length; i++) {
@@ -208,11 +212,8 @@ const requery = (component) => {
         cache: false,
         success: function (data) {
             // должны получить объект
-            //           console.log('parent arrived data:' + JSON.stringify(data) + 'тип:' + typeof data);
-
             data.forEach(function (item) {
                 // find item
-                //console.log('parent Item:' + JSON.stringify(item) );
                 // обновим данные массива компонентов
                 components = components.map(function (component) {
                     if (component.name == item.name) {
@@ -223,7 +224,6 @@ const requery = (component) => {
                 });
 
             });
-//            console.log('store data update:' + JSON.stringify(components));
             flux.doAction('dataChange', components);
 
 

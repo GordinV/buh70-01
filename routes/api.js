@@ -43,6 +43,7 @@ exports.post = function (req, res) {
         req.session.docs = [];
     }
 
+    console.log('api', components);
     try {
         async.forEach(components, (component, callback) => {
             // сохраним в сессии параметры запроса
@@ -61,6 +62,7 @@ exports.post = function (req, res) {
 
             // выполняем запрос
             let componentName = component.name;
+            console.log('componentName', componentName, parameter);
             DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere, user);
         }, (err) => {
             if (err) {

@@ -153,8 +153,6 @@ const docStore = flux.createStore({
             }
         },
         dataChange: function (updater, value) {
-            console.log('called data change', value);
-
             if (typeof value.arvid !== 'undefinite') {
                 // если контрагент отсутсвует, то и параметр контрагента также обнулим
                 value.arvid = value.asutusid ? value.arvid : null;

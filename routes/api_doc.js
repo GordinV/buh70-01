@@ -11,7 +11,6 @@ exports.post = function(req, res) {
          docId = data.docId,
          docTypeId = data.doc_type_id,
          results = {},
-         localStorage = require('../middleware/local_storage'),
          params = [];
 
      if (docId) {
@@ -39,10 +38,10 @@ exports.post = function(req, res) {
             try {
                 // тут вызов метода сохранение
                 DocDataObject.deleteDocPromise(docTypeId, params)
-                    .then((data) => {
+                    .then(data => {
                         res.send(data)
-                    }),
-                    ((err) => {
+                    },
+                    err => {
                         console.error('viga:', err);
                         res.send({result: 'Error'});
                     });
@@ -58,10 +57,10 @@ exports.post = function(req, res) {
                 // тут вызов метода сохранение
                 // выборка сохраненных данных
                 DocDataObject.saveDocPromise(docTypeId, params)
-                    .then((data) => {
+                    .then(data => {
                         res.send(data)
-                    }),
-                    ((err) => {
+                    },
+                    err => {
                         console.error('viga:', err);
                         res.send({result: 'Error'});
                     });
@@ -79,10 +78,10 @@ exports.post = function(req, res) {
 
 
             DocDataObject.executeTaskPromise(docTypeId, params)
-                .then((docData) => {
+                .then(docData => {
                     res.send({result:'Ok', data:docData});
-                }),
-                (err => {
+                },
+                err => {
                     console.error('catched error', err);
                     res.send({result: 'Error'});
                 });
@@ -105,10 +104,10 @@ exports.post = function(req, res) {
              */
             try {
                 DocDataObject.selectDocPromise(docTypeId, params, action)
-                    .then((data) => {
+                    .then(data => {
                         res.send(data)
-                    }),
-                    ((err) => {
+                    },
+                    err => {
                         console.error('viga:', err);
                         res.send({result: 'Error'});
                     });
@@ -136,10 +135,10 @@ exports.post = function(req, res) {
             try {
 
                 DocDataObject.selectDocPromise(docTypeId, params, action)
-                    .then((data) => {
+                    .then(data => {
                         res.send(data)
-                    }),
-                    ((err) => {
+                    },
+                    err => {
                         console.error('viga:', err);
                         res.send({result: 'Error'});
                     });

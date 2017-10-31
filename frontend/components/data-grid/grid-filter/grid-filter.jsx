@@ -16,6 +16,10 @@ class GridFilter extends React.PureComponent {
         };
         this.handleChange = this.handleChange.bind(this)    }
 
+    /**
+     * Обработчик на изменения инпутов
+     * @param e
+     */
     handleChange(e) {
         let value = e.target.value,
             id = e.target.name,
@@ -42,13 +46,10 @@ class GridFilter extends React.PureComponent {
 
     render() {
         // создаст из полей грида компоненты для формирования условий фильтрации
-        let gridConfig = this.state.gridConfig,
-            data = this.state.data;
-
         return <div style={styles.fieldset}>
             {
-                gridConfig.map((row, index) => {
-                    let componentType = row.type? row.type: 'text'
+                this.props.gridConfig.map((row) => {
+                    let componentType = row.type? row.type: 'text';
 
                     return <div style={styles.formWidget} key={'fieldSet-' + row.id}>
                         <div style={styles.formWidgetLabel}>
@@ -61,9 +62,9 @@ class GridFilter extends React.PureComponent {
                                    name={row.id}
                                    placeholder={row.name}
                                    ref={row.id}
-                                   value = {this.state.data[row.id]}
+                                   value = {this.props.data[row.id]}
                                    onChange={this.handleChange}
-                                   defaultValue={data[row.id]}
+                                   defaultValue={this.props.data[row.id]}
                             />
                         </div>
                     </div>
@@ -76,6 +77,6 @@ class GridFilter extends React.PureComponent {
 GridFilter.propTypes = {
     gridConfig: PropTypes.array.isRequired,
     data: PropTypes.array.isRequired
-}
+};
 
 module.exports = GridFilter;

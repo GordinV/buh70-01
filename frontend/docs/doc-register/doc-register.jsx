@@ -37,12 +37,20 @@ class Register extends React.PureComponent {
             getDeleteModalPage: false,
             showSystemMessage: false,
             activRowId: 0,
-            filterString: null,
             isReport: false,
-            treeValue: ''
+            treeValue: this.findComponent('docsList')[0].value,
+            gridValue: 0
         };
 
-        this.components = this.props.components;
+        this.treeData = {
+            data: this.findComponent('docsList')[0].data || []
+        };
+
+        this.gridData = {
+            data: this.findComponent('docsGrid')[0].data[0].data,
+            gridConfig: this.findComponent('docsGrid')[0].data[0].columns
+        };
+
         this.filterData = []; // массив объектов, куда запишем параметры для фильтрации @todo вынести все в отдельный компонет для фильтрации
 
         this.btnAddClick = this.btnAddClick.bind(this);
@@ -63,23 +71,41 @@ class Register extends React.PureComponent {
     componentDidMount() {
         const self = this;
 
+        // отслеживаем изменение фильтра
+        docsStore.on('change:sqlWhere', (newValue) => {
+            // данные изменились, обнуляем данные фильтра
+            if (!newValue) {
+                self.filterData = [];
+            }
+        });
+
         // создаем обработчик события на изменение даннх
-        docsStore.on('change:data', (newValue, previousValue) => {
+        docsStore.on('change:data', (newValue) => {
             // данные изменились, меняем состояние
-            self.setState({components: docsStore.data})
+            this.gridData = {
+                data: newValue[1].data[0].data,
+                gridConfig: newValue[1].data[0].columns
+            };
+
+            this.treeData = {
+                data: newValue[0].data
+            };
+
+            self.setState({
+                gridValue: newValue[1].lastDocId !== 0 ? newValue[1].lastDocId : this.gridData[0].id
+            });
         });
 
         // создаем обработчик события на изменение строки грида
         docsStore.on('change:docsGrid', function (newValue, previousValue) {
             // данные изменились, меняем состояние
-            self.setState({activRowId: docsStore.docsGrid})
+            self.setState({gridValue: newValue});
         });
 
         // создаем обработчик события системный извещение
         docsStore.on('change:systemMessage', function (newValue, previousValue) {
             // данные изменились, меняем состояние
-            let systemMessageStatus = newValue ? true : false;
-            self.setState({showSystemMessage: systemMessageStatus});
+            self.setState({showSystemMessage: !!newValue});
         });
 
         // покажем данные
@@ -89,15 +115,9 @@ class Register extends React.PureComponent {
     }
 
     render() {
+        let systemMessage = docsStore.systemMessage;
 
-        let componentlist = this.findComponent('docsList'),
-            listValue = componentlist[0].value || '',
-            dataList = componentlist[0].data || [],
-            prepairedGridData = this.findComponent('docsGrid') || [],
-            gridConfig = [],
-            gridData = [],
-            systemMessage = docsStore.systemMessage,
-            filterData = this.getFilterFields();
+        this.getFilterFields();
 
         const btnParams = {
             btnStart: {
@@ -108,13 +128,6 @@ class Register extends React.PureComponent {
             }
         };
 
-
-        // проверим наличие данных, если есть пропихнем компонентам
-        if (prepairedGridData.length > 0 && prepairedGridData[0].data.length > 0) {
-            gridConfig = prepairedGridData[0].data[0].columns;
-            gridData = prepairedGridData[0].data[0].data;
-        }
-
         return (<div ref="parentDiv">
                 {MenuToolBar(btnParams, this.props.userData)}
                 {this.renderFilterToolbar()}
@@ -123,10 +136,10 @@ class Register extends React.PureComponent {
                     <div style={styles.wrapper}>
                         <Sidebar width="30%" toolbar={true} ref="list-sidebar">
                             <TreeList ref='treeList'
-                                      data={dataList}
+                                      data={this.treeData['data']}
                                       name="docsList"
                                       bindDataField="kood"
-                                      value={listValue}
+                                      value={this.state.treeValue}
                                       onClickAction={this.clickHandler}
                                       onChangeAction='docsListChange'
                             />
@@ -135,19 +148,21 @@ class Register extends React.PureComponent {
                             {this.renderAruannePage()}
                             <Sidebar toolbar={false} ref="grid-sidebar" height="400px">
                                 <DataGrid ref='dataGrid'
-                                          gridData={gridData}
-                                          gridColumns={gridConfig}
+                                          gridData={this.gridData['data']}
+                                          gridColumns={this.gridData['gridConfig']}
                                           onChangeAction='docsGridChange'
                                           onClick={this.clickHandler}
                                           onDblClick={this.dblClickHandler}
                                           onHeaderClick={this.headerClickHandler}
-                                          value={prepairedGridData[0].lastDocId}
+                                          value={this.state.gridValue}
                                           url='api'/>
                                 <ModalPage ref='modalpageFilter'
                                            modalPageBtnClick={this.modalPageBtnClick}
                                            modalPageName='Filter'
                                            show={this.state.getFilter}>
-                                    <GridFilter ref='gridFilter' gridConfig={gridConfig} data={filterData}/>
+                                    <GridFilter ref='gridFilter'
+                                                gridConfig={this.gridData['gridConfig']}
+                                                data={this.filterData}/>
                                 </ModalPage>
                                 <ModalPageDelete ref="modalpageDelete"
                                                  modalPageBtnClick={this.modalPageDelBtnClick}
@@ -203,20 +218,15 @@ class Register extends React.PureComponent {
     }
 
     /**
-     * Вернет компонет с данными фильтра
+     * Вернет компонет с данными строки фильтрации
      * @returns {XML}
      */
     renderFilterToolbar() {
-        let filterString = this.getFilterString();
-        let component = (
+        return (
             <ToolbarContainer ref='filterToolbarContainer' position="left">
-                <span>Filter: {filterString}</span>
+                <span>Filter: {this.getFilterString()}</span>
             </ToolbarContainer>);
-
-
-        return filterString && component;
     }
-
 
     /**
      * Проанализирует свойства выбранного документа и вернет true , если тип == Aruanne
@@ -234,13 +244,22 @@ class Register extends React.PureComponent {
         // вернет данные компонента по его названию
         let componentData = [];
 
-        if (this.components.length > 0) {
-            componentData = this.components.filter(function (item) {
+        if (this.props.components.length > 0) {
+            componentData = this.props.components.filter(function (item) {
                 if (item.name == componentName) {
                     return item;
                 }
             });
         }
+
+        if (!componentData[0].name == 'docsGrid'
+            && componentData[0].lastDocId == '0'
+            && !flux.stores.docsStore.docsGrid) {
+            componentData[0].lastDocid = componentData[0].data[0].id || 0;
+            // сохраним номер в сторе
+            flux.doAction('docsGridChange', componentData[0].data[0].id || 0);
+        }
+
         return componentData;
 
     }
@@ -277,7 +296,13 @@ class Register extends React.PureComponent {
         if (action && id) {
             flux.doAction(action, id);
         }
-        this.setState({treeValue: id});
+        if (action == 'docsGridChange') {
+            this.gridData.value = id;
+            this.setState({gridValue: id});
+        } else {
+            this.treeData.value = id;
+            this.setState({treeValue: id});
+        }
     }
 
     dblClickHandler() {
@@ -347,8 +372,11 @@ class Register extends React.PureComponent {
 
     }
 
+    /**
+     * создаст из полtй грида компоненты для формирования условий фильтрации
+     * @returns {Array|*}
+     */
     getFilterFields() {
-        // создаст из полtй грида компоненты для формирования условий фильтрации
         let gridComponents = docsStore.data,
             gridData = [],
             previosFilter = this.filterData;
@@ -368,35 +396,33 @@ class Register extends React.PureComponent {
 
         if (gridData) {
             this.filterData = []; // обнулим массив
-            this.filterFields =
-                gridData.map((row) => {
-                    let componentType = 'text',
-                        componentObjektValue;
 
-                    for (let i = 0; i < previosFilter.length; i++) {
-                        // ищем "старое" значение фильтра и если есть, то отдаем его value
-                        if (previosFilter[i].refs == row.id) {
-                            componentObjektValue = previosFilter[i].value;
-                            break;
-                        }
+            gridData.map((row) => {
+                let componentType = 'text',
+                    componentObjektValue;
+
+                for (let i = 0; i < previosFilter.length; i++) {
+                    // ищем "старое" значение фильтра и если есть, то отдаем его value
+                    if (previosFilter[i].refs == row.id) {
+                        componentObjektValue = previosFilter[i].value;
+                        break;
                     }
+                }
 
-                    if (row.type) {
-                        componentType = row.type;
-                    }
+                if (row.type) {
+                    componentType = row.type;
+                }
 
-                    // соберем массив объектов
-                    this.filterData.push({
-                        name: row.name,
-                        value: componentObjektValue || null,
-                        type: componentType,
-                        refs: row.id
-                    });
+                // соберем массив объектов
+                this.filterData.push({
+                    name: row.name,
+                    value: componentObjektValue || null,
+                    type: componentType,
+                    refs: row.id
+                });
 
-                })
+            });
         }
-        // обновим строку фильтрации
-        this.getFilterString();
         return this.filterData;
     }
 
@@ -443,7 +469,7 @@ class Register extends React.PureComponent {
         if (grid.length > 0 && grid[0].data.length > 0) {
             data = grid[0].data[0].data;
             dataRow = data.filter(row => {
-                if (row.id === lastRowId) {
+                if (row.id === this.state.gridValue) {
                     return row;
                 }
             });

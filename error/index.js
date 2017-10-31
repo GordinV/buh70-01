@@ -10,7 +10,7 @@ function HttpError(status, message) {
     this.status = status;
     this.message = message || http.STATUS_CODES[status] || "Error";
 
-    console.log(this.message);
+    console.log('raised error',this.message, this.status);
 }
 
 util.inherits(HttpError, Error);

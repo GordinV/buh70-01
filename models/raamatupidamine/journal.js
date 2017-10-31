@@ -67,7 +67,7 @@ const Journal  = {
     grid: {
         gridConfiguration: [
             {id: "id", name: "id", width: "25px", "type": "integer"},
-            {id: "kpv", name: "Kuupaev", width: "100px", "type": "date"},
+            {id: "kpv", name: "Kuupaev", width: "100px", "type": "text"},
             {id: "number", name: "Number", width: "100px", "type": "integer"},
             {id: "selg", name: "Selgitus", width: "200px", "type": "text"},
             {id: "dok", name: "Dokument", width: "200px", "type": "text"},

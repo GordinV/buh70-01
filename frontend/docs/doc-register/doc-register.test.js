@@ -10,8 +10,8 @@ const    React = require('react'),
     config = model.DOK.gridConfiguration,
     gridData = require('../../../test/fixture/dataGrid-fixture'),
     components = [
-        {name: 'docsList', data: [{data: listData}], value: 'code1'},
-        {name: 'docsGrid', data: [{data: gridData, columns: config}], value: 2}
+        {name: 'docsList', data: [{data: listData}], value: 'code2'},
+        {name: 'docsGrid', data: [{data: gridData, columns: config}], value: 1}
     ];
 
 
@@ -45,22 +45,12 @@ describe('doc test, register', () => {
         });
     });
 
-    it('test of initial data', () => {
-        let props = component.props.components,
-            state = component.state.components;
-
-        props.forEach(data => {
-            // пропсы переданы и сохранены в состоянии
-            expect(props).toEqual(state);
-        });
-    });
-
     it ('test of list component in Register', () => {
         let List = component.refs['treeList'],
             data = [{data: listData}];
         expect(List).toBeDefined();
-        expect(List.state.value).toBe('code1'); // value: 'code1'
-        expect(List.state.data).toEqual(data); // data: [{data: listData}]
+        expect(List.state.value).toBe('code2'); // value: 'code1'
+        expect(List.state.index).toBe(1);
     });
 
     it.skip ('test of grid component in Register', () => {

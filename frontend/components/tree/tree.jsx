@@ -11,22 +11,16 @@ class Tree extends React.PureComponent {
 
         let idx = 0;
 
-        if (this.props.value) {
-            // we got value, we should find index and initilize idx field
-            props.data.forEach((row, index) => {
-                if (row[props.bindDataField] === props.value) {
-                    // found
-                    idx = index;
-                }
-            });
-        }
-
         this.state = {
-            data: props.data,
-            index: idx,
+            index: this.getIndex(props.value),
             value: props.value
         };
         this.handleLiClick = this.handleLiClick.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.getIndex(nextProps.value);
+        this.setState({index: this.getIndex(nextProps.value), value: nextProps.value});
     }
 
     render() {
@@ -37,12 +31,17 @@ class Tree extends React.PureComponent {
         )
     }
 
+    /**
+     * Обработчик для клика
+     * @param selectedIndex
+     * @param selectedId
+     * @param isNode
+     */
     handleLiClick(selectedIndex, selectedId, isNode) {
         if (!isNode && !isNaN(selectedId)) {
-            // не ноа, а документ
-            let data = this.props.data.filter((row, index) => {
+            // не нода, а документ
+            let data = this.props.data.filter((row) => {
                     if (row.id == selectedId) {
-//                    selectedIndex = index;
                         return row;
                     }
                 }),
@@ -54,32 +53,36 @@ class Tree extends React.PureComponent {
             });
 
             if (this.props.onClickAction) {
-                //@todo избавиться от change
                 this.props.onClickAction(this.props.name + 'Change', value);
             }
         }
-        //ставим метку
-        // сохраняем состояние
-
-
     }
 
+    /**
+     * вернет данные для ноды = parentId
+     * @param parentId
+     */
     getChildren(parentId) {
-        let data = this.state.data;
-        return data.filter((row) => {
+        return this.props.data.filter((row) => {
             if (row.parentid == parentId) {
                 return row;
             }
         });
     }
 
+    /**
+     * Построет дерево для ноды = parentId
+     * @param parentId
+     * @returns {XML}
+     */
     getTree(parentId) {
         let data = this.getChildren(parentId),
             value = this.state.value;
 
         return (<ul style={styles.ul} ref='tree-ul'>
             {data.map((subRow, index) => {
-                let style = Object.assign({}, styles.li, value == subRow[this.props.bindDataField] && !subRow.is_node ? styles.focused : {}),
+                let style = Object.assign({}, styles.li,
+                    value == subRow[this.props.bindDataField] && !subRow.is_node ? styles.focused : {}),
                     refId = 'li-' + index;
 
                 return (
@@ -93,6 +96,24 @@ class Tree extends React.PureComponent {
             }
 
         </ul>)
+    }
+
+    /**
+     * Вернет индекс строки где заданное поле имеет значение value
+     * @param value
+     * @returns {number}
+     */
+    getIndex(value) {
+        let treeIndex = 0;
+        // we got value, we should find index and initilize idx field
+        for(let i = 0; i++; i < this.props.data[0].length) {
+            if (this.props.data[0].data[i][this.props.bindDataField] === value) {
+                // found
+                treeIndex = i;
+                return;
+            }
+        }
+        return treeIndex;
     }
 
 }
@@ -113,6 +134,6 @@ Tree.defaultProps = {
     }],
     value: null,
     bindDataField: 'id'
-}
+};
 
 module.exports = Tree;

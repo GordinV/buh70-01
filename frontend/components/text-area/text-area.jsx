@@ -49,7 +49,7 @@ class Input extends React.PureComponent {
                     ref="input"
                     id={this.props.name}
                     name={this.props.name}
-                    value={this.state.value}
+                    value={this.state.value || ''}
                     readOnly={this.props.readOnly}
                     title={this.props.title}
                     placeholder={inputPlaceHolder}
@@ -76,7 +76,8 @@ Input.defaultProps = {
     readOnly: false,
     disabled: false,
     valid: true,
-    title: ''
+    title: '',
+    value: ''
 }
 
 
