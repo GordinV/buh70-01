@@ -60,6 +60,8 @@ class Project extends React.PureComponent {
         let self = this,
             data = this.docData;
 
+        window.addEventListener('beforeunload', this.componentCleanup);
+
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
 
@@ -77,6 +79,13 @@ class Project extends React.PureComponent {
             }
         });
 
+    }
+
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docStore.off('change:edited');
     }
 
     render() {

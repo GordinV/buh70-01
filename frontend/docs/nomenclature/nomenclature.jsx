@@ -73,8 +73,11 @@ class Nomenclature extends React.PureComponent {
      * пишем исходные данные в хранилище, регистрируем обработчики событий
      */
     componentDidMount() {
+
         let self = this,
             data = this.docData;
+
+        window.addEventListener('beforeunload', this.componentCleanup);
 
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
@@ -121,6 +124,14 @@ class Nomenclature extends React.PureComponent {
                 self.forceUpdate();
             }
         });
+    }
+
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docStore.off('change:edited');
+        docStore.off('change:libs');
     }
 
     render() {

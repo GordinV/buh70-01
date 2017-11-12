@@ -86,6 +86,12 @@ class Arve extends React.PureComponent {
     }
 
     componentDidMount() {
+
+        if (window) {
+            window.addEventListener('beforeunload', this.componentCleanup);
+        }
+
+
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
             data = Object.assign({}, self.props.data.row),
@@ -140,8 +146,18 @@ class Arve extends React.PureComponent {
                 this.forceUpdate();
             }
         });
+    }
 
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docStore.off('change:edited');
+        docStore.off('change:libs');
+    }
 
+    componentWillUnmount() {
+        this.componentCleanup();
     }
 
     render() {

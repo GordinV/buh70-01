@@ -189,7 +189,7 @@ const docStore = flux.createStore({
             if (value) {
                 backupDoc();
             } else {
-                flux.doAction('backupChange', {docData: null, gridData:null});
+                flux.doAction('backupChange', {docData: null, gridData: null});
             }
         },
         savedChange: function (updater, value) {
@@ -210,7 +210,15 @@ const docStore = flux.createStore({
             return requery(action, JSON.stringify(params));
         },
         addDoc: function () {
-            document.location.href = "/document/" + flux.stores.docStore.data.doc_type_id + '0';
+            if (document) {
+                Object.defineProperty(window.location, 'href', {
+                    writable: true,
+                    value: "/document/" + flux.stores.docStore.data.doc_type_id + '0'
+                });
+//                document.location.href = "/document/" + flux.stores.docStore.data.doc_type_id + '0';
+            } else {
+                console.log('called add');
+            }
         }
     }
 });
@@ -219,10 +227,10 @@ const docStore = flux.createStore({
  * сохраняет копию данных
  */
 function backupDoc() {
-    let docData =  JSON.stringify(docStore.data),
+    let docData = JSON.stringify(docStore.data),
         gridData = JSON.stringify(docStore.details);
 
-    flux.doAction('backupChange', {docData: docData, gridData:gridData});
+    flux.doAction('backupChange', {docData: docData, gridData: gridData});
 }
 
 function deleteDoc() {
@@ -306,7 +314,11 @@ function reloadDocument(docId) {
 function loadLibs(libraryName, libParams) {
     try {
 
-        requery('selectAsLibs', JSON.stringify({doc_type_id: libraryName, id: 0, params: libParams}), function (err, data) {
+        requery('selectAsLibs', JSON.stringify({
+            doc_type_id: libraryName,
+            id: 0,
+            params: libParams
+        }), function (err, data) {
             if (err) throw err;
 
             let newLibs = docStore.libs.map(function (item) {

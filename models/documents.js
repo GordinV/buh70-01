@@ -38,7 +38,6 @@ const Doc = {
                         }
 
                         db.end();
-
                         let results = result ? result.rows : [];
                         resolved(results);
                     }));
@@ -384,7 +383,6 @@ const Doc = {
         let tasks = params.params.tasks,
             docId = params.params.docId,
             userId = params.userId;
-
         return doc.executeTask(tasks, docId, userId);
     },
 

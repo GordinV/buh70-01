@@ -118,6 +118,14 @@ class Journal extends React.PureComponent {
 
     }
 
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docStore.off('change:edited');
+        docStore.off('change:libs');
+    }
+
     render() {
         let bpm = this.props.bpm,
             isEditMode = this.state.edited,

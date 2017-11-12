@@ -22,6 +22,8 @@ describe('dok. type ARV tests', function () {
             docData['data']['doc_status'] = 0;
             docData['data']['nimi'] = 'nimi';
             docData['data']['asutusid'] = 1;
+            console.log('ready to save', docData);
+
             done();
         });
     });

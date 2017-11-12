@@ -61,6 +61,8 @@ class Document extends React.PureComponent {
     }
 
     componentDidMount() {
+        window.addEventListener('beforeunload', this.componentCleanup);
+
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
             data = this.docData;
@@ -90,6 +92,13 @@ class Document extends React.PureComponent {
             }
         });
 
+    }
+
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docStore.off('change:edited');
     }
 
 

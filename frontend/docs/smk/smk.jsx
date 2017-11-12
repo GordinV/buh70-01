@@ -86,6 +86,8 @@ class Smk extends React.PureComponent {
             details = this.props.data.details,
             gridConfig = this.props.data.gridConfig;
 
+        window.addEventListener('beforeunload', this.componentCleanup);
+
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
         flux.doAction('docIdChange', data.id);
@@ -131,6 +133,14 @@ class Smk extends React.PureComponent {
             flux.doAction("loadLibs", lib);
         });
 
+    }
+
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docStore.off('change:edited');
+        docStore.off('change:libs');
     }
 
     render () {

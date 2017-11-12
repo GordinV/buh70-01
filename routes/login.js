@@ -30,7 +30,6 @@ exports.post = function (req, res, next) {
                         return callback(err, null);
                     }
 
-
                     errorMessage = null;
                     req.session.user = {
                         id: kasutaja.id,
@@ -44,6 +43,7 @@ exports.post = function (req, res, next) {
                     };
                     global.userId = kasutaja.id;
                     global.rekvId = kasutaja.rekvid;
+
                     callback(null, kasutaja);
                 });
             },
@@ -55,7 +55,7 @@ exports.post = function (req, res, next) {
 
                     if (!result) {
                         error = new HttpError(403, 'Ошибка в пароле');
-                        req.session.userId = null;
+                        req.session.user = null;
                         global.userId = null;
                         global.rekvId = null;
                         errorMessage = 'Ошибка в пароле';

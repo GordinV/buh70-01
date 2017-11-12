@@ -21,7 +21,6 @@ exports.get = function(req, res, params) {
             data: [],
             bpm:[]
         };
-//        localStorage = require('../middleware/local_storage')(req);
 //@todo заменить
 
     switch (docTypeId) {

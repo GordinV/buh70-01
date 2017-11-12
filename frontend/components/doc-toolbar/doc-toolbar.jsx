@@ -79,6 +79,8 @@ class DocToolBar extends React.PureComponent {
      * Вызовет метод перехода на новый документ
      */
     btnAddClick() {
+        flux.doAction('editedChange', true);
+        flux.doAction('savedChange', false);
         flux.doAction('addDoc');
     }
 

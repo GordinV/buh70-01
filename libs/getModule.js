@@ -23,7 +23,7 @@ module.exports = (docTypeId, params, modelPath) => {
 
     }
     catch (e) {
-        console.error('Error',e);
+//        console.error('Error',e);
         return null;
     }
 

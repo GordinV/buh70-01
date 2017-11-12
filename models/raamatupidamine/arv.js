@@ -178,6 +178,7 @@ const Arv = {
     generateJournal: {command: "select docs.gen_lausend_arv($1, $2)", type: "sql"},
     endProcess: {command: "update docs.doc set status = 2 where id = $1", type: "sql"},
     executeTask: function (task, docId, userId) {
+        console.log('executeTask', task, docId, userId);
         // выполнит задачу, переданную в параметре
 
         let executeTask = task;

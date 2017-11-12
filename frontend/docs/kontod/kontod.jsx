@@ -68,6 +68,8 @@ class Kontod extends React.PureComponent {
     }
 
     componentDidMount() {
+        window.addEventListener('beforeunload', this.componentCleanup);
+
         // пишем исходные данные в хранилище, регистрируем обработчики событий
         let self = this,
             data = self.props.data.row;
@@ -88,6 +90,13 @@ class Kontod extends React.PureComponent {
                 self.setState({edited: newValue});
             }
         });
+    }
+
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docStore.off('change:edited');
     }
 
     render() {

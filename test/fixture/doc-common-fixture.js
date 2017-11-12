@@ -2,6 +2,7 @@ module.exports = {
     id: 1,
     number: '0001',
     type: 'DOK1',
+    doc_type_id:'ARV',
     created: '2017-01-01',
     lastupdate: '2017-01-01',
     status: 'ok',

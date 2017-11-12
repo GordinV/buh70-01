@@ -24,6 +24,10 @@ describe('doc test, Arve', () => {
         }
 
 
+    flux.doAction('dataChange', dataRow);
+    flux.doAction('docIdChange', dataRow.id);
+    flux.doAction('detailsChange', dataRow.details); // данные грида
+
     let onChangeHandler = jest.fn();
 
     let doc = ReactTestUtils.renderIntoDocument(<Arve data={data} bpm={model.bpm}/>);
@@ -70,7 +74,7 @@ describe('doc test, Arve', () => {
             expect(doc.refs['grid-button-edit']).toBeDefined();
             expect(doc.refs['grid-button-delete']).toBeDefined();
             done();
-        }, 1000);
+        },1000);
 
     });
 
@@ -158,7 +162,7 @@ describe('doc test, Arve', () => {
         expect(doc.gridRowData.summa).toBe(12);
     });
 
-    it ('test toolbar btnEdit', ()=> {
+    it('test toolbar btnEdit', ()=> {
         let docToolbar = doc.refs['doc-toolbar'];
         expect(docToolbar.btnEditClick).toBeDefined();
 
@@ -180,7 +184,7 @@ describe('doc test, Arve', () => {
         }
     });
 
-    it ('doc-toolbar btnCancel test', () => {
+    it('doc-toolbar btnCancel test', () => {
         let docToolbar = doc.refs['doc-toolbar'];
         expect(docToolbar.btnCancelClick).toBeDefined();
 
@@ -197,7 +201,7 @@ describe('doc test, Arve', () => {
         },1000);
     });
 
-    it ('doc-toolbar docData restore test', () => {
+    it('doc-toolbar docData restore test', () => {
         expect(doc.docData.number).not.toBe('9999');;
     });
 
@@ -229,21 +233,5 @@ describe('doc test, Arve', () => {
     it('should contain handlePageClick function', () => {
         expect(doc.handlePageClick).toBeDefined();
     });
-
-    it ('test toolbar btnAdd', (done)=> {
-        let docToolbar = doc.refs['doc-toolbar'];
-        expect(docToolbar.btnAddClick).toBeDefined();
-
-        if (!doc.state.edited)  {
-            docToolbar.btnAddClick();
-            setTimeout(() => {
-                expect(doc.state.edited).toBeTruthy();
-                expect(doc.docData.id).toBe(0);
-                expect(doc.gridData.length).toBe(0);
-                done();
-            }, 1000);
-        }
-    });
-
 
 });

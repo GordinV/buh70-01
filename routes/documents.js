@@ -50,7 +50,6 @@ exports.get = function (req, res) {
         }
 
         DocDataObject[componentName].requery(parameter, callback, results, sortBy, sqlWhere, user);
-        //       DocDataObject[componentName].requery(null, callback, results);
     }, (err) => {
         if (err) return new Error(err);
 

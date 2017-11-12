@@ -70,6 +70,7 @@ class Register extends React.PureComponent {
 
     componentDidMount() {
         const self = this;
+        window.addEventListener('beforeunload', this.componentCleanup);
 
         // отслеживаем изменение фильтра
         docsStore.on('change:sqlWhere', (newValue) => {
@@ -91,15 +92,24 @@ class Register extends React.PureComponent {
                 data: newValue[0].data
             };
 
-            self.setState({
-                gridValue: newValue[1].lastDocId !== 0 ? newValue[1].lastDocId : this.gridData[0].id
-            });
+            if (this.state.gridValue !== newValue[1].lastDocId) {
+                self.setState({gridValue: newValue[1].lastDocId});
+
+            } else {
+                self.forceUpdate();
+            }
         });
 
         // создаем обработчик события на изменение строки грида
         docsStore.on('change:docsGrid', function (newValue, previousValue) {
             // данные изменились, меняем состояние
             self.setState({gridValue: newValue});
+        });
+
+        // создаем обработчик события на изменение строки грида
+        docsStore.on('change:docsList', function (newValue, previousValue) {
+            // данные изменились, меняем состояние
+            self.setState({treeValue: newValue});
         });
 
         // создаем обработчик события системный извещение
@@ -112,6 +122,18 @@ class Register extends React.PureComponent {
 
 //        let lastComponent = localStorage['docsList'];
         flux.doAction('dataChange', this.props.components);
+    }
+
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docsStore.off('change:sqlWhere');
+        docsStore.off('change:systemMessage');
+        docsStore.off('change:docsList');
+        docsStore.off('change:docsGrid');
+        docsStore.off('change:data');
+        docsStore.off('change:sqlWhere');
     }
 
     render() {

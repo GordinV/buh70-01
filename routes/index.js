@@ -1,7 +1,6 @@
 const checkAuth = require('../middleware/checkAuth');
 
 module.exports = function (app) {
-    console.log('index');
 // same as main
     app.get('/', require('./login').get);
     app.post('/', require('./login').post);
@@ -26,8 +25,11 @@ module.exports = function (app) {
     app.get('/documents', checkAuth, require('./documents').get);
     // opens document template
     app.post('/api', checkAuth, require('./api').post);
+
     app.post('/api/docs', checkAuth, require('./api').post);
     app.post('/api/doc', checkAuth, require('./api_doc').post);
+
+    app.delete('/api/doc/:id', checkAuth, require('./api_doc').delete);
 
 
 };

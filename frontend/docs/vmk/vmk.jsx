@@ -86,6 +86,8 @@ class Vmk extends React.PureComponent {
             data = this.props.data.row,
             details = this.props.data.details;
 
+        window.addEventListener('beforeunload', this.componentCleanup);
+
         // сохраняем данные в хранилище
         flux.doAction('dataChange', data);
         flux.doAction('docIdChange', data.id);
@@ -131,6 +133,14 @@ class Vmk extends React.PureComponent {
             flux.doAction("loadLibs", lib);
         });
 
+    }
+
+    /**
+     * снимет все подписки
+     */
+    componentCleanup() {
+        docStore.off('change:edited');
+        docStore.off('change:libs');
     }
 
     render () {

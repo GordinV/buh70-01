@@ -67,12 +67,15 @@ const docsStore = flux.createStore({
             }
             flux.doAction('sqlWhereChange','');
             flux.doAction('sortByChange', ORDER_BY);
+            requery({name: 'docsGrid', value: value});
+
 
 //            localStorage['docsList'] = value;
         },
         dataChange: function (updater, value) {
             // Stores updates are only made inside store's action callbacks
             updater.set({data: value});
+
             if (!this.docsGrid) {
                 let gridValue = value[1].data[0].data[0].id;
                 flux.doAction('docsGridChange',gridValue);
@@ -103,6 +106,8 @@ const add = (docTypeId) => {
 };
 
 const requeryForAction = (action, callback) => {
+    const ACTION_LIST = {'delete': 'DELETE'},
+        API = '/api/doc';
     if (!window.jQuery || !$) return; // для тестов
 
     // метод обеспечит запрос на выполнение
@@ -130,7 +135,6 @@ const requeryForAction = (action, callback) => {
             }
 
         });
-
     }
 
     let parameters = {
@@ -139,8 +143,8 @@ const requeryForAction = (action, callback) => {
     };
 
     $.ajax({
-        url: '/api/doc',
-        type: "POST",
+        url: API,
+        type: ACTION_LIST[ACTION] || 'POST',
         dataType: 'json',
         data: {
             action: action,
@@ -212,10 +216,11 @@ const requery = (component) => {
         cache: false,
         success: function (data) {
             // должны получить объект
+            let components = [];
             data.forEach(function (item) {
                 // find item
                 // обновим данные массива компонентов
-                components = components.map(function (component) {
+                components = docsStore.data.map(function (component) {
                     if (component.name == item.name) {
                         // found
                         component.data = item.data;
