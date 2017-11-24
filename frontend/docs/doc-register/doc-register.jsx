@@ -244,10 +244,16 @@ class Register extends React.PureComponent {
      * @returns {XML}
      */
     renderFilterToolbar() {
-        return (
-            <ToolbarContainer ref='filterToolbarContainer' position="left">
-                <span>Filter: {this.getFilterString()}</span>
-            </ToolbarContainer>);
+        let filter = this.getFilterString();
+        let component;
+
+        if (filter) {
+            component = <ToolbarContainer ref='filterToolbarContainer' position="left">
+                <span> Filter: {this.getFilterString()}</span>
+            </ToolbarContainer>;
+        }
+
+        return (component);
     }
 
     /**

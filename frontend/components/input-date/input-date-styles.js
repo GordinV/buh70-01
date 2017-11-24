@@ -1,6 +1,8 @@
 module.exports = {
     input: {
         width: '70%',
+        borderRadius:'3px'
+
     },
     focused: {
         backgroundColor: 'lightblue'

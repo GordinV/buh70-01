@@ -44,6 +44,7 @@ class DataGrid extends React.PureComponent {
     }
 
     componentWillReceiveProps(nextProps) {
+        console.log('nextProps:', nextProps);
         this.forceUpdate();
     }
 
@@ -53,10 +54,11 @@ class DataGrid extends React.PureComponent {
          onKeyDown: this.handleKeyPress('Down'),
          onDoubleClick: this.handleCellDblClick(),
          */
+        let tableStyle = Object.assign({}, styles.headerTable,  this.props.style)
         return (
             <div style={{height: 'inherit'}}>
                 <div style={styles.header}>
-                    <table ref="dataGridTable" style={styles.headerTable}>
+                    <table ref="dataGridTable" style={tableStyle}>
                         <tbody>
                         <tr>
                             {this.prepareTableHeader()}
@@ -65,7 +67,7 @@ class DataGrid extends React.PureComponent {
                     </table>
                 </div>
                 <div style={styles.wrapper}>
-                    <table style={styles.mainTable}>
+                    <table style={tableStyle}>
                         <tbody>
                         <tr style={{visibility:'collapse'}}>
                             {this.prepareTableHeader(true)}
@@ -274,7 +276,8 @@ DataGrid.propTypes = {
 
 DataGrid.defaultProps = {
     gridColumns: [],
-    gridData: []
+    gridData: [],
+    style: {}
 };
 
 module.exports = DataGrid;

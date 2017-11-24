@@ -2,7 +2,7 @@
 
 const userid = require('../models/userid'),
     async = require('async'),
-    HttpError = require('error').HttpError,
+    HttpError = require('./../error').HttpError,
     errorMessage = '';
 
 

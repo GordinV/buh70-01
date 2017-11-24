@@ -29,7 +29,7 @@ class MenuToolBar extends React.PureComponent {
         let isEditMode = this.props.edited,
             toolbarParams = {
                 btnStart: {
-                    show: this.props.params['btnStart'].show,
+                    show: this.props.params['btnStart'].show || false,
                     disabled: isEditMode
                 },
                 btnLogin: {
@@ -37,11 +37,11 @@ class MenuToolBar extends React.PureComponent {
                     disabled: false
                 },
                 btnAccount: {
-                    show: this.state.logedIn,
+                    show: this.state.logedIn || false,
                     disabled: false
                 },
                 btnRekv: {
-                    show: this.state.logedIn,
+                    show: this.state.logedIn || false,
                     disabled: !this.state.rekvIds
                 }
 

@@ -122,8 +122,10 @@ class Journal extends React.PureComponent {
      * снимет все подписки
      */
     componentCleanup() {
+/*
         docStore.off('change:edited');
         docStore.off('change:libs');
+*/
     }
 
     render() {

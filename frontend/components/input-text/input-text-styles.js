@@ -1,7 +1,8 @@
 module.exports = {
     input: {
         width: '70%',
-        marginLeft: '5px'
+        marginLeft: '5px',
+        borderRadius:'3px'
     },
     focused: {
         backgroundColor: 'lightblue'
@@ -12,7 +13,7 @@ module.exports = {
     wrapper: {
         margin: '5px',
         display: 'flex',
-        width: '95%'
+        width: '95%',
     },
     label : {
         width: '30%',

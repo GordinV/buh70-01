@@ -31,6 +31,7 @@ module.exports = {
         documentLib: './frontend/documentLib.js',
         project: './frontend/project.js',
         tunnus: './frontend/tunnus.js',
+        tunnused: './frontend/tunnused.js',
     },
     output: {
         path: __dirname + '/public/javascripts',
@@ -60,7 +61,7 @@ module.exports = {
         new webpack.DefinePlugin({NODE_ENV: JSON.stringify(NODE_ENV)}),
         new webpack.optimize.CommonsChunkPlugin({
             name: "common",
-            chunks: ['docs', 'doc', 'arv', 'journal', 'sorder', 'vorder', 'smk', 'vmk', 'asutused', 'kontod', 'nomenclature', 'documentLib', 'project', 'tunnus'], // список модулей для выявления общих модулей
+            chunks: ['docs', 'doc', 'arv', 'journal', 'sorder', 'vorder', 'smk', 'vmk', 'asutused', 'kontod', 'nomenclature', 'documentLib', 'project', 'tunnus', 'tunnused'], // список модулей для выявления общих модулей
             minChunks: 3
         })
     ],

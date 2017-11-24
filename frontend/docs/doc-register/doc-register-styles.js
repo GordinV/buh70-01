@@ -3,7 +3,9 @@ module.exports = {
         display: 'flex',
         flexFlow: 'row wrap',
         height: '87%',
+/*
         border: '3px solid brown'
+*/
     },
     wrapper: {
         display: 'flex',

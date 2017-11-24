@@ -1,6 +1,8 @@
 module.exports = {
     page: {
+/*
         border:'1px solid black',
+*/
         borderRadius: '3px'
     },
     icons: {

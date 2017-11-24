@@ -9,7 +9,9 @@
 
 .doc-toolbar-warning {
     float: left;
+    /*
     background-color: red;
+    */
     margin: 10px;
 }
 
@@ -41,7 +43,9 @@ div.fieldset {
 div.doc-header {
     margin: 5px;
     padding:5px;
+    /*
     border:1px solid black;
+    */
     display:block;
 }
 .doc-input {

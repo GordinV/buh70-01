@@ -1,3 +1,5 @@
+'use strict';
+
 const checkAuth = require('../middleware/checkAuth');
 
 module.exports = function (app) {
@@ -15,6 +17,9 @@ module.exports = function (app) {
 //  app.get('/api/doc/', checkAuth, require('./api_doc').get);
     app.get('/document/:id', checkAuth, require('./document').get);
 
+    app.get('/tunnused', checkAuth, require('./tunnused').get); // module tunnused
+//    app.get('/tunnused/tunnus:id', checkAuth, require('./tunnus').get); // module tunnused
+
 
     // opens main page
     app.get('/main', checkAuth, require('./main').get);
@@ -23,12 +28,15 @@ module.exports = function (app) {
     app.get('/changeDepartment/:id', checkAuth, require('./changeDepartment').get);
     // opens document template
     app.get('/documents', checkAuth, require('./documents').get);
+
+    // temorary solution> only for test
+    //app.get('/docs', checkAuth, require('./docs').get);
     // opens document template
     app.post('/api', checkAuth, require('./api').post);
 
     app.post('/api/docs', checkAuth, require('./api').post);
     app.post('/api/doc', checkAuth, require('./api_doc').post);
-
+    app.post('/newApi', checkAuth, require('./newApi').post);
     app.delete('/api/doc/:id', checkAuth, require('./api_doc').delete);
 
 

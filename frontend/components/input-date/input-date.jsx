@@ -56,6 +56,7 @@ class InputDate extends React.PureComponent {
                 </label>
 
                 <input type='date'
+                       style={styles.input}
                        name={this.props.name}
                        ref="input"
                        value={this.state.value}

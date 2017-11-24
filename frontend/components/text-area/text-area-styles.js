@@ -1,6 +1,8 @@
 module.exports = {
     input: {
         width: '100%',
+        borderRadius:'3px'
+
     },
     focused: {
         backgroundColor: 'lightblue'
@@ -17,5 +19,5 @@ module.exports = {
     label : {
         margin: '5px'
     }
-}
+};
 

@@ -1,7 +1,10 @@
 module.exports = {
     button: {
         background: 'white',
-        margin:'2px'
+        margin:'5px 2px',
+        borderRadius: '5px',
+        height:'30px',
+
     },
     icons: {
         add:'/images/icons/add.png',

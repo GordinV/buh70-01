@@ -16,7 +16,6 @@ describe('db query tests', () => {
             params = ['Hello world!'];
 
         let data =  await db.queryDb(sqlString,params);
-        console.log('data', data);
         expect(data).toBeDefined();
         expect(data).toHaveProperty('error_code', 0);
         expect(data).toHaveProperty('result');
@@ -29,21 +28,42 @@ describe('db query tests', () => {
             params = [];
 
         let data =  await db.queryDb(sqlString,params);
-        console.log('data', data);
         expect(data).toBeDefined();
         expect(data).toHaveProperty('error_code', 9);
         expect(data).toHaveProperty('error_message');
     });
 
     it ('test of multiple query', async() => {
-        expect.assertions(1);
+        expect.assertions(5);
         let sqlString = [`SELECT 'a' `, `SELECT 'b' `],
             params = [];
 
         let data =  await db.executeQueries(sqlString,params);
-        console.log('data[]:', data);
         expect(data).toBeDefined();
+        expect(data[0]).toHaveProperty('error_code', 0);
+        expect(data[0]).toHaveProperty('result', 1);
+        expect(data[0]).toHaveProperty('data');
+        expect(data[0].data.length).toBeGreaterThan(0);
+
+    });
+
+    it ('test of multiple query with object as return template', async() => {
+        expect.assertions(5);
+        let sqlString = [{sql:`SELECT 'a' `, alias:'rowA'}, {sql:`SELECT 'b' `, alias:'rowB'}],
+            params = [],
+            returnData = {
+                rowA:{},
+                rowB:{}
+            };
+
+        let data =  await db.executeQueries(sqlString,params, returnData);
+        expect(data).toBeDefined();
+        expect(data).toHaveProperty('rowA');
+        expect(data.rowA.length).toBeGreaterThan(0);
+        expect(data).toHaveProperty('rowB');
+        expect(data.rowB.length).toBeGreaterThan(0);
 
     })
+
 
 });

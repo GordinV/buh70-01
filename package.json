@@ -5,13 +5,14 @@
   "scripts": {
     "jest": "jest",
     "test": "mocha --compilers js:babel-core/register  \"test/**-test.@(js|jsx)\"",
-    "start": "node /app.js",
+    "start": "node app.js",
     "build": "webpack --progress -p",
     "watch": "webpack --progress --watch"
   },
   "dependencies": {
     "ajax": "0.0.4",
     "async": "^1.5.0",
+    "axios": "^0.17.1",
     "babel-browser": "^6.1.19",
     "babel-cli": "^6.23.0",
     "babel-loader": "^6.3.2",
